@@ -1,1 +1,5 @@
 *.elc
+*.un~
+.python-environments
+ac-comphist.dat
+auto-save-list
