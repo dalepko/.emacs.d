@@ -1,12 +1,15 @@
 #! /usr/bin/env python
 import ctypes
 import errno
+import logging
 import hashlib
 import os
 import socket
 import sys
+import time
 
 
+LOG_FILE = os.path.expanduser('~/.emacs.d/epylint.log')
 SOCK_DIR = os.path.expanduser('~/.emacs.d/epylintd')
 TIMEOUT = 5 * 60 * 1000
 SCM_RIGHTS = 0x01
@@ -71,6 +74,8 @@ class passfd(object):
         if res == -1:
             error = ctypes.get_errno()
             raise OSError(errno, os.strerror(error))
+        elif res == 0:
+            return None
 
         if (payload.level != socket.SOL_SOCKET or
                 payload.type != SCM_RIGHTS):
@@ -78,29 +83,37 @@ class passfd(object):
 
         return payload.fd
 
-def socket_for_file(filename):
-    return os.path.join(SOCK_DIR, hashlib.sha1(filename).hexdigest())
+
+def get_sock_path():
+    python_path = ':'.join(os.path.abspath(path) for path in sys.path)
+    return os.path.join(SOCK_DIR, hashlib.sha1(python_path).hexdigest())
 
 
-def find_rope(path):
-    parent = os.path.dirname(path)
+# def find_rope(path):
+#     parent = os.path.dirname(path)
 
-    if parent == path:
-        return None
-    else:
-        if os.path.isdir(os.path.join(parent, '.ropeproject')):
-            return parent
-        else:
-            return find_rope(parent)
+#     if parent == path:
+#         return None
+#     else:
+#         if os.path.isdir(os.path.join(parent, '.ropeproject')):
+#             return parent
+#         else:
+#             return find_rope(parent)
 
 
-def epylint_daemon(filename, signal_socket):
+def epylint_daemon(signal_socket):
+    sock_path = get_sock_path()
+
     import select
     from pylint.lint import Run
+    from astroid.builder import MANAGER
 
-    sock_file = socket_for_file(filename)
+    logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
+    logger = logging.getLogger('epylint')
+
     server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
     poll = select.poll()
+
     # from rope.base.prefs import Prefs
     # rope = find_rope(filename)
     # if rope:
@@ -111,52 +124,84 @@ def epylint_daemon(filename, signal_socket):
     #     sys.path = prefs.get('python_path', []) + [rope] + sys.path
 
     try:
-        os.unlink(sock_file)
+        os.unlink(sock_path)
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
 
-    server.bind(sock_file)
+    server.bind(sock_path)
+
     try:
+        logger.debug('Started daemon')
         server.listen(5)
         signal_socket.send('ok')
         signal_socket.close()
-        sys.stdout.close()
-        sys.stderr.close()
 
         poll.register(server, select.POLLIN)
-        events = poll.poll(30000)
+        events = poll.poll(60000)
 
         while events:
             assert len(events) == 1
             assert events[0][0] == server.fileno()
 
             (client, _) = server.accept()
+
+            start = time.time()
+            logger.debug('Client connected')
+
             fd = passfd.recv(client)
+            if fd is None:
+                logger('EOF received')
+                break
+
+            client_file = client.makefile()
+            filename = client_file.readline().decode('utf-8')[:-1]
+            basename, _ = os.path.splitext(filename)
+            _, basename = os.path.split(basename)
+            dot_basename = '.' + basename
+
+            logger.debug('client send file = %s', filename)
+            MANAGER.astroid_cache = {
+                key: value
+                for key, value in MANAGER.astroid_cache.iteritems()
+                if key != basename and not key.endswith(dot_basename)
+            }
+
             sys.stdout = os.fdopen(fd, 'w')
             sys.stderr = sys.stdout
 
-            Run(['--msg-template={path}:{line}:{column}:[{symbol}, {msg_id}] {msg}',
-                 '-rn',
-                 filename],
-                exit=False)
+            logger.debug('Running pylint')
+            run = Run(['--msg-template={path}:{line}:{column}:[{symbol}, {msg_id}] {msg}',
+                          '-rn',
+                          filename],
+                         exit=False)
 
             sys.stdout.close()
+            client_file.write(str(run.linter.msg_status) + '\n')
+            client_file.close()
             client.close()
 
-            events = poll.poll(30000)
+            end = time.time()
+            logger.debug('Pylint done, status = %d, time = %.2f',
+                         run.linter.msg_status,
+                         end - start)
+
+            events = poll.poll(60000)
+    except:
+        logger.exception('Unexpected exception')
     finally:
         os.unlink(sock_file)
         server.close()
+    logger.debug('daemon exiting')
 
 
-def spawn_daemon(filename):
+def spawn_daemon():
     parent, child = socket.socketpair()
     pid = os.fork()
 
     if pid == 0:
         if os.fork() == 0:
-            for fd in xrange(3, 1024):
+            for fd in xrange(0, 1024):
                 try:
                     if fd != child.fileno():
                         os.close(fd)
@@ -164,7 +209,7 @@ def spawn_daemon(filename):
                     pass
 
             os.setsid()
-            epylint_daemon(filename, child)
+            epylint_daemon(child)
             os._exit(0)
         else:
             os._exit(0)
@@ -175,23 +220,23 @@ def spawn_daemon(filename):
             raise RuntimeError('epylint daemon failed to start: ' + repr(msg))
 
 
-def get_connection(filename, force):
+def get_connection(force):
     try:
         os.makedirs(SOCK_DIR)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
 
-    sock_file = os.path.join(SOCK_DIR, hashlib.sha1(filename).hexdigest())
+    sock_path = get_sock_path()
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
 
     try:
-        sock.connect(sock_file)
+        sock.connect(sock_path)
     except socket.error as e:
         if e.errno in [errno.ENOENT, errno.ECONNREFUSED]:
             if force:
-                spawn_daemon(filename)
-                sock.connect(sock_file)
+                spawn_daemon()
+                sock.connect(sock_path)
             else:
                 return None
         else:
@@ -204,9 +249,11 @@ if __name__ == '__main__':
 
     if arg == '--kill':
         filename = os.path.abspath(sys.argv[2])
-        conn = get_connection(filename, False)
+        conn = get_connection(False)
     else:
         filename = os.path.abspath(sys.argv[1])
-        conn = get_connection(filename, True)
+        conn = get_connection(True)
         passfd.send(conn, sys.stdout.fileno())
-        status = conn.recv(1)
+        conn.send(filename.encode('utf-8') + '\n')
+        status = conn.recv(100)
+        sys.exit(int(status))

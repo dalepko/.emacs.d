@@ -1,4 +1,3 @@
-
 (when (load "which-func")
   (setq pytest-last-file nil)
   (setq pytest-last-func nil)
@@ -34,8 +33,6 @@
 
 (when (load "flymake" t)
   (setq epylint "~/.emacs.d/epylint")
-  (setq epylint-filename nil)
-  (make-variable-buffer-local 'epylint-run)
 
   (defun flymake-pylint-init ()
     (interactive)
@@ -44,13 +41,6 @@
            (local-file (file-relative-name
                         temp-file
                         (file-name-directory buffer-file-name))))
-
-      (if (not epylint-filename)
-	  (add-hook 'kill-buffer-hook
-		    '(lambda ()
-		       (call-process epylint nil nil nil "--kill" epylint-filename)))
-	(if (not (string= local-file epylint-filename))
-	    (call-process epylint nil nil nil "--kill" epylint-filename)))
 
       (setq epylint-filename local-file)
       (list epylint (list local-file))))
