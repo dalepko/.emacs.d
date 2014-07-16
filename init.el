@@ -8,8 +8,8 @@
  '(ansi-color-names-vector ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
  '(backup-by-copying t)
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backup"))))
- '(custom-enabled-themes (quote (solarized-light)))
- '(custom-safe-themes (quote ("1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
+ '(custom-enabled-themes (quote (solarized-dark)))
+ '(custom-safe-themes (quote ("fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
  '(delete-old-versions t)
  '(ediff-split-window-function (quote split-window-horizontally))
  '(global-git-gutter-mode t)
@@ -28,8 +28,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(flymake-errline ((t (:background "white"))))
- '(flymake-warnline ((t (:background "white"))))
+ '(flymake-errline ((t (:background "black"))) t)
+ '(flymake-warnline ((t (:background "black"))) t)
  '(git-gutter:added ((t (:foreground "color-40" :weight bold))))
  '(match ((t (:background "magenta")))))
 
