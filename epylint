@@ -190,7 +190,7 @@ def epylint_daemon(signal_socket):
     except:
         logger.exception('Unexpected exception')
     finally:
-        os.unlink(sock_file)
+        os.unlink(sock_path)
         server.close()
     logger.debug('daemon exiting')
 
