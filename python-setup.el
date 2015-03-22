@@ -2,12 +2,33 @@
   (setq pytest-last-file nil)
   (setq pytest-last-func nil)
 
+  (defvar pytest-error-minor-mode-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map [mouse-2] 'compile-goto-error)
+      (define-key map [follow-link] 'mouse-face)
+      (define-key map "\C-c\C-c" 'compile-goto-error)
+      (define-key map "\C-c\C-k" 'kill-compilation)
+      (define-key map "\M-n" 'compilation-next-error)
+      (define-key map "\M-p" 'compilation-previous-error)
+      (define-key map "\M-{" 'compilation-previous-file)
+      (define-key map "\M-}" 'compilation-next-file)
+      map)
+    "Keymap for `pytest-error-minor-mode-map'.")
+
+  (define-minor-mode pytest-error-minor-mode
+    "Highlight errors in pytest buffer"
+    nil " Pytest"
+    :group 'compilation
+    (if pytest-error-minor-mode
+        (compilation-setup t)
+      (compilation--unsetup)))
+
   (defun run-pytest (verbose filename func)
-    (let ((command  (format "cd %s && py.test%s -v"
-                            (file-name-directory filename)
+    (let ((command  (format "py.test%s -v"
+                            ;;(file-name-directory filename)
                             (if verbose " -s" ""))))
       (if func
-          (let ((node_id (concat (file-name-nondirectory filename)
+          (let ((node_id (concat filename;;(file-name-nondirectory filename)
                                  "::"
                                  (mapconcat 'identity (split-string func "\\.") " "))))
             (setq command (concat command " " node_id)))
@@ -15,7 +36,17 @@
 
       (setq pytest-last-file filename)
       (setq pytest-last-func func)
-      (compilation-start command t '(lambda (mode) "*py.test*"))))
+      (let ((buffer (save-window-excursion
+                      (when (and (boundp 'gud-comint-buffer) (get-buffer-create gud-comint-buffer))
+                        (kill-buffer gud-comint-buffer))
+                      (pdb command)
+                      (setq gud-find-expr-function (lambda () (symbol-name (sexp-at-point))))
+                      (pytest-error-minor-mode)
+                      (current-buffer))))
+        (save-selected-window
+          (switch-to-buffer-other-window buffer)
+          (set-window-dedicated-p nil t)))))
+      ;(compilation-start command t '(lambda (mode) "*py.test*"))))
 
   (defun pytest (&optional verbose)
     (interactive "P")
@@ -27,8 +58,8 @@
         (run-pytest verbose pytest-last-file pytest-last-func)
       (run-pytest verbose buffer-file-name (which-function))))
 
-  (define-key python-mode-map [(shift f10)] 'pytest)
-  (define-key python-mode-map [(f10)] 'pytest-again))
+  (define-key python-mode-map [(shift f9)] 'pytest)
+  (define-key python-mode-map [(f9)] 'pytest-again))
 
 
 (when (load "flymake" t)

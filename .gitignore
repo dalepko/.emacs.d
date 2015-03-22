@@ -3,3 +3,9 @@
 .python-environments
 ac-comphist.dat
 auto-save-list
+elpa/archives
+elpa/gnupg/
+ido.last
+epylint.log
+eshell
+.#ac-comphist.dat

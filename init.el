@@ -18,8 +18,14 @@
  '(ido-mode (quote both) nil (ido))
  '(indent-tabs-mode nil)
  '(menu-bar-mode nil)
- '(package-archives (quote (("gnu" . "http://elpa.gnu.org/packages/") ("melpa" . "http://melpa.milkbox.net/packages/"))))
- '(safe-local-variable-values (quote ((project-venv-name . "tina-develop") (project-venv-name . "netlink2"))))
+ '(package-archives
+   (quote
+    (("gnu" . "http://elpa.gnu.org/packages/")
+     ("melpa" . "http://melpa.milkbox.net/packages/"))))
+ '(safe-local-variable-values
+   (quote
+    ((project-venv-name . "tina-develop")
+     (project-venv-name . "netlink2"))))
  '(scss-compile-at-save nil)
  '(sgml-basic-offset 4)
  '(show-paren-mode t))
@@ -40,6 +46,26 @@
 
 (autoload 'my-python-setup "~/.emacs.d/python-setup.el")
 (add-hook 'python-mode-hook 'my-python-setup)
+(add-hook 'erlang-mode-hook 'my-erlang-setup)
+
+(defun my-flymake-show-help ()
+  (when (get-char-property (point) 'flymake-overlay)
+    (let ((help (get-char-property (point) 'help-echo)))
+      (if help (message "%s" help)))))
+
+(when (load "flymake" t)
+  (defun flymake-erlang-init ()
+    (let* ((temp-file (flymake-init-create-temp-buffer-copy
+                       'flymake-create-temp-inplace))
+           (local-file (file-relative-name temp-file
+                                           (file-name-directory buffer-file-name))))
+      (list "~/.emacs.d/eerlc" (list local-file))))
+  (add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init)))
+
+(defun my-erlang-setup ()
+  (add-to-list 'write-file-functions 'delete-trailing-whitespace)
+  (add-hook 'post-command-hook 'my-flymake-show-help)
+  (auto-complete-mode))
 
 (require 'auto-complete-config)
 (ac-config-default)
