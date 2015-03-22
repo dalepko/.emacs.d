@@ -22,6 +22,8 @@
    (quote
     (("gnu" . "http://elpa.gnu.org/packages/")
      ("melpa" . "http://melpa.milkbox.net/packages/"))))
+ '(rich-minority-mode t)
+ '(rm-blacklist (quote (" hl-p" " AC" " GitGutter" " MRev" " $")))
  '(safe-local-variable-values
    (quote
     ((project-venv-name . "tina-develop")
