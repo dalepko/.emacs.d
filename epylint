@@ -256,4 +256,4 @@ if __name__ == '__main__':
         passfd.send(conn, sys.stdout.fileno())
         conn.send(filename.encode('utf-8') + '\n')
         status = conn.recv(100)
-        sys.exit(int(status))
+        sys.exit(0 if int(status) == 0 else 1)
