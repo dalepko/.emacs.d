@@ -5,17 +5,28 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-names-vector ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
+ '(ansi-color-names-vector
+   ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
  '(backup-by-copying t)
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backup"))))
  '(circe-default-nick "dcouderc")
  '(circe-network-options (quote (("Freenode" :nickserv-password "Iè'Nvh*ù$" :nick "dcouderc"))))
  '(clean-buffer-list-delay-general 1)
  '(custom-enabled-themes (quote (solarized-dark)))
- '(custom-safe-themes (quote ("fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
+ '(custom-safe-themes
+   (quote
+    ("fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
  '(delete-old-versions t)
  '(ediff-split-window-function (quote split-window-horizontally))
+ '(flycheck-display-errors-delay 0.5)
  '(global-git-gutter-mode t)
+ '(haskell-indentation-ifte-offset 4)
+ '(haskell-indentation-layout-offset 4)
+ '(haskell-indentation-left-offset 4)
+ '(haskell-indentation-show-indentations nil)
+ '(haskell-indentation-show-indentations-after-eol nil)
+ '(haskell-indentation-where-post-offset 4)
+ '(haskell-indentation-where-pre-offset 4)
  '(ido-enable-flex-matching t)
  '(ido-everywhere t)
  '(ido-ignore-files (quote ("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./" ".orig$")))
@@ -36,7 +47,7 @@
      (project-venv-name . "tina-develop")
      (project-venv-name . "netlink2"))))
  '(scss-compile-at-save nil)
- '(sgml-basic-offset 2)
+ '(sgml-basic-offset 4)
  '(show-paren-mode t)
  '(vc-make-backup-files t)
  '(version-control t))
@@ -78,5 +89,14 @@
   (add-hook 'post-command-hook 'my-flymake-show-help)
   (auto-complete-mode))
 
+
+(global-set-key [(f9)] 'compile)
+(global-set-key [(f1)] 'man)
+
 (require 'auto-complete-config)
 (ac-config-default)
+
+(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+(add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+    
+
