@@ -10,7 +10,7 @@
  '(backup-by-copying t)
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backup"))))
  '(circe-default-nick "dcouderc")
- '(circe-network-options (quote (("Freenode" :nickserv-password "Iè'Nvh*ù$" :nick "dcouderc"))))
+ '(circe-network-options (quote (("Freenode" :nickserv-password  nickserv-password :nick "dcouderc"))))
  '(clean-buffer-list-delay-general 1)
  '(custom-enabled-themes (quote (solarized-dark)))
  '(custom-safe-themes
@@ -89,6 +89,10 @@
   (add-hook 'post-command-hook 'my-flymake-show-help)
   (auto-complete-mode))
 
+(defun nickserv-password (_)
+  (with-temp-buffer
+    (insert-file-contents-literally "~/.emacs.d/circe.pass")
+        (plist-get (read (buffer-string)) :nickserv-password)))
 
 (global-set-key [(f9)] 'compile)
 (global-set-key [(f1)] 'man)
