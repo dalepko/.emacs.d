@@ -1,3 +1,4 @@
+
 (when (load "which-func")
   (setq pytest-last-file nil)
   (setq pytest-last-func nil)
@@ -23,6 +24,11 @@
         (compilation-setup t)
       (compilation--unsetup)))
 
+  (defun undedicate-window (window old-sentinel proc msg)
+    (cond ((and (windowp window) (memq (process-status proc) '(signal exit)))
+           (set-window-dedicated-p window nil)))
+    (funcall old-sentinel proc msg))
+
   (defun run-pytest (verbose filename func)
     (let ((command  (format "py.test%s -v"
                             ;;(file-name-directory filename)
@@ -45,7 +51,15 @@
                       (current-buffer))))
         (save-selected-window
           (switch-to-buffer-other-window buffer)
-          (set-window-dedicated-p nil t)))))
+          (let* ((process (get-buffer-process buffer))
+                 (old-sentinel (process-sentinel process)))
+            (set-window-dedicated-p nil t)
+            (set-process-sentinel process
+                                  `(lambda (proc msg)
+                                     (undedicate-window ,(selected-window)
+                                                        (quote ,old-sentinel)
+                                                        proc msg)))
+            )))))
       ;(compilation-start command t '(lambda (mode) "*py.test*"))))
 
   (defun pytest (&optional verbose)
