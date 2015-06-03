@@ -171,7 +171,7 @@ def epylint_daemon(signal_socket):
             sys.stderr = sys.stdout
 
             logger.debug('Running pylint')
-            run = Run(['--msg-template={path}:{line}:{column}:[{symbol}, {msg_id}] {msg}',
+            run = Run(['--msg-template={abspath}:{line}:{column}:[{symbol}, {msg_id}] {msg}',
                           '-rn',
                           filename],
                          exit=False)
@@ -256,4 +256,7 @@ if __name__ == '__main__':
         passfd.send(conn, sys.stdout.fileno())
         conn.send(filename.encode('utf-8') + '\n')
         status = conn.recv(100)
-        sys.exit(0 if int(status) == 0 else 1)
+        try:
+            sys.exit(0 if int(status) == 0 else 1)
+        except ValueError:
+            sys.exit(1)
