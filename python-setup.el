@@ -32,19 +32,20 @@
   (defun run-pytest (verbose filename func)
     (let ((command  (format "py.test%s -v"
                             ;;(file-name-directory filename)
-                            (if verbose " -s" ""))))
+                            (if verbose " -s --pdb" ""))))
       (if func
           (let ((node_id (concat filename;;(file-name-nondirectory filename)
                                  "::"
-                                 (mapconcat 'identity (split-string func "\\.") " "))))
+                                 (mapconcat 'identity (split-string func "\\.") "::"))))
             (setq command (concat command " " node_id)))
         (setq command (concat command " " (file-name-nondirectory filename))))
 
       (setq pytest-last-file filename)
       (setq pytest-last-func func)
       (let ((buffer (save-window-excursion
-                      (when (and (boundp 'gud-comint-buffer) (get-buffer-create gud-comint-buffer))
-                        (kill-buffer gud-comint-buffer))
+                      (when (and (boundp 'gud-comint-buffer) (buffer-live-p gud-comint-buffer))
+                        (set-buffer gud-comint-buffer)
+                        (erase-buffer))
                       (pdb command)
                       (setq gud-find-expr-function (lambda () (symbol-name (sexp-at-point))))
                       (pytest-error-minor-mode)
