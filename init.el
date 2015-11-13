@@ -49,26 +49,37 @@
  '(scss-compile-at-save nil)
  '(sgml-basic-offset 4)
  '(show-paren-mode t)
+ '(tool-bar-mode nil)
  '(vc-make-backup-files t)
- '(version-control t))
+ '(version-control t)
+ '(web-mode-markup-indent-offset 2))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(flymake-errline ((t (:background "black"))))
  '(flymake-warnline ((t (:background "black"))))
  '(git-gutter:added ((t (:foreground "color-40" :weight bold))))
- '(match ((t (:background "magenta")))))
+ '(match ((t (:background "magenta"))))
+ '(web-mode-html-attr-name-face ((t (:foreground "green")))))
 
 (global-set-key (kbd "M-<up>") '(lambda () (interactive) (scroll-other-window -1)))
 (global-set-key (kbd "M-<down>") '(lambda () (interactive) (scroll-other-window 1)))
 (global-set-key [f11] 'previous-error)
 (global-set-key [f12] 'next-error)
 
+(global-set-key [M-left] 'windmove-left)
+(global-set-key [M-right] 'windmove-right)
+(global-set-key [M-up] 'windmove-up)
+(global-set-key [M-down] 'windmove-down)
+
 (autoload 'my-python-setup "~/.emacs.d/python-setup.el")
 (add-hook 'python-mode-hook 'my-python-setup)
 (add-hook 'erlang-mode-hook 'my-erlang-setup)
+
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+
+(setq web-mode-engines-alist '(("django"    . "\\.html\\'")))
 
 (defun my-flymake-show-help ()
   (when (get-char-property (point) 'flymake-overlay)
