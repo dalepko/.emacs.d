@@ -7,18 +7,26 @@
  ;; If there is more than one, they won't work right.
  '(ansi-color-names-vector
    ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
+ '(background-color "#002b36")
+ '(background-mode dark)
  '(backup-by-copying t)
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backup"))))
  '(circe-default-nick "dcouderc")
- '(circe-network-options (quote (("Freenode" :nickserv-password  nickserv-password :nick "dcouderc"))))
+ '(circe-network-options
+   (quote
+    (("Freenode" :nickserv-password nickserv-password :nick "dcouderc"))))
  '(clean-buffer-list-delay-general 1)
- '(custom-enabled-themes (quote (solarized-dark)))
+ '(cursor-color "#839496")
+ '(custom-enabled-themes (quote (misterioso)))
  '(custom-safe-themes
    (quote
     ("fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
  '(delete-old-versions t)
  '(ediff-split-window-function (quote split-window-horizontally))
+ '(eshell-cmpl-cycle-completions nil)
  '(flycheck-display-errors-delay 0.5)
+ '(foreground-color "#839496")
+ '(frame-resize-pixelwise t)
  '(global-git-gutter-mode t)
  '(haskell-indentation-ifte-offset 4)
  '(haskell-indentation-layout-offset 4)
@@ -29,7 +37,9 @@
  '(haskell-indentation-where-pre-offset 4)
  '(ido-enable-flex-matching t)
  '(ido-everywhere t)
- '(ido-ignore-files (quote ("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./" ".orig$")))
+ '(ido-ignore-files
+   (quote
+    ("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./" ".orig$")))
  '(ido-mode (quote both) nil (ido))
  '(indent-tabs-mode nil)
  '(kept-new-versions 10)
@@ -81,6 +91,8 @@
 
 (setq web-mode-engines-alist '(("django"    . "\\.html\\'")))
 
+(add-hook 'web-mode-hook (lambda () (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
+
 (defun my-flymake-show-help ()
   (when (get-char-property (point) 'flymake-overlay)
     (let ((help (get-char-property (point) 'help-echo)))
@@ -103,7 +115,7 @@
 (defun nickserv-password (_)
   (with-temp-buffer
     (insert-file-contents-literally "~/.emacs.d/circe.pass")
-        (plist-get (read (buffer-string)) :nickserv-password)))
+    (plist-get (read (buffer-string)) :nickserv-password)))
 
 (global-set-key [(f9)] 'compile)
 (global-set-key [(f1)] 'man)
@@ -113,5 +125,6 @@
 
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
-    
 
+(load "lui-logging" nil t)
+(enable-lui-logging-globally)
