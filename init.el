@@ -20,7 +20,7 @@
  '(custom-enabled-themes (quote (misterioso)))
  '(custom-safe-themes
    (quote
-    ("fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
+    ("66132890ee1f884b4f8e901f0c61c5ed078809626a547dbefbb201f900d03fd8" "3632cf223c62cb7da121be0ed641a2243f7ec0130178722554e613c9ab3131de" "7e83d0aacca4c0e4e9441f920a66ee4de73decc1bb9dd7fcc2c1857948e604c8" "a444b2e10bedc64e4c7f312a737271f9a2f2542c67caa13b04d525196562bf38" "e8a9dfa28c7c3ae126152210e3ccc3707eedae55bdc4b6d3e1bb3a85dfb4e670" "de8fa309eed1effea412533ca5d68ed33770bdf570dcaa458ec21eab219821fd" "8abee8a14e028101f90a2d314f1b03bed1cde7fd3f1eb945ada6ffc15b1d7d65" "9cb6358979981949d1ae9da907a5d38fb6cde1776e8956a1db150925f2dad6c1" "5999e12c8070b9090a2a1bbcd02ec28906e150bb2cdce5ace4f965c76cf30476" "3a9249d4c34f75776e130efd7e02c4a0a7c90ad7723b50acc5806112394ec2dd" "fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
  '(delete-old-versions t)
  '(ediff-split-window-function (quote split-window-horizontally))
  '(eshell-cmpl-cycle-completions nil)
@@ -28,18 +28,22 @@
  '(foreground-color "#839496")
  '(frame-resize-pixelwise t)
  '(global-git-gutter-mode t)
- '(haskell-indentation-ifte-offset 4)
- '(haskell-indentation-layout-offset 4)
- '(haskell-indentation-left-offset 4)
+ '(haskell-ask-also-kill-buffers nil)
  '(haskell-indentation-show-indentations nil)
  '(haskell-indentation-show-indentations-after-eol nil)
- '(haskell-indentation-where-post-offset 4)
- '(haskell-indentation-where-pre-offset 4)
+ '(haskell-process-args-stack-ghci
+   (quote
+    ("--ghc-options=-ferror-spans" "--with-ghc=/home/david/.local/bin/ghci-ng")))
+ '(haskell-stylish-on-save t)
+ '(haskell-tags-on-save t)
+ '(help-at-pt-display-when-idle (quote (haskell-msg)) nil (help-at-pt))
+ '(help-at-pt-timer-delay 0.5)
+ '(hi2-show-indentations nil)
  '(ido-enable-flex-matching t)
  '(ido-everywhere t)
  '(ido-ignore-files
    (quote
-    ("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./" ".orig$")))
+    ("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./" "\\.orig$" "\\.bak$")))
  '(ido-mode (quote both) nil (ido))
  '(indent-tabs-mode nil)
  '(kept-new-versions 10)
@@ -50,12 +54,15 @@
     (("gnu" . "http://elpa.gnu.org/packages/")
      ("melpa" . "http://melpa.milkbox.net/packages/"))))
  '(rich-minority-mode t)
- '(rm-blacklist (quote (" hl-p" " AC" " GitGutter" " MRev" " $")))
+ '(rm-blacklist
+   (quote
+    (" hl-p" " AC" " GitGutter" " Ind" " MRev" " Interactive" " $")))
  '(safe-local-variable-values
    (quote
     ((project-venv-name . "tina-2.2")
      (project-venv-name . "tina-develop")
      (project-venv-name . "netlink2"))))
+ '(scroll-bar-mode nil)
  '(scss-compile-at-save nil)
  '(sgml-basic-offset 4)
  '(show-paren-mode t)
@@ -68,6 +75,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(cursor ((t (:background "dark gray"))))
  '(flymake-warnline ((t (:background "black"))))
  '(git-gutter:added ((t (:foreground "color-40" :weight bold))))
  '(match ((t (:background "magenta"))))
@@ -123,8 +131,15 @@
 (require 'auto-complete-config)
 (ac-config-default)
 
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+(add-hook 'haskell-mode-hook 'hi2-mode)
 (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+;; (add-hook 'haskell-mode-hook 'flycheck-mode)
+(add-hook 'interactive-haskell-mode-hook
+          (lambda ()
+            (define-key interactive-haskell-mode-map (kbd "M-.") 'haskell-mode-goto-loc)
+            (define-key interactive-haskell-mode-map (kbd "C-c C-t") 'haskell-mode-show-type-at)))
+;; (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)
+(setq exec-path (append exec-path '("~/.local/bin")))
 
-(load "lui-logging" nil t)
-(enable-lui-logging-globally)
+(put 'erase-buffer 'disabled nil)
+(put 'downcase-region 'disabled nil)
