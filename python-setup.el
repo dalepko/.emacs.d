@@ -1,3 +1,4 @@
+(require 'python)
 
 (when (load "which-func")
   (setq pytest-last-file nil)
@@ -103,7 +104,6 @@
 
 (setq venv-indicator '(:exec venv-current-name))
 
-(eq venv-indicator venv-indicator)
 
 (defun my-python-setup ()
   (require 'virtualenvwrapper)

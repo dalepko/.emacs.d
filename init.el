@@ -38,7 +38,6 @@
  '(haskell-tags-on-save t)
  '(help-at-pt-display-when-idle (quote (haskell-msg)) nil (help-at-pt))
  '(help-at-pt-timer-delay 0.5)
- '(hi2-show-indentations nil)
  '(ido-enable-flex-matching t)
  '(ido-everywhere t)
  '(ido-ignore-files
@@ -59,12 +58,14 @@
     (" hl-p" " AC" " GitGutter" " Ind" " MRev" " Interactive" " $")))
  '(safe-local-variable-values
    (quote
-    ((project-venv-name . "tina-2.2")
+    ((project-venv-name . "tina")
+     (project-venv-name . "tina-2.2")
      (project-venv-name . "tina-develop")
      (project-venv-name . "netlink2"))))
  '(scroll-bar-mode nil)
  '(scss-compile-at-save nil)
  '(sgml-basic-offset 4)
+ '(shell-pop-universal-key "C-p")
  '(show-paren-mode t)
  '(tool-bar-mode nil)
  '(vc-make-backup-files t)
@@ -75,6 +76,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(default ((t (:family "Liberation Mono"))))
  '(cursor ((t (:background "dark gray"))))
  '(flymake-warnline ((t (:background "black"))))
  '(git-gutter:added ((t (:foreground "color-40" :weight bold))))
@@ -131,14 +133,55 @@
 (require 'auto-complete-config)
 (ac-config-default)
 
-(add-hook 'haskell-mode-hook 'hi2-mode)
-(add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+
+;;--[yas configuration]--------------------------------------------------
+
+;; (defun from-test-directory (file)
+;;   (let ((base (file-name-directory file))
+;;         (base-name (file-name-nondirectory file)))
+;;     (if (string= base file)
+;;         (error "could not find base test directory")
+;;       (if (or (string= base-name "tests")
+;;               (string= base-name "test"))
+;;           nil
+;;         (cons (file-name-sans-extension base-name)
+;;               (base-test (directory-file-name base)))))))
+
+;; (defun to-hs-module-name ()
+;;   (let ((test-path (reverse (from-test-directory (buffer-file-name)))))
+;;     (mapconcat (quote identity) test-path ".")))
+
+;; (defun maybe-import-related-module ()
+;;   (let ((mod-name (to-hs-module-name)))
+;;     (if (string-suffix-p "Spec" mod-name)
+;;         (concat "\nimport " (substring mod-name 0 (- (length mod-name) 4)))
+;;       "")))
+
+;; (yas-global-mode t)
+;; (define-key yas-minor-mode-map (kbd "<tab>") nil)
+;; (define-key yas-minor-mode-map (kbd "TAB") nil)
+;; (define-key yas-minor-mode-map (kbd "C-*") 'yas-expand)
+
+;;--[haskell-mode configuration]------------------------------------------
+
+;; (require 'flycheck)
+;; (flycheck-disable-checker 'haskell-ghc)
+;; (flycheck-disable-checker 'haskell-stack-ghc)
 ;; (add-hook 'haskell-mode-hook 'flycheck-mode)
+;; (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)
+
+(load-file "~/.emacs.d/hspec.el")
+
+(add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+
+
 (add-hook 'interactive-haskell-mode-hook
           (lambda ()
             (define-key interactive-haskell-mode-map (kbd "M-.") 'haskell-mode-goto-loc)
-            (define-key interactive-haskell-mode-map (kbd "C-c C-t") 'haskell-mode-show-type-at)))
-;; (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)
+            (define-key interactive-haskell-mode-map (kbd "C-c C-t") 'haskell-mode-show-type-at)
+            (define-key interactive-haskell-mode-map [(shift f9)] 'hspec-run)
+            (define-key interactive-haskell-mode-map [(f9)] 'hspec-rerun)))
+
 (setq exec-path (append exec-path '("~/.local/bin")))
 
 (put 'erase-buffer 'disabled nil)
