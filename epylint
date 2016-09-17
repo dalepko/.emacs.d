@@ -171,10 +171,10 @@ def epylint_daemon(signal_socket):
             sys.stderr = sys.stdout
 
             logger.debug('Running pylint')
-            run = Run(['--msg-template={abspath}:{line}:{column}:[{symbol}, {msg_id}] {msg}',
-                          '-rn',
-                          filename],
-                         exit=False)
+            run = Run(['--msg-template={abspath}:{line}:{column}:{C}:{symbol}:{msg}',
+                       '-rn',
+                       filename],
+                      exit=False)
 
             sys.stdout.close()
             client_file.write(str(run.linter.msg_status) + '\n')
@@ -251,7 +251,7 @@ if __name__ == '__main__':
         filename = os.path.abspath(sys.argv[2])
         conn = get_connection(False)
     else:
-        filename = os.path.abspath(sys.argv[1])
+        filename = os.path.abspath(sys.argv[-1])
         conn = get_connection(True)
         passfd.send(conn, sys.stdout.fileno())
         conn.send(filename.encode('utf-8') + '\n')
