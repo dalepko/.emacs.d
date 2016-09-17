@@ -1,3 +1,6 @@
+(require 'cask "~/.cask/cask.el")
+(cask-initialize)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -49,7 +52,6 @@
  '(kept-new-versions 10)
  '(menu-bar-mode nil)
  '(midnight-mode t nil (midnight))
-   (quote
  '(rich-minority-mode t)
  '(rm-blacklist
    (quote
@@ -70,6 +72,7 @@
  '(vc-make-backup-files t)
  '(version-control t)
  '(web-mode-markup-indent-offset 2))
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -81,9 +84,6 @@
  '(git-gutter:added ((t (:foreground "color-40" :weight bold))))
  '(match ((t (:background "magenta"))))
  '(web-mode-html-attr-name-face ((t (:foreground "green")))))
-
-(require 'cask "~/.cask/cask.el")
-(cask-initialize)
 
 (global-set-key (kbd "M-<up>") '(lambda () (interactive) (scroll-other-window -1)))
 (global-set-key (kbd "M-<down>") '(lambda () (interactive) (scroll-other-window 1)))
@@ -105,23 +105,9 @@
 
 (add-hook 'web-mode-hook (lambda () (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
 
-;; (defun my-flymake-show-help ()
-;;   (when (get-char-property (point) 'flymake-overlay)
-;;     (let ((help (get-char-property (point) 'help-echo)))
-;;       (if help (message "%s" help)))))
-
-;; (when (load "flymake" t)
-;;   (defun flymake-erlang-init ()
-;;     (let* ((temp-file (flymake-init-create-temp-buffer-copy
-;;                        'flymake-create-temp-inplace))
-;;            (local-file (file-relative-name temp-file
-;;                                            (file-name-directory buffer-file-name))))
-;;       (list "~/.emacs.d/eerlc" (list local-file))))
-;;   (add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init)))
 
 (defun my-erlang-setup ()
   (add-to-list 'write-file-functions 'delete-trailing-whitespace)
-  (add-hook 'post-command-hook 'my-flymake-show-help)
   (auto-complete-mode))
 
 (defun nickserv-password (_)
@@ -131,39 +117,6 @@
 
 (global-set-key [(f9)] 'compile)
 (global-set-key [(f1)] 'man)
-
-;;(require 'auto-complete-config)
-;;(ac-config-default)
-
-
-;;--[yas configuration]--------------------------------------------------
-
-;; (defun from-test-directory (file)
-;;   (let ((base (file-name-directory file))
-;;         (base-name (file-name-nondirectory file)))
-;;     (if (string= base file)
-;;         (error "could not find base test directory")
-;;       (if (or (string= base-name "tests")
-;;               (string= base-name "test"))
-;;           nil
-;;         (cons (file-name-sans-extension base-name)
-;;               (base-test (directory-file-name base)))))))
-
-;; (defun to-hs-module-name ()
-;;   (let ((test-path (reverse (from-test-directory (buffer-file-name)))))
-;;     (mapconcat (quote identity) test-path ".")))
-
-;; (defun maybe-import-related-module ()
-;;   (let ((mod-name (to-hs-module-name)))
-;;     (if (string-suffix-p "Spec" mod-name)
-;;         (concat "\nimport " (substring mod-name 0 (- (length mod-name) 4)))
-;;       "")))
-
-;; (yas-global-mode t)
-;; (define-key yas-minor-mode-map (kbd "<tab>") nil)
-;; (define-key yas-minor-mode-map (kbd "TAB") nil)
-;; (define-key yas-minor-mode-map (kbd "C-*") 'yas-expand)
-
 
 ;;--[haskell-mode configuration]------------------------------------------
 
@@ -183,9 +136,8 @@
             (define-key interactive-haskell-mode-map [(shift f9)] 'hspec-run)
             (define-key interactive-haskell-mode-map [(f9)] 'hspec-rerun)))
 
-;; (add-hook 'haskell-mode-hook 'intero-mode)
-
-(load-file "~/.emacs.d/hspec.el")
+(autoload 'hspec-run "~/.emacs.d/hspec.el")
+(autoload 'hspec-rerun "~/.emacs.d/hspec.el")
 
 (add-hook 'interactive-haskell-mode-hook
           (lambda ()
