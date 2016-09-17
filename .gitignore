@@ -1,6 +1,7 @@
 *.elc
 *.un~
 .python-environments
+.cask
 ac-comphist.dat
 auto-save-list
 elpa/archives
