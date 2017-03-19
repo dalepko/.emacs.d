@@ -11,3 +11,6 @@ epylint.log
 eshell
 .#ac-comphist.dat
 circe.pass
+eslint/node_modules/
+projectile-bookmarks.eld
+projectile.cache

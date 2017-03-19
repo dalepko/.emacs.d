@@ -2,6 +2,7 @@
 (source melpa)
 
 (depends-on "cask")
+(depends-on "overseer")
 (depends-on "f")
 
 (depends-on "shell-pop")
@@ -10,13 +11,17 @@
 (depends-on "magit")
 (depends-on "git-gutter")
 (depends-on "rich-minority")
+(depends-on "projectile")
+(depends-on "helm")
+(depends-on "helm-projectile")
 
 (depends-on "web-mode")
 (depends-on "haskell-mode")
 (depends-on "groovy-mode")
 (depends-on "yaml-mode")
+(depends-on "typescript-mode")
+(depends-on "tide")
 
 (depends-on "flycheck")
 (depends-on "company")
 (depends-on "company-jedi")
-

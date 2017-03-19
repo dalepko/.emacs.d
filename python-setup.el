@@ -15,10 +15,12 @@
     (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
     (define-key map "\C-c\C-k" 'kill-compilation)
-    (define-key map "\M-n" 'compilation-next-error)
-    (define-key map "\M-p" 'compilation-previous-error)
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
+    (define-key map "\M-p" 'comint-previous-input)
+    (define-key map "\M-n" 'comint-next-input)
+    (define-key map "\M-r" 'comint-previous-matching-input)
+    (define-key map "\M-s" 'comint-next-matching-input)
     map)
   "Keymap for `pytest-error-minor-mode-map'.")
 
@@ -36,7 +38,7 @@
   (funcall old-sentinel proc msg))
 
 (defun run-pytest (verbose filename func)
-  (let ((command  (format "py.test%s -v"
+  (let ((command  (format "py.test%s --tb=short -vs"
                           ;;(file-name-directory filename)
                           (if verbose " -s --pdb" ""))))
     (if func
