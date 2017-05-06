@@ -57,6 +57,7 @@
  '(ido-mode (quote both) nil (ido))
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
+ '(js-indent-level 2)
  '(kept-new-versions 10)
  '(menu-bar-mode nil)
  '(midnight-mode t nil (midnight))
@@ -91,9 +92,11 @@
  '(vc-make-backup-files t)
  '(version-control t)
  '(web-mode-code-indent-offset 2)
+ '(web-mode-css-indent-offset 2)
  '(web-mode-enable-auto-indentation nil)
  '(web-mode-markup-indent-offset 2)
- '(web-mode-script-padding 0))
+ '(web-mode-script-padding 0)
+ '(web-mode-style-padding 0))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
