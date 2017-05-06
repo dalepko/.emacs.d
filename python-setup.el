@@ -21,6 +21,8 @@
     (define-key map "\M-n" 'comint-next-input)
     (define-key map "\M-r" 'comint-previous-matching-input)
     (define-key map "\M-s" 'comint-next-matching-input)
+    (define-key map [(shift f9)] 'pytest)
+    (define-key map [(f9)] 'pytest-again)
     map)
   "Keymap for `pytest-error-minor-mode-map'.")
 
