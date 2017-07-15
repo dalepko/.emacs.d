@@ -72,6 +72,7 @@
        (format " [%s]"
                (projectile-project-name))))))
  '(projectile-use-git-grep t)
+ '(realgud-populate-common-fn-keys-function (quote identity))
  '(rich-minority-mode t)
  '(rm-blacklist
    (quote

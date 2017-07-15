@@ -34,15 +34,23 @@
       (compilation-setup t)
     (compilation--unsetup)))
 
-(defun undedicate-window (window old-sentinel proc msg)
-  (cond ((and (windowp window) (memq (process-status proc) '(signal exit)))
-         (set-window-dedicated-p window nil)))
-  (funcall old-sentinel proc msg))
+
+(defun cleanup-pdb-buffers ()
+  (interactive)
+  (mapcar
+   #'kill-buffer
+   (remove-if-not
+    (lambda (buffer) (with-current-buffer buffer pdb-track-mode))
+    (buffer-list))))
+
 
 (defun run-pytest (verbose filename func)
+  (require 'realgud)
   (let ((command  (format "py.test%s --tb=short -vs"
                           ;;(file-name-directory filename)
-                          (if verbose " -s --pdb" ""))))
+                          (if verbose " -s --pdb" "")))
+        (is-in-pdb pdb-track-mode))
+    (cleanup-pdb-buffers)
     (if func
         (let ((node_id (concat filename;;(file-name-nondirectory filename)
                                "::"
@@ -52,25 +60,9 @@
 
     (setq pytest-last-file filename)
     (setq pytest-last-func func)
-    (let ((buffer (save-window-excursion
-                    (when (and (boundp 'gud-comint-buffer) (buffer-live-p gud-comint-buffer))
-                      (set-buffer gud-comint-buffer)
-                      (erase-buffer))
-                    (pdb command)
-                    (setq gud-find-expr-function (lambda () (symbol-name (sexp-at-point))))
-                    (pytest-error-minor-mode)
-                    (current-buffer))))
-      (save-selected-window
-        (switch-to-buffer-other-window buffer)
-        (let* ((process (get-buffer-process buffer))
-               (old-sentinel (process-sentinel process)))
-          (set-window-dedicated-p nil t)
-          (set-process-sentinel process
-                                `(lambda (proc msg)
-                                   (undedicate-window ,(selected-window)
-                                                      (quote ,old-sentinel)
-                                                      proc msg)))
-          )))))
+    (let ((buffer (if is-in-pdb (realgud:pdb command)
+                    (flet ((switch-to-buffer (buffer) (pop-to-buffer buffer))) (realgud:pdb command)))))
+      (pytest-error-minor-mode))))
 
 
 (defun pytest (&optional verbose)
@@ -104,3 +96,12 @@
   (company-mode)
   (jedi:setup)
   (flycheck-mode t))
+
+
+(defun pyenv ()
+  (interactive)
+  (add-to-list 'exec-path (expand-file-name "~/.pyenv/bin"))
+  (add-to-list 'exec-path (expand-file-name "~/.pyenv/shims"))
+  (setenv "PATH" (mapconcat 'identity exec-path path-separator))
+  (pyenv-mode t)
+  (call-interactively 'pyenv-mode-set))

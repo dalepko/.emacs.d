@@ -6,8 +6,9 @@
 (depends-on "f")
 
 (depends-on "shell-pop")
-(depends-on "circe")
+(depends-on "realgud")
 (depends-on "virtualenvwrapper")
+(depends-on "pyenv-mode")
 (depends-on "magit")
 (depends-on "git-gutter")
 (depends-on "rich-minority")
