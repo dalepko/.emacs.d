@@ -1,3 +1,0 @@
-#! /bin/bash
-
-dot -Tpng "$1" > /tmp/doted.png && xdg-open /tmp/doted.png; rm /tmp/doted.png
