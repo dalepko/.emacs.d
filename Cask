@@ -5,6 +5,7 @@
 (depends-on "overseer")
 (depends-on "f")
 
+(depends-on "guide-key")
 (depends-on "shell-pop")
 (depends-on "realgud")
 (depends-on "virtualenvwrapper")

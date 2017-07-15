@@ -33,6 +33,8 @@
  '(foreground-color "#839496")
  '(frame-resize-pixelwise t)
  '(global-git-gutter-mode t)
+ '(guide-key/guide-key-sequence (quote ("C-x" "C-c" "C-r")))
+ '(guide-key/recursive-key-sequence-flag t)
  '(haskell-ask-also-kill-buffers nil)
  '(haskell-indentation-show-indentations nil)
  '(haskell-indentation-show-indentations-after-eol nil)
