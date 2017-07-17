@@ -1,6 +1,9 @@
 (if (file-exists-p "~/.cask/cask.el")
     (require 'cask "~/.cask/cask.el"))
 
+(if (file-exists-p "/usr/local/Cellar/cask/0.8.1/cask.el")
+    (require 'cask "/usr/local/Cellar/cask/0.8.1/cask.el"))
+
 (cask-initialize)
 
 (custom-set-variables
@@ -47,8 +50,10 @@
    (quote
     ("\\` " "\\`\\*helm" "\\`\\*Echo Area" "\\`\\*Minibuf" "\\`\\*")))
  '(helm-buffer-details-flag nil)
+ '(helm-grep-file-path-style (quote relative))
  '(helm-ls-git-show-abs-or-relative (quote relative))
  '(helm-mode-fuzzy-match t)
+ '(helm-projectile-set-input-automatically nil)
  '(help-at-pt-display-when-idle (quote (haskell-msg)) nil (help-at-pt))
  '(help-at-pt-timer-delay 0.5)
  '(ido-enable-flex-matching t)
@@ -129,13 +134,11 @@
 (global-set-key [M-up] 'windmove-up)
 (global-set-key [M-down] 'windmove-down)
 
-
 (global-set-key [(f9)] 'compile)
 (global-set-key [(f1)] 'man)
 
 (put 'erase-buffer 'disabled nil)
 (put 'downcase-region 'disabled nil)
-
 
 (autoload 'my-python-setup "~/.emacs.d/python-setup.el")
 (add-hook 'python-mode-hook 'my-python-setup)
@@ -197,9 +200,10 @@
             (define-key interactive-haskell-mode-map [(f9)] 'hspec-rerun)))
 
 
-
-(setq exec-path (append exec-path '("~/.local/bin" "/opt/node/bin")))
-(setenv "PATH" (concat (getenv "PATH") ":/opt/node/bin"))
+(add-to-list 'exec-path "~/.local/bin")
+(add-to-list 'exec-path "/opt/node/bin")
+(add-to-list 'exec-path "/usr/local/bin")
+(setenv "PATH" (concat (getenv "PATH") ":/opt/node/bin:/usr/local/bin"))
 
 ;;--[ert]--------------------------------------------------------------------
 
