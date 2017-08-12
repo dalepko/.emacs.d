@@ -14,6 +14,18 @@ SOCK_DIR = os.path.expanduser('~/.emacs.d/epylintd')
 TIMEOUT = 5 * 60 * 1000
 SCM_RIGHTS = 0x01
 
+SOCKLEN_T = ctypes.c_uint32
+
+if sys.platform in ['linux', 'linux']:
+    LEN_T = ctypes.c_size_t
+    LIBC = 'libc.so.6'
+elif sys.platform == "darwin":
+    LEN_T = SOCKLEN_T
+    LIBC = 'libSystem.dylib'
+else:
+    raise Exception('Unkown platform')
+
+
 class iovec(ctypes.Structure):
     _pack_ = 4
     _fields_ = [
@@ -21,10 +33,11 @@ class iovec(ctypes.Structure):
         ('len', ctypes.c_size_t),
     ]
 
+
 class cmsg(ctypes.Structure):
     _pack_ = 4
     _fields_ = [
-        ('len', ctypes.c_size_t),
+        ('len', LEN_T),
         ('level', ctypes.c_int),
         ('type', ctypes.c_int),
         ('fd', ctypes.c_int),
@@ -33,16 +46,17 @@ class cmsg(ctypes.Structure):
 class msghdr(ctypes.Structure):
     _fields_ = [
         ('name', ctypes.c_void_p),
-        ('namelen', ctypes.c_uint32),
+        ('namelen', SOCKLEN_T),
         ('iov', ctypes.POINTER(iovec)),
-        ('iovlen', ctypes.c_size_t),
+        ('iovlen', LEN_T),
         ('control', ctypes.POINTER(cmsg)),
-        ('controllen', ctypes.c_size_t),
+        ('controllen', LEN_T),
         ('flags', ctypes.c_int),
     ]
 
+
 class passfd(object):
-    libc = ctypes.CDLL("libc.so.6", use_errno=True)
+    libc = ctypes.CDLL(LIBC, use_errno=True)
 
     @staticmethod
     def send(sock, fd):
@@ -58,8 +72,7 @@ class passfd(object):
         res = passfd.libc.sendmsg(sock.fileno(), ctypes.pointer(message), 0)
 
         if res != 1:
-            errno = ctypes.get_errno()
-            raise OSError(errno, os.strerror(errno))
+            raise OSError(errno, os.strerror(ctypes.get_errno()))
 
     @staticmethod
     def recv(sock):
@@ -89,18 +102,6 @@ def get_sock_path():
     return os.path.join(SOCK_DIR, hashlib.sha1(python_path).hexdigest())
 
 
-# def find_rope(path):
-#     parent = os.path.dirname(path)
-
-#     if parent == path:
-#         return None
-#     else:
-#         if os.path.isdir(os.path.join(parent, '.ropeproject')):
-#             return parent
-#         else:
-#             return find_rope(parent)
-
-
 def epylint_daemon(signal_socket):
     sock_path = get_sock_path()
 
@@ -113,15 +114,6 @@ def epylint_daemon(signal_socket):
 
     server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
     poll = select.poll()
-
-    # from rope.base.prefs import Prefs
-    # rope = find_rope(filename)
-    # if rope:
-    #     prefs = Prefs()
-    #     config_file = os.path.join(rope, '.ropeproject', 'config.py')
-    #     mod = imp.load_source('rope_config', config_file)
-    #     mod.set_prefs(prefs)
-    #     sys.path = prefs.get('python_path', []) + [rope] + sys.path
 
     try:
         os.unlink(sock_path)
@@ -151,7 +143,7 @@ def epylint_daemon(signal_socket):
 
             fd = passfd.recv(client)
             if fd is None:
-                logger('EOF received')
+                logger.debug('EOF received')
                 break
 
             client_file = client.makefile()
@@ -244,7 +236,8 @@ def get_connection(force):
 
     return sock
 
-if __name__ == '__main__':
+
+def main():
     arg = sys.argv[1]
 
     if arg == '--kill':
@@ -260,3 +253,7 @@ if __name__ == '__main__':
             sys.exit(0 if int(status) == 0 else 1)
         except ValueError:
             sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,3 +1,5 @@
+;; (package-initialize)
+
 (if (file-exists-p "~/.cask/cask.el")
     (require 'cask "~/.cask/cask.el"))
 
@@ -22,9 +24,11 @@
  '(custom-enabled-themes (quote (misterioso)))
  '(custom-safe-themes
    (quote
-    ("8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "f3d6a49e3f4491373028eda655231ec371d79d6d2a628f08d5aa38739340540b" "b571f92c9bfaf4a28cb64ae4b4cdbda95241cd62cf07d942be44dc8f46c491f4" "66132890ee1f884b4f8e901f0c61c5ed078809626a547dbefbb201f900d03fd8" "3632cf223c62cb7da121be0ed641a2243f7ec0130178722554e613c9ab3131de" "7e83d0aacca4c0e4e9441f920a66ee4de73decc1bb9dd7fcc2c1857948e604c8" "a444b2e10bedc64e4c7f312a737271f9a2f2542c67caa13b04d525196562bf38" "e8a9dfa28c7c3ae126152210e3ccc3707eedae55bdc4b6d3e1bb3a85dfb4e670" "de8fa309eed1effea412533ca5d68ed33770bdf570dcaa458ec21eab219821fd" "8abee8a14e028101f90a2d314f1b03bed1cde7fd3f1eb945ada6ffc15b1d7d65" "9cb6358979981949d1ae9da907a5d38fb6cde1776e8956a1db150925f2dad6c1" "5999e12c8070b9090a2a1bbcd02ec28906e150bb2cdce5ace4f965c76cf30476" "3a9249d4c34f75776e130efd7e02c4a0a7c90ad7723b50acc5806112394ec2dd" "fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
+    ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "f3d6a49e3f4491373028eda655231ec371d79d6d2a628f08d5aa38739340540b" "b571f92c9bfaf4a28cb64ae4b4cdbda95241cd62cf07d942be44dc8f46c491f4" "66132890ee1f884b4f8e901f0c61c5ed078809626a547dbefbb201f900d03fd8" "3632cf223c62cb7da121be0ed641a2243f7ec0130178722554e613c9ab3131de" "7e83d0aacca4c0e4e9441f920a66ee4de73decc1bb9dd7fcc2c1857948e604c8" "a444b2e10bedc64e4c7f312a737271f9a2f2542c67caa13b04d525196562bf38" "e8a9dfa28c7c3ae126152210e3ccc3707eedae55bdc4b6d3e1bb3a85dfb4e670" "de8fa309eed1effea412533ca5d68ed33770bdf570dcaa458ec21eab219821fd" "8abee8a14e028101f90a2d314f1b03bed1cde7fd3f1eb945ada6ffc15b1d7d65" "9cb6358979981949d1ae9da907a5d38fb6cde1776e8956a1db150925f2dad6c1" "5999e12c8070b9090a2a1bbcd02ec28906e150bb2cdce5ace4f965c76cf30476" "3a9249d4c34f75776e130efd7e02c4a0a7c90ad7723b50acc5806112394ec2dd" "fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
  '(delete-old-versions t)
+ '(diff-hl-draw-borders nil)
  '(ediff-split-window-function (quote split-window-horizontally))
+ '(ediff-window-setup-function (quote ediff-setup-windows-plain))
  '(eldoc-idle-delay 0.4)
  '(eshell-cmpl-cycle-completions nil)
  '(fci-rule-color "#383838")
@@ -35,7 +39,8 @@
  '(flycheck-typescript-tslint-executable "/opt/node/bin/tslint")
  '(foreground-color "#839496")
  '(frame-resize-pixelwise t)
- '(global-git-gutter-mode t)
+ '(global-diff-hl-mode t)
+ '(guide-key-mode t)
  '(guide-key/guide-key-sequence (quote ("C-x" "C-c" "C-r")))
  '(guide-key/recursive-key-sequence-flag t)
  '(haskell-ask-also-kill-buffers nil)
@@ -68,22 +73,36 @@
  '(kept-new-versions 10)
  '(menu-bar-mode nil)
  '(midnight-mode t nil (midnight))
+ '(ns-right-alternate-modifier (quote none))
  '(overseer-command "~/.cask/bin/cask exec ert-runner")
+ '(package-selected-packages
+   (quote
+    (fish-mode paradox dash helm-core magit-popup pallet diff-hl smart-mode-line pyenv-mode guide-key helm overseer projectile realgud typescript-mode tide pyenv-mode-auto py-autopep8 yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi circe cask)))
+ '(pallet-mode t)
+ '(paradox-github-token t)
  '(projectile-mode t nil (projectile))
- '(projectile-mode-line
+ '(projectile-mode-line nil)
+ '(projectile-use-git-grep t)
+ '(pyenv-mode-mode-line-format
    (quote
     (:eval
-     (if
-         (file-remote-p default-directory)
-         " Projectile"
-       (format " [%s]"
-               (projectile-project-name))))))
- '(projectile-use-git-grep t)
+     (when
+         (pyenv-mode-version)
+       (concat "("
+               (pyenv-mode-version)
+               ") ")))))
  '(realgud-populate-common-fn-keys-function (quote identity))
- '(rich-minority-mode t)
  '(rm-blacklist
    (quote
-    (" hl-p" " AC" " GitGutter" " Ind" " MRev" " Interactive" " $" " ARev" " company" " tide" " ElDoc")))
+    (" hl-p" " AC" " Ind" " MRev" " Interactive" " $" " ARev" " company" " tide" " ElDoc" " Guide")))
+ '(rm-text-properties
+   (quote
+    (("\\` Ovwrt\\'"
+      (quote face)
+      (quote font-lock-warning-face))
+     ("\\` FlyC:"
+      (quote face)
+      (quote font-lock-warning-face)))))
  '(safe-local-variable-values
    (quote
     ((project-venv-name . "tina")
@@ -96,6 +115,8 @@
  '(shell-file-name "/bin/bash")
  '(shell-pop-universal-key "C-p")
  '(show-paren-mode t)
+ '(sml/theme (quote dark))
+ '(sml/use-projectile-p (quote before-prefixes))
  '(tool-bar-mode nil)
  '(vc-make-backup-files t)
  '(version-control t)
@@ -111,19 +132,26 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "Liberation Mono"))))
+ '(default ((t (:height 140 :family "Courier Prime Code"))))
  '(cursor ((t (:background "dark gray"))))
+ '(diff-hl-change ((t (:background "steel blue" :foreground "blue3"))))
+ '(diff-hl-delete ((t (:inherit diff-removed))))
+ '(diff-hl-insert ((t (:inherit diff-added))))
  '(flymake-warnline ((t (:background "black"))))
- '(git-gutter:added ((t (:foreground "color-40" :weight bold))))
  '(match ((t (:background "magenta"))))
  '(web-mode-html-attr-name-face ((t (:foreground "green")))))
 
 
+(sml/setup)
+
+(global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "M-<up>") '(lambda () (interactive) (scroll-other-window -1)))
 (global-set-key (kbd "M-<down>") '(lambda () (interactive) (scroll-other-window 1)))
 (global-set-key [f11] 'previous-error)
 (global-set-key [f12] 'next-error)
 
+(global-set-key (kbd "<home>") 'move-beginning-of-line)
+(global-set-key (kbd "<end>") 'move-end-of-line)
 (global-set-key (kbd "ESC <left>") 'windmove-left)
 (global-set-key (kbd "ESC <right>") 'windmove-right)
 (global-set-key (kbd "ESC <up>") 'windmove-up)
@@ -148,6 +176,11 @@
   (add-to-list 'write-file-functions 'delete-trailing-whitespace)
   (auto-complete-mode))
 
+(add-hook 'fish-mode-hook (lambda () (setq tab-width 4)))
+
+
+; shell-pop bug with emacs 25.1
+(push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
 ;;--[web-mode]----------------------------------------------------------
 
