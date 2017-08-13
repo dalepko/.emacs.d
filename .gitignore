@@ -1,7 +1,6 @@
 *.elc
 *.un~
 .python-environments
-.cask
 ac-comphist.dat
 auto-save-list
 elpa/archives
@@ -14,3 +13,4 @@ circe.pass
 eslint/node_modules/
 projectile-bookmarks.eld
 projectile.cache
+/elpa

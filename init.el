@@ -1,12 +1,4 @@
-;; (package-initialize)
-
-(if (file-exists-p "~/.cask/cask.el")
-    (require 'cask "~/.cask/cask.el"))
-
-(if (file-exists-p "/usr/local/Cellar/cask/0.8.1/cask.el")
-    (require 'cask "/usr/local/Cellar/cask/0.8.1/cask.el"))
-
-(cask-initialize)
+(package-initialize)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -75,9 +67,13 @@
  '(midnight-mode t nil (midnight))
  '(ns-right-alternate-modifier (quote none))
  '(overseer-command "~/.cask/bin/cask exec ert-runner")
+ '(package-archives
+   (quote
+    (("melpa" . "https://melpa.org/packages/")
+     ("gnu" . "http://elpa.gnu.org/packages/"))))
  '(package-selected-packages
    (quote
-    (fish-mode paradox dash helm-core magit-popup pallet diff-hl smart-mode-line pyenv-mode guide-key helm overseer projectile realgud typescript-mode tide pyenv-mode-auto py-autopep8 yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi circe cask)))
+    (git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode guide-key helm overseer projectile realgud typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
  '(pallet-mode t)
  '(paradox-github-token t)
  '(projectile-mode t nil (projectile))
@@ -132,7 +128,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:height 140 :family "Courier Prime Code"))))
  '(cursor ((t (:background "dark gray"))))
  '(diff-hl-change ((t (:background "steel blue" :foreground "blue3"))))
  '(diff-hl-delete ((t (:inherit diff-removed))))
@@ -143,9 +138,15 @@
  '(web-mode-html-attr-name-face ((t (:foreground "green")))))
 
 
-(sml/setup)
+(when (fboundp 'sml/setup)
+  (sml/setup))
 
-(global-set-key (kbd "M-x") 'helm-M-x)
+(when (require 'paradox nil 'noerror)
+  (paradox-enable))
+
+(when (fboundp 'helm-M-x)
+  (global-set-key (kbd "M-x") 'helm-M-x))
+
 (global-set-key (kbd "M-<up>") '(lambda () (interactive) (scroll-other-window -1)))
 (global-set-key (kbd "M-<down>") '(lambda () (interactive) (scroll-other-window 1)))
 (global-set-key [f11] 'previous-error)
@@ -202,10 +203,9 @@
 
 ;;--[helm/projectile]----------------------------------------------------
 
-(require 'helm-config)
-(global-set-key [(control o)] 'helm-projectile)
-(global-set-key [f3] 'helm-projectile-grep)
-
+(when (require 'helm-config nil 'noerror)
+  (global-set-key [(control o)] 'helm-projectile)
+  (global-set-key [f3] 'helm-projectile-grep))
 
 ;;--[haskell-mode configuration]------------------------------------------
 
