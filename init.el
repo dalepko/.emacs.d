@@ -139,6 +139,7 @@
  '(diff-hl-insert ((t (:inherit diff-added))))
  '(flymake-warnline ((t (:background "black"))))
  '(match ((t (:background "magenta"))))
+ '(mode-line ((t (:background "#161A20" :foreground "gray60" :inverse-video nil))))
  '(web-mode-html-attr-name-face ((t (:foreground "green")))))
 
 
