@@ -128,6 +128,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(default ((t (:height 130))))
  '(cursor ((t (:background "dark gray"))))
  '(diff-hl-change ((t (:background "steel blue" :foreground "blue3"))))
  '(diff-hl-delete ((t (:inherit diff-removed))))
@@ -135,6 +136,7 @@
  '(flymake-warnline ((t (:background "black"))))
  '(match ((t (:background "magenta"))))
  '(mode-line ((t (:background "#161A20" :foreground "gray60" :inverse-video nil))))
+ '(web-mode-function-call-face ((t nil)))
  '(web-mode-html-attr-name-face ((t (:foreground "green")))))
 
 

@@ -5,6 +5,7 @@
 (require 'gud)
 (require 'python)
 (require 'which-func)
+(require 'realgud)
 
 (defvar pytest-last-file nil)
 (defvar pytest-last-func nil)
@@ -26,6 +27,10 @@
     map)
   "Keymap for `pytest-error-minor-mode-map'.")
 
+;; remove annoying key binding
+(define-key realgud-track-mode-map [M-right] 'windmove-right)
+
+
 (define-minor-mode pytest-error-minor-mode
   "Highlight errors in pytest buffer"
   nil " Pytest"
@@ -44,8 +49,10 @@
     (buffer-list))))
 
 
+
+
 (defun run-pytest (verbose filename func)
-  (require 'realgud)
+
   (let ((command  (format "py.test%s --tb=short -vs"
                           ;;(file-name-directory filename)
                           (if verbose " -s --pdb" "")))
