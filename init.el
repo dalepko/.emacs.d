@@ -47,10 +47,12 @@
    (quote
     ("\\` " "\\`\\*helm" "\\`\\*Echo Area" "\\`\\*Minibuf" "\\`\\*")))
  '(helm-buffer-details-flag nil)
+ '(helm-echo-input-in-header-line t)
  '(helm-grep-file-path-style (quote relative))
  '(helm-ls-git-show-abs-or-relative (quote relative))
  '(helm-mode-fuzzy-match t)
  '(helm-projectile-set-input-automatically nil)
+ '(helm-split-window-in-side-p t)
  '(help-at-pt-display-when-idle (quote (haskell-msg)) nil (help-at-pt))
  '(help-at-pt-timer-delay 0.5)
  '(ido-enable-flex-matching t)
@@ -134,6 +136,9 @@
  '(diff-hl-delete ((t (:inherit diff-removed))))
  '(diff-hl-insert ((t (:inherit diff-added))))
  '(flymake-warnline ((t (:background "black"))))
+ '(header-line ((t (:inherit default :background "#2d3743" :foreground "#e1e1e0" :box (:line-width 1 :color "grey75") :weight bold))))
+ '(helm-header ((t (:inherit header-line :background "black"))))
+ '(helm-source-header ((t (:background "DodgerBlue4" :foreground "gray90" :weight bold :height 1.1))))
  '(match ((t (:background "magenta"))))
  '(mode-line ((t (:background "#161A20" :foreground "gray60" :inverse-video nil))))
  '(web-mode-function-call-face ((t nil)))
@@ -145,9 +150,6 @@
 
 (when (require 'paradox nil 'noerror)
   (paradox-enable))
-
-(when (fboundp 'helm-M-x)
-  (global-set-key (kbd "M-x") 'helm-M-x))
 
 (global-set-key (kbd "M-<up>") '(lambda () (interactive) (scroll-other-window -1)))
 (global-set-key (kbd "M-<down>") '(lambda () (interactive) (scroll-other-window 1)))
@@ -205,9 +207,13 @@
 
 ;;--[helm/projectile]----------------------------------------------------
 
+(when (fboundp 'helm-M-x)
+  (global-set-key (kbd "M-x") 'helm-M-x))
+
 (when (require 'helm-config nil 'noerror)
   (global-set-key [(control o)] 'helm-projectile)
-  (global-set-key [f3] 'helm-projectile-grep))
+  (global-set-key [f3] 'helm-projectile-grep)
+  (add-hook 'helm-minibuffer-set-up-hook #'helm-hide-minibuffer-maybe))
 
 ;;--[haskell-mode configuration]------------------------------------------
 
