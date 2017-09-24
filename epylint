@@ -16,7 +16,7 @@ SCM_RIGHTS = 0x01
 
 SOCKLEN_T = ctypes.c_uint32
 
-if sys.platform in ['linux', 'linux']:
+if sys.platform in ['linux', 'linux2']:
     LEN_T = ctypes.c_size_t
     LIBC = 'libc.so.6'
 elif sys.platform == "darwin":
