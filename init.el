@@ -25,22 +25,17 @@
  '(eshell-cmpl-cycle-completions nil)
  '(fci-rule-color "#383838")
  '(flycheck-display-errors-delay 0.5)
- '(flycheck-eslintrc "~/.emacs.d/eslint/.eslintrc.js")
  '(flycheck-javascript-eslint-executable "~/.emacs.d/eslint/node_modules/.bin/eslint")
  '(flycheck-python-pylint-executable "~/.emacs.d/epylint")
  '(flycheck-typescript-tslint-executable "/opt/node/bin/tslint")
  '(foreground-color "#839496")
  '(frame-resize-pixelwise t)
+ '(global-company-mode t)
  '(global-diff-hl-mode t)
- '(guide-key-mode t)
- '(guide-key/guide-key-sequence (quote ("C-x" "C-c" "C-r")))
- '(guide-key/recursive-key-sequence-flag t)
+ '(groovy-indent-offset 2)
  '(haskell-ask-also-kill-buffers nil)
  '(haskell-indentation-show-indentations nil)
  '(haskell-indentation-show-indentations-after-eol nil)
- '(haskell-process-args-stack-ghci
-   (quote
-    ("--ghc-options=-ferror-spans" "--with-ghc=/home/david/.local/bin/ghci-ng")))
  '(haskell-stylish-on-save t)
  '(haskell-tags-on-save t)
  '(helm-boring-buffer-regexp-list
@@ -75,8 +70,8 @@
      ("gnu" . "http://elpa.gnu.org/packages/"))))
  '(package-selected-packages
    (quote
-    (git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode guide-key helm overseer projectile realgud typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
- '(pallet-mode t)
+    (company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile realgud typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
+ '(paradox-execute-asynchronously t)
  '(paradox-github-token t)
  '(projectile-mode t nil (projectile))
  '(projectile-mode-line nil)
@@ -109,7 +104,6 @@
      (project-venv-name . "netlink2"))))
  '(scroll-bar-mode nil)
  '(scss-compile-at-save nil)
- '(sgml-basic-offset 4)
  '(shell-file-name "/bin/bash")
  '(shell-pop-universal-key "C-p")
  '(show-paren-mode t)
@@ -120,7 +114,6 @@
  '(version-control t)
  '(web-mode-code-indent-offset 2)
  '(web-mode-css-indent-offset 2)
- '(web-mode-enable-auto-indentation nil)
  '(web-mode-markup-indent-offset 2)
  '(web-mode-script-padding 0)
  '(web-mode-style-padding 0))
@@ -130,7 +123,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:height 130))))
+ '(default ((t (:inherit nil :stipple nil :background "#2d3743" :foreground "#e1e1e0" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "Bits" :family "Bitstream Vera Sans Mono"))))
  '(cursor ((t (:background "dark gray"))))
  '(diff-hl-change ((t (:background "steel blue" :foreground "blue3"))))
  '(diff-hl-delete ((t (:inherit diff-removed))))
@@ -294,18 +287,19 @@
 
 (add-hook 'typescript-mode-hook #'setup-tide-mode)
 
-(define-compilation-mode jasmine-compilation-mode "Jasmine"
-  "Jasmine compilation mode."
-  (progn
-    (set (make-local-variable 'compilation-error-regexp-alist)
-         '(("(\\([^:)]*\\):\\([0-9]*\\):\\([0-9]*\\))" 1 2 3)))
-    (add-hook 'compilation-filter-hook
-              (lambda ()
-                (toggle-read-only)
-                (ansi-color-apply-on-region compilation-filter-start (point))
-                (toggle-read-only))
-              nil t)
-    ))
+(when (fboundp 'define-compilation-mode)
+  (define-compilation-mode jasmine-compilation-mode "Jasmine"
+    "Jasmine compilation mode."
+    (progn
+      (set (make-local-variable 'compilation-error-regexp-alist)
+           '(("(\\([^:)]*\\):\\([0-9]*\\):\\([0-9]*\\))" 1 2 3)))
+      (add-hook 'compilation-filter-hook
+                (lambda ()
+                  (toggle-read-only)
+                  (ansi-color-apply-on-region compilation-filter-start (point))
+                  (toggle-read-only))
+                nil t)
+      )))
 
 (defun run-jasmine ()
   (interactive)
