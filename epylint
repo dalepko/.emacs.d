@@ -99,7 +99,7 @@ class passfd(object):
 
 def get_sock_path():
     python_path = ':'.join(os.path.abspath(path) for path in sys.path)
-    return os.path.join(SOCK_DIR, hashlib.sha1(python_path).hexdigest())
+    return os.path.join(SOCK_DIR, hashlib.sha1(python_path.encode('utf-8')).hexdigest())
 
 
 def epylint_daemon(signal_socket):
@@ -126,7 +126,7 @@ def epylint_daemon(signal_socket):
     try:
         logger.debug('Started daemon')
         server.listen(5)
-        signal_socket.send('ok')
+        signal_socket.send(b'ok')
         signal_socket.close()
 
         poll.register(server, select.POLLIN)
@@ -147,7 +147,7 @@ def epylint_daemon(signal_socket):
                 break
 
             client_file = client.makefile()
-            filename = client_file.readline().decode('utf-8')[:-1]
+            filename = client_file.readline()[:-1]
             basename, _ = os.path.splitext(filename)
             _, basename = os.path.split(basename)
             dot_basename = '.' + basename
@@ -155,7 +155,7 @@ def epylint_daemon(signal_socket):
             logger.debug('client send file = %s', filename)
             MANAGER.astroid_cache = {
                 key: value
-                for key, value in MANAGER.astroid_cache.iteritems()
+                for key, value in MANAGER.astroid_cache.items()
                 if key != basename and not key.endswith(dot_basename)
             }
 
@@ -190,10 +190,11 @@ def epylint_daemon(signal_socket):
 def spawn_daemon():
     parent, child = socket.socketpair()
     pid = os.fork()
+    # pid = 0
 
     if pid == 0:
         if os.fork() == 0:
-            for fd in xrange(0, 1024):
+            for fd in range(0, 1024):
                 try:
                     if fd != child.fileno():
                         os.close(fd)
@@ -208,7 +209,7 @@ def spawn_daemon():
     else:
         child.close()
         msg = parent.recv(1024)
-        if msg != 'ok':
+        if msg != b'ok':
             raise RuntimeError('epylint daemon failed to start: ' + repr(msg))
 
 
@@ -247,7 +248,7 @@ def main():
         filename = os.path.abspath(sys.argv[-1])
         conn = get_connection(True)
         passfd.send(conn, sys.stdout.fileno())
-        conn.send(filename.encode('utf-8') + '\n')
+        conn.send(filename.encode('utf-8') + b'\n')
         status = conn.recv(100)
         try:
             sys.exit(0 if int(status) == 0 else 1)
