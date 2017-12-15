@@ -5,7 +5,7 @@
 (require 'gud)
 (require 'python)
 (require 'which-func)
-(require 'realgud)
+(require 'gud)
 
 (defvar pytest-last-file nil)
 (defvar pytest-last-func nil)
@@ -28,8 +28,9 @@
   "Keymap for `pytest-error-minor-mode-map'.")
 
 ;; remove annoying key binding
-(define-key realgud-track-mode-map [M-right] 'windmove-right)
+;(define-key realgud-track-mode-map [M-right] 'windmove-right)
 
+(defvar-local pdb-tracker nil)
 
 (define-minor-mode pytest-error-minor-mode
   "Highlight errors in pytest buffer"
@@ -45,10 +46,8 @@
   (mapcar
    #'kill-buffer
    (remove-if-not
-    (lambda (buffer) (with-current-buffer buffer pdb-track-mode))
+    (lambda (buffer) (with-current-buffer buffer pdb-tracker))
     (buffer-list))))
-
-
 
 
 (defun run-pytest (verbose filename func)
@@ -56,7 +55,7 @@
   (let ((command  (format "py.test%s --tb=short -vs"
                           ;;(file-name-directory filename)
                           (if verbose " -s --pdb" "")))
-        (is-in-pdb pdb-track-mode))
+        (is-in-pdb pdb-tracker))
     (cleanup-pdb-buffers)
     (if func
         (let ((node_id (concat filename;;(file-name-nondirectory filename)
@@ -67,8 +66,9 @@
 
     (setq pytest-last-file filename)
     (setq pytest-last-func func)
-    (let ((buffer (if is-in-pdb (realgud:pdb command)
-                    (flet ((switch-to-buffer (buffer) (pop-to-buffer buffer))) (realgud:pdb command)))))
+    (let ((buffer (if is-in-pdb (pdb command)
+                    (flet ((switch-to-buffer (buffer) (pop-to-buffer buffer))) (pdb command)))))
+      (setq pdb-tracker t)
       (pytest-error-minor-mode))))
 
 
