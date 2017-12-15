@@ -97,16 +97,18 @@ class passfd(object):
         return payload.fd
 
 
-def get_sock_path():
+def get_sock_path(rc_file):
     python_path = ':'.join(os.path.abspath(path) for path in sys.path)
-    return os.path.join(SOCK_DIR, hashlib.sha1(python_path.encode('utf-8')).hexdigest())
+    key = ':'.join([rc_file or '', python_path])
+    return os.path.join(SOCK_DIR, hashlib.sha1(key.encode('utf-8')).hexdigest())
 
 
-def epylint_daemon(signal_socket):
-    sock_path = get_sock_path()
+def epylint_daemon(signal_socket, rc_file):
+    sock_path = get_sock_path(rc_file)
 
     import select
     from pylint.lint import Run
+    import pylint
     from astroid.builder import MANAGER
 
     logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
@@ -124,10 +126,13 @@ def epylint_daemon(signal_socket):
     server.bind(sock_path)
 
     try:
-        logger.debug('Started daemon')
+        logger.debug('Started daemon with config file: %s', rc_file)
         server.listen(5)
         signal_socket.send(b'ok')
         signal_socket.close()
+
+        if rc_file:
+            pylint.config.PYLINTRC = rc_file
 
         poll.register(server, select.POLLIN)
         events = poll.poll(60000)
@@ -146,7 +151,7 @@ def epylint_daemon(signal_socket):
                 logger.debug('EOF received')
                 break
 
-            client_file = client.makefile()
+            client_file = client.makefile(mode='rw')
             filename = client_file.readline()[:-1]
             basename, _ = os.path.splitext(filename)
             _, basename = os.path.split(basename)
@@ -163,10 +168,16 @@ def epylint_daemon(signal_socket):
             sys.stderr = sys.stdout
 
             logger.debug('Running pylint')
-            run = Run(['--msg-template={abspath}:{line}:{column}:{C}:{symbol}:{msg}',
-                       '-rn',
-                       filename],
-                      exit=False)
+            options = {
+                '--msg-template': '{abspath}:{line}:{column}:{C}:{symbol} {msg_id}:{msg}',
+                '--reports': 'n',
+            }
+            if rc_file:
+                options['--rcfile'] = rc_file
+            args_list = ['='.join([k, v]) for k, v in options.items()]
+            args_list += [filename]
+
+            run = Run(args_list, exit=False)
 
             sys.stdout.close()
             client_file.write(str(run.linter.msg_status) + '\n')
@@ -187,10 +198,9 @@ def epylint_daemon(signal_socket):
     logger.debug('daemon exiting')
 
 
-def spawn_daemon():
+def spawn_daemon(rc_file):
     parent, child = socket.socketpair()
     pid = os.fork()
-    # pid = 0
 
     if pid == 0:
         if os.fork() == 0:
@@ -202,7 +212,7 @@ def spawn_daemon():
                     pass
 
             os.setsid()
-            epylint_daemon(child)
+            epylint_daemon(child, rc_file)
             os._exit(0)
         else:
             os._exit(0)
@@ -213,14 +223,14 @@ def spawn_daemon():
             raise RuntimeError('epylint daemon failed to start: ' + repr(msg))
 
 
-def get_connection(force):
+def get_connection(rc_file, force):
     try:
         os.makedirs(SOCK_DIR)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
 
-    sock_path = get_sock_path()
+    sock_path = get_sock_path(rc_file)
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
 
     try:
@@ -228,7 +238,7 @@ def get_connection(force):
     except socket.error as e:
         if e.errno in [errno.ENOENT, errno.ECONNREFUSED]:
             if force:
-                spawn_daemon()
+                spawn_daemon(rc_file)
                 sock.connect(sock_path)
             else:
                 return None
@@ -238,15 +248,24 @@ def get_connection(force):
     return sock
 
 
+def get_rc_file():
+    it = iter(sys.argv[1:])
+    param = next((arg for arg in it if arg == '--rcfile'), None)
+    if param:
+        return next(it)
+    return None
+
+
 def main():
     arg = sys.argv[1]
+    rc_file = get_rc_file()
 
     if arg == '--kill':
         filename = os.path.abspath(sys.argv[2])
-        conn = get_connection(False)
+        conn = get_connection(rc_file, False)
     else:
         filename = os.path.abspath(sys.argv[-1])
-        conn = get_connection(True)
+        conn = get_connection(rc_file, True)
         passfd.send(conn, sys.stdout.fileno())
         conn.send(filename.encode('utf-8') + b'\n')
         status = conn.recv(100)
