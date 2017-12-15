@@ -24,6 +24,7 @@
  '(eldoc-idle-delay 0.4)
  '(eshell-cmpl-cycle-completions nil)
  '(fci-rule-color "#383838")
+ '(flycheck-disabled-checkers (quote (python-flake8)))
  '(flycheck-display-errors-delay 0.5)
  '(flycheck-javascript-eslint-executable "~/.emacs.d/eslint/node_modules/.bin/eslint")
  '(flycheck-python-pylint-executable "~/.emacs.d/epylint")
@@ -51,7 +52,7 @@
  '(help-at-pt-display-when-idle (quote (haskell-msg)) nil (help-at-pt))
  '(help-at-pt-timer-delay 0.5)
  '(ido-enable-flex-matching t)
- '(ido-everywhere t)
+ '(ido-everywhere nil)
  '(ido-ignore-files
    (quote
     ("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./" "\\.orig$" "\\.bak$")))
@@ -59,6 +60,8 @@
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(js-indent-level 2)
+ '(js2-strict-missing-semi-warning nil)
+ '(js2-strict-trailing-comma-warning nil)
  '(kept-new-versions 10)
  '(menu-bar-mode nil)
  '(midnight-mode t nil (midnight))
@@ -114,9 +117,12 @@
  '(version-control t)
  '(web-mode-code-indent-offset 2)
  '(web-mode-css-indent-offset 2)
+ '(web-mode-enable-auto-indentation nil)
+ '(web-mode-enable-current-element-highlight t)
  '(web-mode-markup-indent-offset 2)
  '(web-mode-script-padding 0)
- '(web-mode-style-padding 0))
+ '(web-mode-style-padding 0)
+ '(which-key-mode t))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
