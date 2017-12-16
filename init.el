@@ -73,12 +73,13 @@
      ("gnu" . "http://elpa.gnu.org/packages/"))))
  '(package-selected-packages
    (quote
-    (company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile realgud typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
+    (py-autopep8 markdown-preview-mode markdown-mode isortify cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
  '(paradox-execute-asynchronously t)
  '(paradox-github-token t)
  '(projectile-mode t nil (projectile))
  '(projectile-mode-line nil)
  '(projectile-use-git-grep t)
+ '(py-autopep8-options (quote ("--max-line-length=140")))
  '(pyenv-mode-mode-line-format
    (quote
     (:eval
