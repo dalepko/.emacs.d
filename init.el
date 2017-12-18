@@ -11,6 +11,7 @@
  '(background-mode dark)
  '(backup-by-copying t)
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backup"))))
+ '(before-save-hook (quote (delete-trailing-whitespace)))
  '(clean-buffer-list-delay-general 1)
  '(custom-enabled-themes (quote (base16-harmonic-dark)))
  '(custom-safe-themes
@@ -106,6 +107,7 @@
      (project-venv-name . "tina-2.2")
      (project-venv-name . "tina-develop")
      (project-venv-name . "netlink2"))))
+ '(savehist-mode t)
  '(scroll-bar-mode nil)
  '(scss-compile-at-save nil)
  '(shell-file-name "/bin/bash")
@@ -113,6 +115,7 @@
  '(show-paren-mode t)
  '(sml/theme (quote dark))
  '(sml/use-projectile-p (quote before-prefixes))
+ '(terraform-indent-level 4)
  '(tool-bar-mode nil)
  '(vc-make-backup-files t)
  '(version-control t)
@@ -175,14 +178,15 @@
 (add-hook 'erlang-mode-hook 'my-erlang-setup)
 
 (defun my-erlang-setup ()
-  (add-to-list 'write-file-functions 'delete-trailing-whitespace)
   (auto-complete-mode))
 
 (add-hook 'fish-mode-hook (lambda () (setq tab-width 4)))
 
-
 ; shell-pop bug with emacs 25.1
 (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
+
+; refresh diff-hl status when commiting with magit
+(add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
 
 ;;--[web-mode]----------------------------------------------------------
 
@@ -194,8 +198,7 @@
 (add-hook 'web-mode-hook
           (lambda ()
             (company-mode)
-            (flycheck-mode)
-            (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
+            (flycheck-mode)))
 
 (eval-after-load 'flycheck
   '(flycheck-add-mode 'javascript-eslint 'web-mode))

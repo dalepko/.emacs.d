@@ -62,7 +62,7 @@
                                "::"
                                (mapconcat 'identity (split-string func "\\.") "::"))))
           (setq command (concat command " " node_id)))
-      (setq command (concat command " " (file-name-nondirectory filename))))
+      (setq command (concat command " " filename)))
 
     (setq pytest-last-file filename)
     (setq pytest-last-func func)
@@ -95,8 +95,6 @@
   (define-key python-mode-map [(shift f9)] 'pytest)
   (define-key python-mode-map [(f9)] 'pytest-again)
   (define-key python-mode-map (kbd "RET") 'newline-and-indent)
-
-  (add-to-list 'write-file-functions 'delete-trailing-whitespace)
 
   (when (boundp 'project-venv-name)
     (venv-workon project-venv-name))
