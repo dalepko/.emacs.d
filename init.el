@@ -23,8 +23,23 @@
  '(ediff-window-setup-function (quote ediff-setup-windows-plain))
  '(eldoc-idle-delay 0.4)
  '(eshell-cmpl-cycle-completions nil)
+ '(ess-default-style (quote DEFAULT))
+ '(ess-own-style-list
+   (quote
+    ((ess-indent-offset . 2)
+     (ess-offset-arguments . open-delim)
+     (ess-offset-arguments-newline . prev-call)
+     (ess-offset-block . prev-line)
+     (ess-offset-continued . straight)
+     (ess-align-nested-calls "ifelse")
+     (ess-align-arguments-in-calls "function[ 	]*(")
+     (ess-align-continuations-in-calls . t)
+     (ess-align-blocks control-flow)
+     (ess-indent-from-lhs arguments fun-decl-opening)
+     (ess-indent-from-chain-start . t)
+     (ess-indent-with-fancy-comments . t))))
  '(fci-rule-color "#383838")
- '(flycheck-disabled-checkers (quote (python-flake8)))
+ '(flycheck-disabled-checkers nil)
  '(flycheck-display-errors-delay 0.5)
  '(flycheck-javascript-eslint-executable "~/.emacs.d/eslint/node_modules/.bin/eslint")
  '(flycheck-python-pylint-executable "~/.emacs.d/epylint")
@@ -74,7 +89,7 @@
      ("gnu" . "http://elpa.gnu.org/packages/"))))
  '(package-selected-packages
    (quote
-    (base16-theme py-autopep8 markdown-preview-mode markdown-mode isortify cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
+    (ess base16-theme py-autopep8 markdown-preview-mode markdown-mode isortify cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
  '(paradox-execute-asynchronously t)
  '(paradox-github-token t)
  '(projectile-mode t nil (projectile))
@@ -133,8 +148,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:height 110 :width normal :foundry "Bits" :family "Bitstream Vera Sans Mono"))))
- ;;'(cursor ((t (:background "dark gray"))))
  '(diff-hl-change ((t (:background "steel blue" :foreground "blue3"))))
  '(diff-hl-delete ((t (:inherit magit-diff-removed-highlight))))
  '(diff-hl-insert ((t (:inherit magit-diff-added-highlight))))
