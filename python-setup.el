@@ -100,7 +100,8 @@
     (venv-workon project-venv-name))
   (company-mode t)
   (jedi:setup)
-  (flycheck-mode t))
+  (flycheck-mode t)
+  (isort-mode))
 
 
 (defun pyenv ()
