@@ -13,6 +13,7 @@
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backup"))))
  '(before-save-hook (quote (delete-trailing-whitespace)))
  '(clean-buffer-list-delay-general 1)
+ '(company-idle-delay 0.1)
  '(custom-enabled-themes (quote (base16-harmonic-dark)))
  '(custom-safe-themes
    (quote
@@ -64,7 +65,6 @@
  '(helm-mode-fuzzy-match t)
  '(helm-projectile-set-input-automatically nil)
  '(helm-split-window-inside-p t)
- '(helm-top-poll-mode t)
  '(help-at-pt-display-when-idle (quote (haskell-msg)) nil (help-at-pt))
  '(help-at-pt-timer-delay 0.5)
  '(ido-enable-flex-matching t)
