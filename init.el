@@ -165,8 +165,7 @@
 
 (global-set-key (kbd "M-<up>") '(lambda () (interactive) (scroll-other-window -1)))
 (global-set-key (kbd "M-<down>") '(lambda () (interactive) (scroll-other-window 1)))
-(global-set-key [f11] 'previous-error)
-(global-set-key [f12] 'next-error)
+(global-set-key [f12] #'magit-status)
 
 (global-set-key (kbd "<home>") 'move-beginning-of-line)
 (global-set-key (kbd "<end>") 'move-end-of-line)
