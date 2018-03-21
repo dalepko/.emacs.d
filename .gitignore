@@ -14,3 +14,7 @@ eslint/node_modules/
 projectile-bookmarks.eld
 projectile.cache
 /elpa
+/history
+/recentf
+/abbrev_defs
+/eslint/package-lock.json
