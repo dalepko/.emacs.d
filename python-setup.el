@@ -7,6 +7,8 @@
 (require 'which-func)
 (require 'gud)
 (require 'subr-x)
+(require 'pythonic)
+(require 'importmagic)
 
 
 (defvar pytest-last-file nil)
@@ -69,7 +71,8 @@
     (setq pytest-last-file filename)
     (setq pytest-last-func func)
     (let ((buffer (if is-in-pdb (pdb command)
-                    (flet ((switch-to-buffer (buffer) (pop-to-buffer buffer))) (pdb command)))))
+                    (cl-letf (((symbol-function #'switch-to-buffer) (lambda (buffer) (pop-to-buffer buffer))))
+                      (pdb command)))))
       (setq pdb-tracker t)
       (pytest-error-minor-mode))))
 
@@ -107,6 +110,7 @@
   (when (boundp 'project-venv-name)
     (venv-workon project-venv-name))
   (activate-pyenv)
+  (importmagic-mode t)
   (company-mode t)
   (jedi:setup)
   (flycheck-mode t)
