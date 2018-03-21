@@ -6,6 +6,8 @@
 (require 'python)
 (require 'which-func)
 (require 'gud)
+(require 'subr-x)
+
 
 (defvar pytest-last-file nil)
 (defvar pytest-last-func nil)
@@ -85,6 +87,12 @@
 
 (defconst venv-indicator '(:exec venv-current-name))
 
+(defun get-file-contents (filename)
+  "Read a file and return foo-file as a string."
+  (with-temp-buffer
+    (insert-file-contents filename)
+    (buffer-string)))
+
 (defun my-python-setup ()
   (if (not (eq (car mode-line-format) venv-indicator))
       (setq mode-line-format (cons venv-indicator mode-line-format)))
@@ -98,16 +106,34 @@
 
   (when (boundp 'project-venv-name)
     (venv-workon project-venv-name))
+  (activate-pyenv)
   (company-mode t)
   (jedi:setup)
   (flycheck-mode t)
-  (isort-mode))
+  (py-autopep8-enable-on-save))
+
+
+(defun pyenv-init()
+  (add-to-list 'exec-path (expand-file-name "~/.pyenv/bin"))
+  (add-to-list 'exec-path (expand-file-name "~/.pyenv/shims"))
+  (setenv "PATH" (mapconcat 'identity exec-path path-separator))
+  (pyenv-mode t))
 
 
 (defun pyenv ()
   (interactive)
-  (add-to-list 'exec-path (expand-file-name "~/.pyenv/bin"))
-  (add-to-list 'exec-path (expand-file-name "~/.pyenv/shims"))
-  (setenv "PATH" (mapconcat 'identity exec-path path-separator))
-  (pyenv-mode t)
+  (pyenv-init)
   (call-interactively 'pyenv-mode-set))
+
+
+(defun activate-pyenv ()
+  (let* ((root (projectile-project-root))
+         (pyenv-version-file (concat root ".python-version"))
+         (current-pyenv (and pythonic-environment (file-name-nondirectory pythonic-environment))))
+    (if (file-exists-p pyenv-version-file)
+        (let ((target-pyenv (string-trim (get-file-contents pyenv-version-file))))
+          (if (not (string-equal target-pyenv current-pyenv))
+              (progn
+                (pyenv-init)
+                (setq python-shell-extra-pythonpaths `(,root))
+                (pyenv-mode-set target-pyenv)))))))
