@@ -56,9 +56,9 @@
 
 (defun run-pytest (verbose filename func)
 
-  (let ((command  (format "py.test%s --tb=short -vs"
+  (let ((command  (format "py.test%s --tb=short -vvs"
                           ;;(file-name-directory filename)
-                          (if verbose " -s --pdb" "")))
+                          (if verbose " --pdb" "")))
         (is-in-pdb pdb-tracker))
     (cleanup-pdb-buffers)
     (if func
