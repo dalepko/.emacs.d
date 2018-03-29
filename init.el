@@ -205,7 +205,7 @@
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.vue\\'" . web-mode))
 
-(setq web-mode-engines-alist '(("django"    . "\\.html\\'")))
+(setq web-mode-engines-alist '(("django" . "\\.html\\'")))
 
 (add-hook 'web-mode-hook
           (lambda ()
@@ -214,6 +214,18 @@
 
 (eval-after-load 'flycheck
   '(flycheck-add-mode 'javascript-eslint 'web-mode))
+
+()
+
+(setq web-mode-indentation-params
+  '(("lineup-args"       . ())
+    ("lineup-calls"      . ())
+    ("lineup-concats"    . t)
+    ("lineup-quotes"     . t)
+    ("lineup-ternary"    . t)
+    ("case-extra-offset" . t)
+    ))
+
 
 
 ;;--[helm/projectile]----------------------------------------------------
