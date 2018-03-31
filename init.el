@@ -104,6 +104,9 @@
        (concat "("
                (pyenv-mode-version)
                ") ")))))
+ '(python-shell-interpreter "ipython")
+ '(python-shell-interpreter-args
+   "-i --TerminalIPythonApp.interactive_shell_class=rlipython.TerminalInteractiveShell")
  '(realgud-populate-common-fn-keys-function (quote identity))
  '(rm-blacklist
    (quote
