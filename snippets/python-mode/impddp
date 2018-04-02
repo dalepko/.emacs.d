@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import DfDataProxy
+# key: impddp
+# --
+from front.flask_app.core.data_proxy.df_data_proxy import DFDataProxy

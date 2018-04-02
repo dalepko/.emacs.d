@@ -100,8 +100,6 @@
   (if (not (eq (car mode-line-format) venv-indicator))
       (setq mode-line-format (cons venv-indicator mode-line-format)))
 
-  (add-to-list 'company-backends #'company-jedi)
-
   (hack-local-variables)
   (define-key python-mode-map [(shift f9)] 'pytest)
   (define-key python-mode-map [(f9)] 'pytest-again)

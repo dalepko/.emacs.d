@@ -13,6 +13,12 @@
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backup"))))
  '(before-save-hook (quote (delete-trailing-whitespace)))
  '(clean-buffer-list-delay-general 1)
+ '(company-backends
+   (quote
+    ((company-jedi company-yasnippet)
+     company-bbdb company-nxml company-css company-eclim company-semantic company-clang company-xcode company-cmake company-capf company-files
+     (company-dabbrev-code company-gtags company-etags company-keywords)
+     company-oddmuse company-dabbrev)))
  '(company-idle-delay 0.1)
  '(custom-enabled-themes (quote (base16-harmonic-dark)))
  '(custom-safe-themes
@@ -89,7 +95,7 @@
      ("gnu" . "http://elpa.gnu.org/packages/"))))
  '(package-selected-packages
    (quote
-    (importmagic eslint-fix web-beautify ess base16-theme py-autopep8 markdown-preview-mode markdown-mode isortify cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
+    (yasnippet realgud importmagic eslint-fix web-beautify ess base16-theme py-autopep8 markdown-preview-mode markdown-mode isortify cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
  '(paradox-execute-asynchronously t)
  '(paradox-github-token t)
  '(projectile-mode t nil (projectile))
@@ -110,7 +116,7 @@
  '(realgud-populate-common-fn-keys-function (quote identity))
  '(rm-blacklist
    (quote
-    (" hl-p" " AC" " Ind" " MRev" " Interactive" " $" " ARev" " company" " tide" " ElDoc" " Guide" " WK")))
+    (" hl-p" " AC" " Ind" " MRev" " Interactive" " $" " ARev" " company" " tide" " ElDoc" " Guide" " WK" " yas" " import")))
  '(rm-text-properties
    (quote
     (("\\` Ovwrt\\'"
@@ -144,7 +150,8 @@
  '(web-mode-markup-indent-offset 2)
  '(web-mode-script-padding 0)
  '(web-mode-style-padding 0)
- '(which-key-mode t))
+ '(which-key-mode t)
+ '(yas-global-mode t))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

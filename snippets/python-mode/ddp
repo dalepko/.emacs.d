@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: declare a DfDataProxy
+# key: ddp
+# --
+data_proxy = DFDataProxy(project)

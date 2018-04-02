@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: relativetimedelta
+# key: reld
+# --
+relativetimedelta(months=$1)
