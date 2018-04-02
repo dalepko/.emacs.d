@@ -2,7 +2,7 @@
 
 (require 'company)
 (require 'company-jedi)
-(require 'gud)
+(require 'realgud)
 (require 'python)
 (require 'which-func)
 (require 'gud)
@@ -32,7 +32,7 @@
   "Keymap for `pytest-error-minor-mode-map'.")
 
 ;; remove annoying key binding
-;(define-key realgud-track-mode-map [M-right] 'windmove-right)
+(define-key realgud-track-mode-map [M-right] 'windmove-right)
 
 (defvar-local pdb-tracker nil)
 
@@ -72,7 +72,7 @@
     (setq pytest-last-func func)
     (let ((buffer (if is-in-pdb (pdb command)
                     (cl-letf (((symbol-function #'switch-to-buffer) (lambda (buffer) (pop-to-buffer buffer))))
-                      (pdb command)))))
+                      (realgud:ipdb command)))))
       (setq pdb-tracker t)
       (pytest-error-minor-mode))))
 
