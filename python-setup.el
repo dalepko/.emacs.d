@@ -33,6 +33,8 @@
 
 ;; remove annoying key binding
 (define-key realgud-track-mode-map [M-right] 'windmove-right)
+(define-key realgud-track-mode-map [M-up] 'windmove-up)
+
 
 (defvar-local pdb-tracker nil)
 
@@ -72,14 +74,17 @@
     (setq pytest-last-func func)
     (let ((buffer (if is-in-pdb (pdb command)
                     (cl-letf (((symbol-function #'switch-to-buffer) (lambda (buffer) (pop-to-buffer buffer))))
-                      (realgud:ipdb command)))))
+                      (realgud:pdb command)))))
       (setq pdb-tracker t)
       (pytest-error-minor-mode))))
 
 
 (defun pytest (&optional verbose)
   (interactive "P")
-  (run-pytest verbose buffer-file-name (which-function)))
+  (let* ((func (which-function))
+         (func-is-ok (null (cl-search " " func)))
+         (func-clean (if func-is-ok func nil)))
+    (run-pytest verbose buffer-file-name func-clean)))
 
 (defun pytest-again (&optional verbose)
   (interactive "P")
@@ -131,7 +136,7 @@
 (defun activate-pyenv ()
   (let* ((root (projectile-project-root))
          (pyenv-version-file (concat root ".python-version"))
-         (current-pyenv (and pythonic-environment (file-name-nondirectory pythonic-environment))))
+         (current-pyenv (and python-shell-virtualenv-root (file-name-nondirectory python-shell-virtualenv-root))))
     (if (file-exists-p pyenv-version-file)
         (let ((target-pyenv (string-trim (get-file-contents pyenv-version-file))))
           (if (not (string-equal target-pyenv current-pyenv))
