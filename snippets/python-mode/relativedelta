@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: relativedelta
+# key: reld
+# --
+relativedelta(months=$1)
