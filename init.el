@@ -95,9 +95,10 @@
      ("gnu" . "http://elpa.gnu.org/packages/"))))
  '(package-selected-packages
    (quote
-    (yasnippet realgud importmagic eslint-fix web-beautify ess base16-theme py-autopep8 markdown-preview-mode markdown-mode isortify cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
+    (dockerfile-mode yasnippet realgud importmagic eslint-fix web-beautify ess base16-theme py-autopep8 markdown-preview-mode markdown-mode isortify cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
  '(paradox-execute-asynchronously t)
  '(paradox-github-token t)
+ '(projectile-enable-caching t)
  '(projectile-mode t nil (projectile))
  '(projectile-mode-line nil)
  '(projectile-use-git-grep t)
@@ -110,9 +111,7 @@
        (concat "("
                (pyenv-mode-version)
                ") ")))))
- '(python-shell-interpreter "ipython")
- '(python-shell-interpreter-args
-   "-i --TerminalIPythonApp.interactive_shell_class=rlipython.TerminalInteractiveShell")
+ '(python-shell-interpreter-args "")
  '(realgud-populate-common-fn-keys-function (quote identity))
  '(rm-blacklist
    (quote
@@ -352,3 +351,10 @@
                           (shell-quote-argument eljasmine)))
          (default-directory root))
     (compile command 'jasmine-compilation-mode)))
+
+(put 'upcase-region 'disabled nil)
+
+
+;; options pour ipython
+;; '(python-shell-interpreter-args
+;; -   "-i --TerminalIPythonApp.interactive_shell_class=rlipython.TerminalInteractiveShell")
