@@ -9,6 +9,7 @@
 (require 'subr-x)
 (require 'pythonic)
 (require 'importmagic)
+(require 'isortify)
 
 
 (defvar pytest-last-file nil)
@@ -115,6 +116,7 @@
   (activate-pyenv)
   (importmagic-mode t)
   (company-mode t)
+  (isortify-mode t)
   (jedi:setup)
   (flycheck-mode t)
   (py-autopep8-enable-on-save))
@@ -134,13 +136,28 @@
 
 
 (defun activate-pyenv ()
-  (let* ((root (projectile-project-root))
-         (pyenv-version-file (concat root ".python-version"))
+  (let* ((root (locate-dominating-file "." ".python-version"))
          (current-pyenv (and python-shell-virtualenv-root (file-name-nondirectory python-shell-virtualenv-root))))
-    (if (file-exists-p pyenv-version-file)
-        (let ((target-pyenv (string-trim (get-file-contents pyenv-version-file))))
+    (if root
+        (let* ((pyenv-version-file (concat root ".python-version"))
+               (target-pyenv (string-trim (get-file-contents pyenv-version-file))))
           (if (not (string-equal target-pyenv current-pyenv))
               (progn
                 (pyenv-init)
                 (setq python-shell-extra-pythonpaths `(,root))
                 (pyenv-mode-set target-pyenv)))))))
+
+
+
+(defun check-isort-error (oldfun input-buffer output-buffer)
+  (let ((result (apply oldfun input-buffer output-buffer nil)))
+    (if (= result 0)
+        (with-current-buffer output-buffer
+          (save-excursion
+            (progn
+              (beginning-of-buffer)
+              (if (search-forward "ERROR: " 8 t)  1 0))))
+      result)))
+
+
+(advice-add #'isortify-call-bin :around  #'check-isort-error)
