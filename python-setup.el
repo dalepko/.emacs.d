@@ -160,4 +160,8 @@
       result)))
 
 
+(defun check-syntax-error (errbuf file)
+  (zerop (call-process "python" nil nil nil "-m" "py_compile" file)))
+
 (advice-add #'isortify-call-bin :around  #'check-isort-error)
+(advice-add #'py-autopep8--call-executable :before-while  #'check-syntax-error)
