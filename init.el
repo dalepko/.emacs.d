@@ -46,6 +46,7 @@
      (ess-indent-from-chain-start . t)
      (ess-indent-with-fancy-comments . t))))
  '(fci-rule-color "#383838")
+ '(fill-column 100)
  '(flycheck-disabled-checkers nil)
  '(flycheck-display-errors-delay 0.5)
  '(flycheck-javascript-eslint-executable "~/.emacs.d/eslint/node_modules/.bin/eslint")
@@ -79,6 +80,7 @@
    (quote
     ("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./" "\\.orig$" "\\.bak$")))
  '(ido-mode (quote both) nil (ido))
+ '(importmagic-style-configuration-alist (quote ((multiline . backslashes) (max_columns . 120))))
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(js-indent-level 2)
