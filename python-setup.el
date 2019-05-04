@@ -149,7 +149,7 @@
 
 
 
-(defun check-isort-error (oldfun input-buffer output-buffer)
+(defun isort-check-error (oldfun input-buffer output-buffer)
   (let ((result (apply oldfun input-buffer output-buffer nil)))
     (if (= result 0)
         (with-current-buffer output-buffer
@@ -160,8 +160,8 @@
       result)))
 
 
-(defun check-syntax-error (errbuf file)
+(defun autopep8-check-syntax-error (errbuf file)
   (zerop (call-process "python" nil nil nil "-m" "py_compile" file)))
 
-(advice-add #'isortify-call-bin :around  #'check-isort-error)
-(advice-add #'py-autopep8--call-executable :before-while  #'check-syntax-error)
+(advice-add #'isortify-call-bin :around  #'isort-check-error)
+(advice-add #'py-autopep8--call-executable :before-while  #'autopep8-check-syntax-error)
