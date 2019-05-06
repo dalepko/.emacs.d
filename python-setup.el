@@ -35,6 +35,7 @@
 ;; remove annoying key binding
 (define-key realgud-track-mode-map [M-right] 'windmove-right)
 (define-key realgud-track-mode-map [M-up] 'windmove-up)
+(define-key realgud-track-mode-map [M-down] 'windmove-down)
 
 
 (defvar-local pdb-tracker nil)
@@ -149,6 +150,10 @@
 
 
 
+
+
+;; prevent isort from erasing file contents on error
+
 (defun isort-check-error (oldfun input-buffer output-buffer)
   (let ((result (apply oldfun input-buffer output-buffer nil)))
     (if (= result 0)
@@ -159,9 +164,21 @@
               (if (search-forward "ERROR: " 8 t)  1 0))))
       result)))
 
+(advice-add #'isortify-call-bin :around  #'isort-check-error)
+
+;; prevent autopep8 from running on files with syntax errors
 
 (defun autopep8-check-syntax-error (errbuf file)
   (zerop (call-process "python" nil nil nil "-m" "py_compile" file)))
 
-(advice-add #'isortify-call-bin :around  #'isort-check-error)
 (advice-add #'py-autopep8--call-executable :before-while  #'autopep8-check-syntax-error)
+
+
+;; fix bug in realgud always reselecting the command window
+
+(defun realgud-fix-check-prompt (from to &optional cmd-mark opt-cmdbuf
+				      shortkey-on-tracing? no-warn-if-no-match?)
+  (string-match (concat comint-prompt-regexp "$")
+                (buffer-substring-no-properties from to)))
+
+(advice-add #'realgud:track-from-region :before-while  #'realgud-fix-check-prompt)
