@@ -117,7 +117,7 @@
  '(realgud-populate-common-fn-keys-function (quote identity))
  '(rm-blacklist
    (quote
-    (" hl-p" " AC" " Ind" " MRev" " Interactive" " $" " ARev" " company" " tide" " ElDoc" " Guide" " WK" " yas" " import")))
+    (" hl-p" " AC" " Ind" " MRev" " Interactive" " $" " ARev" " company" " tide" " ElDoc" " Guide" " WK" " yas" " import" " Isort")))
  '(rm-text-properties
    (quote
     (("\\` Ovwrt\\'"
