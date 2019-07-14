@@ -30,6 +30,7 @@
  '(ediff-window-setup-function (quote ediff-setup-windows-plain))
  '(eldoc-idle-delay 0.4)
  '(eshell-cmpl-cycle-completions nil)
+ '(eslint-fix-executable "~/.emacs.d/eslint/node_modules/.bin/eslint")
  '(ess-default-style (quote DEFAULT))
  '(ess-own-style-list
    (quote
@@ -113,7 +114,6 @@
        (concat "("
                (pyenv-mode-version)
                ") ")))))
- '(python-shell-interpreter-args "")
  '(realgud-populate-common-fn-keys-function (quote identity))
  '(rm-blacklist
    (quote
