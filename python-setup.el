@@ -74,7 +74,7 @@
 
     (setq pytest-last-file filename)
     (setq pytest-last-func func)
-    (let ((buffer (if is-in-pdb (pdb command)
+    (let ((buffer (if is-in-pdb (realgud:pdb command)
                     (cl-letf (((symbol-function #'switch-to-buffer) (lambda (buffer) (pop-to-buffer buffer))))
                       (realgud:pdb command)))))
       (setq pdb-tracker t)
