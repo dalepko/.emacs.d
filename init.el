@@ -50,6 +50,7 @@
  '(fill-column 100)
  '(flycheck-disabled-checkers nil)
  '(flycheck-display-errors-delay 0.5)
+ '(flycheck-flake8rc ".flake8")
  '(flycheck-javascript-eslint-executable "~/.emacs.d/eslint/node_modules/.bin/eslint")
  '(flycheck-python-pylint-executable "~/.emacs.d/epylint")
  '(flycheck-typescript-tslint-executable "/opt/node/bin/tslint")
@@ -84,6 +85,7 @@
  '(importmagic-style-configuration-alist (quote ((multiline . backslashes) (max_columns . 120))))
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
+ '(jedi:environment-virtualenv (quote ("pyvenv")))
  '(js-indent-level 2)
  '(js2-strict-missing-semi-warning nil)
  '(js2-strict-trailing-comma-warning nil)
@@ -98,7 +100,7 @@
      ("gnu" . "http://elpa.gnu.org/packages/"))))
  '(package-selected-packages
    (quote
-    (dockerfile-mode yasnippet realgud importmagic eslint-fix web-beautify ess base16-theme py-autopep8 markdown-preview-mode markdown-mode isortify cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
+    (isortify dockerfile-mode yasnippet realgud importmagic eslint-fix web-beautify ess base16-theme py-autopep8 markdown-preview-mode markdown-mode cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi)))
  '(paradox-execute-asynchronously t)
  '(paradox-github-token t)
  '(projectile-enable-caching t)
@@ -140,7 +142,7 @@
  '(show-paren-mode t)
  '(sml/theme (quote dark))
  '(sml/use-projectile-p (quote before-prefixes))
- '(terraform-indent-level 4)
+ '(terraform-indent-level 2)
  '(tool-bar-mode nil)
  '(vc-make-backup-files t)
  '(version-control t)
