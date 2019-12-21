@@ -182,3 +182,22 @@
                 (buffer-substring-no-properties from to)))
 
 (advice-add #'realgud:track-from-region :before-while  #'realgud-fix-check-prompt)
+
+
+(defun isortify-call-bin (input-buffer output-buffer)
+  "Call process isort on INPUT-BUFFER saving the output to OUTPUT-BUFFER.
+
+Return isort process the exit code."
+  (with-current-buffer input-buffer
+    (let*
+        ((tmpfile (make-temp-file "isortify" nil ".py" (buffer-string)))
+         (process
+          (pythonic-start-process :process "isortify"
+                                   :buffer output-buffer
+                                   :sentinel (lambda (process event))
+                                   :args `("-m" "isort" "-d" ,tmpfile))))
+
+      (while (accept-process-output process nil nil t))
+      (while (process-live-p process) (accept-process-output process nil nil t))
+      (delete-file tmpfile)
+      (process-exit-status process))))
