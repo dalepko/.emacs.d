@@ -1,5 +1,4 @@
 ;;; -*- lexical-binding: t -*-
-
 (require 'company)
 (require 'company-jedi)
 (require 'realgud)
@@ -9,7 +8,7 @@
 (require 'subr-x)
 (require 'pythonic)
 (require 'importmagic)
-(require 'isortify)
+(require 'py-isort)
 
 
 (defvar pytest-last-file nil)
@@ -36,6 +35,8 @@
 (define-key realgud-track-mode-map [M-right] 'windmove-right)
 (define-key realgud-track-mode-map [M-up] 'windmove-up)
 (define-key realgud-track-mode-map [M-down] 'windmove-down)
+(define-key realgud:shortkey-mode-map [M-up] 'windmove-up)
+(define-key realgud:shortkey-mode-map [M-down] 'windmove-down)
 
 
 (defvar-local pdb-tracker nil)
@@ -58,12 +59,16 @@
     (buffer-list))))
 
 
-(defun run-pytest (verbose filename func)
+(defun find-last-pdb-buffer ()
+  (seq-find #'get-buffer-window (seq-filter (lambda (buffer) (with-current-buffer buffer pdb-tracker)) (buffer-list))))
 
-  (let ((command  (format "py.test%s --tb=short -vvs"
-                          ;;(file-name-directory filename)
-                          (if verbose " --pdb" "")))
-        (is-in-pdb pdb-tracker))
+
+(defun run-pytest (verbose filename func)
+  (let* ((command  (format "py.test%s --tb=short -vvs"
+                           ;;(file-name-directory filename)
+                           (if verbose " --pdb" "")))
+         (last-pdb-buffer (find-last-pdb-buffer))
+         (last-pdb-window (if last-pdb-buffer (get-buffer-window last-pdb-buffer))))
     (cleanup-pdb-buffers)
     (if func
         (let ((node_id (concat filename;;(file-name-nondirectory filename)
@@ -74,11 +79,16 @@
 
     (setq pytest-last-file filename)
     (setq pytest-last-func func)
-    (let ((buffer (if is-in-pdb (realgud:pdb command)
-                    (cl-letf (((symbol-function #'switch-to-buffer) (lambda (buffer) (pop-to-buffer buffer))))
-                      (realgud:pdb command)))))
+    (save-selected-window
+      (if (null last-pdb-window)
+          (cl-letf (((symbol-function #'switch-to-buffer)
+                     (lambda (buffer) (pop-to-buffer buffer))))
+            (realgud:pdb command))
+        (select-window last-pdb-window)
+        (realgud:pdb command))
       (setq pdb-tracker t)
       (pytest-error-minor-mode))))
+
 
 
 (defun pytest (&optional verbose)
@@ -117,11 +127,18 @@
   (activate-pyenv)
   (importmagic-mode t)
   (company-mode t)
-  (isortify-mode t)
   (jedi:setup)
+  (setq flycheck-checker 'python-pylint)
   (flycheck-mode t)
-  (py-autopep8-enable-on-save))
+  (py-autopep8-enable-on-save)
+  (add-hook 'before-save-hook 'py-isort-before-save))
 
+(defun py-isort--find-settings-path ()
+  (expand-file-name
+   (or (locate-dominating-file buffer-file-name ".git")
+       (locate-dominating-file buffer-file-name "setup.cfg")
+       (locate-dominating-file buffer-file-name "setup.py")
+       (file-name-directory buffer-file-name))))
 
 (defun pyenv-init()
   (add-to-list 'exec-path (expand-file-name "~/.pyenv/bin"))
@@ -150,22 +167,6 @@
 
 
 
-
-
-;; prevent isort from erasing file contents on error
-
-(defun isort-check-error (oldfun input-buffer output-buffer)
-  (let ((result (apply oldfun input-buffer output-buffer nil)))
-    (if (= result 0)
-        (with-current-buffer output-buffer
-          (save-excursion
-            (progn
-              (beginning-of-buffer)
-              (if (search-forward "ERROR: " 8 t)  1 0))))
-      result)))
-
-(advice-add #'isortify-call-bin :around  #'isort-check-error)
-
 ;; prevent autopep8 from running on files with syntax errors
 
 (defun autopep8-check-syntax-error (errbuf file)
@@ -182,22 +183,3 @@
                 (buffer-substring-no-properties from to)))
 
 (advice-add #'realgud:track-from-region :before-while  #'realgud-fix-check-prompt)
-
-
-(defun isortify-call-bin (input-buffer output-buffer)
-  "Call process isort on INPUT-BUFFER saving the output to OUTPUT-BUFFER.
-
-Return isort process the exit code."
-  (with-current-buffer input-buffer
-    (let*
-        ((tmpfile (make-temp-file "isortify" nil ".py" (buffer-string)))
-         (process
-          (pythonic-start-process :process "isortify"
-                                   :buffer output-buffer
-                                   :sentinel (lambda (process event))
-                                   :args `("-m" "isort" "-d" ,tmpfile))))
-
-      (while (accept-process-output process nil nil t))
-      (while (process-live-p process) (accept-process-output process nil nil t))
-      (delete-file tmpfile)
-      (process-exit-status process))))
