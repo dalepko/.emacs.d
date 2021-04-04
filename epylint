@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 import ctypes
 import errno
 import hashlib
@@ -113,6 +113,14 @@ def epylint_daemon(signal_socket, rc_file):
 
     logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
     logger = logging.getLogger('epylint')
+    logger.error('rcfile %s', rc_file)
+
+    if rc_file is not None:
+        root_directory = os.path.dirname(rc_file)
+        sys.path.insert(0, root_directory)
+        logger.info('Added %s to sys.path', root_directory)
+
+    logger.info('sys.path = %r', sys.path)
 
     server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
     poll = select.poll()
@@ -171,6 +179,8 @@ def epylint_daemon(signal_socket, rc_file):
             options = {
                 '--msg-template': '{abspath}:{line}:{column}:{C}:{symbol} {msg_id}:{msg}',
                 '--reports': 'n',
+                '--score': 'n',
+                '--output-format': 'json'
             }
             if rc_file:
                 options['--rcfile'] = rc_file
@@ -250,9 +260,12 @@ def get_connection(rc_file, force):
 
 def get_rc_file():
     it = iter(sys.argv[1:])
-    param = next((arg for arg in it if arg == '--rcfile'), None)
+    param = next((arg for arg in it if arg == '--rcfile' or arg.startswith('--rcfile=')), None)
     if param:
-        return next(it)
+        if param == '--rcfile':
+            return next(it)
+        else:
+            return param[9:]
     return None
 
 
