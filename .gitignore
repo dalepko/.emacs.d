@@ -19,3 +19,8 @@ projectile.cache
 /abbrev_defs
 /eslint/package-lock.json
 /backup
+/.lsp-session-v1
+/.cask
+/async-bytecomp.log
+/.local
+/transient

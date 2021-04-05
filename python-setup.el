@@ -9,6 +9,8 @@
 (require 'pythonic)
 (require 'importmagic)
 (require 'py-isort)
+(require 'lsp)
+(require 'lsp-pyright)
 
 
 (defvar pytest-last-file nil)
@@ -125,12 +127,14 @@
   (when (boundp 'project-venv-name)
     (venv-workon project-venv-name))
   (activate-pyenv)
-  (importmagic-mode t)
+  ;; (importmagic-mode t)
   (company-mode t)
-  (jedi:setup)
-  (setq flycheck-checker 'python-pylint)
+  ;; (jedi:setup)
+  ;; (setq flycheck-checker 'python-pylint)
   (flycheck-mode t)
-  (py-autopep8-enable-on-save)
+  ;; (py-autopep8-enable-on-save)
+  (fix-pyright)
+  (lsp)
   (add-hook 'before-save-hook 'py-isort-before-save))
 
 (defun py-isort--find-settings-path ()
@@ -183,3 +187,13 @@
                 (buffer-substring-no-properties from to)))
 
 (advice-add #'realgud:track-from-region :before-while  #'realgud-fix-check-prompt)
+
+
+(defun fix-pyright()
+  (let ((pyright (gethash 'pyright lsp-clients)))
+    (when (not (lsp--client-library-folders-fn pyright))
+      (setf (lsp--client-library-folders-fn pyright) #'pyenv-folder))))
+
+
+(defun pyenv-folder (workspace)
+  (list (expand-file-name "~/.pyenv")))

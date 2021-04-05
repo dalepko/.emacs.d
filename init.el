@@ -16,6 +16,7 @@
      company-bbdb company-nxml company-css company-eclim company-semantic company-clang company-xcode company-cmake company-capf company-files
      (company-dabbrev-code company-gtags company-etags company-keywords)
      company-oddmuse company-dabbrev))
+ '(company-box-doc-delay 0.1)
  '(company-idle-delay 0.1)
  '(custom-enabled-themes '(base16-harmonic-dark))
  '(custom-safe-themes
@@ -44,13 +45,14 @@
  '(fci-rule-color "#383838")
  '(fill-column 100)
  '(flycheck-disabled-checkers nil)
- '(flycheck-display-errors-delay 0.5)
+ '(flycheck-display-errors-delay 0.1)
  '(flycheck-flake8rc ".flake8")
  '(flycheck-javascript-eslint-executable "~/.emacs.d/eslint/node_modules/.bin/eslint")
  '(flycheck-python-pylint-executable "~/.emacs.d/epylint")
  '(flycheck-typescript-tslint-executable "/opt/node/bin/tslint")
  '(foreground-color "#839496")
  '(frame-resize-pixelwise t)
+ '(git-gutter:update-interval 1)
  '(global-company-mode t)
  '(global-diff-hl-mode t)
  '(groovy-indent-offset 2)
@@ -84,20 +86,29 @@
  '(js2-strict-missing-semi-warning nil)
  '(js2-strict-trailing-comma-warning nil)
  '(kept-new-versions 10)
+ '(lsp-diagnostics-disabled-modes '(python-mode))
+ '(lsp-file-watch-ignored-directories
+   '("[/\\\\]\\.git\\'" "[/\\\\]\\.hg\\'" "[/\\\\]\\.bzr\\'" "[/\\\\]_darcs\\'" "[/\\\\]\\.svn\\'" "[/\\\\]_FOSSIL_\\'" "[/\\\\]\\.idea\\'" "[/\\\\]\\.ensime_cache\\'" "[/\\\\]\\.eunit\\'" "[/\\\\]node_modules\\'" "[/\\\\]\\.fslckout\\'" "[/\\\\]\\.tox\\'" "[/\\\\]dist\\'" "[/\\\\]dist-newstyle\\'" "[/\\\\]\\.stack-work\\'" "[/\\\\]\\.bloop\\'" "[/\\\\]\\.metals\\'" "[/\\\\]target\\'" "[/\\\\]\\.ccls-cache\\'" "[/\\\\]\\.vscode\\'" "[/\\\\]\\.deps\\'" "[/\\\\]build-aux\\'" "[/\\\\]autom4te.cache\\'" "[/\\\\]\\.reference\\'" "[/\\\\]\\.lsp\\'" "[/\\\\]\\.clj-kondo\\'" "[/\\\\]\\.cpcache\\'" "[/\\\\]bin/Debug\\'" "[/\\\\]obj\\'" "[/\\\\]data\\'" "[/\\\\]\\.mypy_cache\\'" "[/\\\\]__pycache__\\'"))
+ '(lsp-file-watch-ignored-files
+   '("[/\\\\]flycheck_[^/\\\\]+\\'" "[/\\\\]\\.#[^/\\\\]+\\'" "[/\\\\][^/\\\\]+~\\'" "\\.\\(yml\\|svg\\|png\\|jpe?g\\)\\'" "\\.bak\\'" "\\.orig\\'"))
+ '(lsp-file-watch-threshold 2000)
+ '(lsp-log-io t)
+ '(lsp-pyright-multi-root nil)
  '(menu-bar-mode nil)
  '(midnight-mode t nil (midnight))
- '(ns-right-alternate-modifier 'none)
+ '(ns-≥right-alternate-modifier 'none)
  '(overseer-command "~/.cask/bin/cask exec ert-runner")
  '(package-archives
    '(("melpa" . "https://melpa.org/packages/")
      ("gnu" . "http://elpa.gnu.org/packages/")))
  '(package-selected-packages
-   '(ini-mode py-isort dockerfile-mode yasnippet realgud importmagic eslint-fix web-beautify ess base16-theme py-autopep8 markdown-preview-mode markdown-mode cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup diff-hl smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi))
+   '(lsp-treemacs helm-lsp lsp-pyright lsp-ui company-box git-gutter-fringe helpful ini-mode py-isort dockerfile-mode yasnippet realgud importmagic eslint-fix web-beautify ess base16-theme py-autopep8 markdown-preview-mode markdown-mode cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi))
  '(paradox-execute-asynchronously t)
  '(paradox-github-token t)
  '(projectile-enable-caching t)
  '(projectile-mode t nil (projectile))
  '(projectile-mode-line nil)
+ '(projectile-mode-line-function 'projectile-small-mode-line)
  '(projectile-use-git-grep t)
  '(py-autopep8-options '("--max-line-length=140"))
  '(pyenv-mode-mode-line-format
@@ -108,8 +119,6 @@
                (pyenv-mode-version)
                ") "))))
  '(realgud-populate-common-fn-keys-function 'identity)
- '(rm-blacklist
-   '(" hl-p" " AC" " Ind" " MRev" " Interactive" " $" " ARev" " company" " tide" " ElDoc" " Guide" " WK" " yas" " import" " Isort"))
  '(rm-text-properties
    '(("\\` Ovwrt\\'" 'face 'font-lock-warning-face)
      ("\\` FlyC:" 'face 'font-lock-warning-face)))
@@ -162,6 +171,9 @@
 (when (require 'paradox nil 'noerror)
   (paradox-enable))
 
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024))
+
 (global-set-key (kbd "M-<up>") '(lambda () (interactive) (scroll-other-window -1)))
 (global-set-key (kbd "M-<down>") '(lambda () (interactive) (scroll-other-window 1)))
 (global-set-key [f12] #'magit-status)
@@ -197,7 +209,7 @@
 (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
 ; refresh diff-hl status when commiting with magit
-(add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+;;(add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
 
 ;;--[web-mode]----------------------------------------------------------
 
@@ -236,6 +248,12 @@
   (global-set-key [(control o)] 'helm-projectile)
   (global-set-key [f3] 'helm-projectile-grep)
   (add-hook 'helm-minibuffer-set-up-hook #'helm-hide-minibuffer-maybe))
+
+
+(defun projectile-small-mode-line ()
+  "Report project name and type in the modeline."
+  (let ((project-name (projectile-project-name)))
+    (format " [%s]" (or project-name "-"))))
 
 ;;--[haskell-mode configuration]------------------------------------------
 
@@ -362,3 +380,55 @@
 ;; options pour ipython
 ;; '(python-shell-interpreter-args
 ;; -   "-i --TerminalIPythonApp.interactive_shell_class=rlipython.TerminalInteractiveShell")
+
+
+;;--[helpful]----------------------------------------------------
+
+(global-set-key (kbd "C-h f") #'helpful-callable)
+(global-set-key (kbd "C-h v") #'helpful-variable)
+(global-set-key (kbd "C-h k") #'helpful-key)
+
+;;--[git-gutter-fringe]------------------------------------------
+
+
+(require 'git-gutter-fringe)
+(define-fringe-bitmap 'git-gutter-fr:added
+  [224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224]
+  nil nil 'center)
+(define-fringe-bitmap 'git-gutter-fr:modified
+  [224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224]
+  nil nil 'center)
+(define-fringe-bitmap 'git-gutter-fr:deleted
+  [0 0 0 0 0 0 0 0 0 0 0 0 0 128 192 224 240 248]
+  nil nil 'center)
+
+
+;;--[company-box]------------------------------------------
+
+(add-hook 'company-mode-hook 'company-box-mode) ;
+
+
+;;--[lsp-mode]---------------------------------------------
+
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024))
+
+;;--[emacs-mac]--------------------------------------------
+
+(when (string-equal system-type "darwin")
+  ; (toggle-frame-fullscreen))modifier
+  (setq mac-command-modifier 'super)
+  (setq mac-right-option-modifier 'ns-right-alternate-modifier)
+  (setq mac-option-modifier 'meta)
+  (global-set-key (kbd "s-v") #'yank)
+  (global-set-key (kbd "s-c") #'kill-ring-save))
+
+
+
+;;--[rich-minority]----------------------------------------------
+
+(setq rm-regex-list '(" AC" " Ind" " MRev" " Interactive" " $"
+                      " ARev" " company" " tide" " ElDoc" " Guide"
+                      " WK" " yas" " import" " Isort" " company-box"
+                      " GitGutter" " LSP\\[[^]]*\\]"))
+(setq rm-blacklist (mapconcat 'identity rm-regex-list "\\|"))
