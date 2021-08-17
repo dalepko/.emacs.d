@@ -109,7 +109,7 @@ def epylint_daemon(signal_socket, rc_file):
     import select
     from pylint.lint import Run
     import pylint
-    from astroid.builder import MANAGER
+    from astroid.astroid_manager import MANAGER
 
     logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
     logger = logging.getLogger('epylint')
