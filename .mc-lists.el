@@ -3,12 +3,15 @@
 
 (setq mc/cmds-to-run-for-all
       '(
+        dabbrev-expand
         electric-newline-and-maybe-indent
         end-of-buffer
         eval-last-sexp
         eval-print-last-sexp
+        ignore
         indent-for-tab-command
         kill-region
+        markdown-outdent-or-delete
         org-end-of-line
         org-return
         org-self-insert-command
@@ -22,4 +25,6 @@
         helm-confirm-and-exit-minibuffer
         help-for-help
         mouse-set-region
+        pytest-again
+        realgud:cmd-continue
         ))

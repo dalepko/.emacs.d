@@ -11,7 +11,7 @@
 (require 'py-isort)
 (require 'lsp)
 (require 'lsp-pyright)
-
+(require 'cl-lib)
 
 (defvar pytest-last-file nil)
 (defvar pytest-last-func nil)
@@ -56,7 +56,7 @@
   (interactive)
   (mapcar
    #'kill-buffer
-   (remove-if-not
+   (cl-remove-if-not
     (lambda (buffer) (with-current-buffer buffer pdb-tracker))
     (buffer-list))))
 
@@ -127,12 +127,12 @@
   (when (boundp 'project-venv-name)
     (venv-workon project-venv-name))
   (activate-pyenv)
-  ;; (importmagic-mode t)
+  (importmagic-mode t)
   (company-mode t)
   ;; (jedi:setup)
   ;; (setq flycheck-checker 'python-pylint)
   (flycheck-mode t)
-  ;; (py-autopep8-enable-on-save)
+  (py-autopep8-enable-on-save)
   (fix-pyright)
   (lsp)
   (add-hook 'before-save-hook 'py-isort-before-save))
