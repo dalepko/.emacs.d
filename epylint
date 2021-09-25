@@ -105,15 +105,20 @@ def get_sock_path(rc_file):
 
 def epylint_daemon(signal_socket, rc_file):
     sock_path = get_sock_path(rc_file)
+    sys.stdout = sys.stderr = open(LOG_FILE, "a")
+    logging.basicConfig(level=logging.INFO)
 
     import select
-    from pylint.lint import Run
-    import pylint
-    from astroid.astroid_manager import MANAGER
 
-    logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
+    import pylint
+    try:
+        from astroid.astroid_manager import MANAGER
+    except ImportError:
+        from astroid.builder import MANAGER
+    from pylint.lint import Run
+
     logger = logging.getLogger('epylint')
-    logger.error('rcfile %s', rc_file)
+    logger.info('rcfile: %s', rc_file)
 
     if rc_file is not None:
         root_directory = os.path.dirname(rc_file)
