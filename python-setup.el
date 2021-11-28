@@ -1,6 +1,6 @@
 ;;; -*- lexical-binding: t -*-
 (require 'company)
-(require 'company-jedi)
+;; (require 'company-jedi)
 (require 'realgud)
 (require 'python)
 (require 'which-func)
@@ -128,13 +128,14 @@
     (venv-workon project-venv-name))
   (activate-pyenv)
   (importmagic-mode t)
-  (company-mode t)
   ;; (jedi:setup)
   ;; (setq flycheck-checker 'python-pylint)
   (flycheck-mode t)
   (py-autopep8-enable-on-save)
   (fix-pyright)
   (lsp)
+  (lsp-completion-mode t)
+  (company-mode t)
   (add-hook 'before-save-hook 'py-isort-before-save))
 
 (defun py-isort--find-settings-path ()
