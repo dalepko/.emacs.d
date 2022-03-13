@@ -5,7 +5,7 @@
   "repository": ".",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^6.8.0",
+    "eslint": "^8.11.0",
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-babel": "^4.1.2",
     "eslint-plugin-html": "^6.0.0",
@@ -14,6 +14,7 @@
     "eslint-plugin-vue": "^7.5.0"
   },
   "dependencies": {
+    "@vue/eslint-config-standard": "^4.0.0",
     "babel-eslint": "^10.0.2",
     "eslint-plugin-import": "^2.18.0",
     "eslint-plugin-node": "^9.1.0"
