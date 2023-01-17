@@ -3,6 +3,7 @@
 
 (setq mc/cmds-to-run-for-all
       '(
+        beginning-of-buffer
         dabbrev-expand
         electric-newline-and-maybe-indent
         end-of-buffer
@@ -11,10 +12,16 @@
         ignore
         indent-for-tab-command
         kill-region
+        lsp-signature-stop
+        markdown-enter-key
         markdown-outdent-or-delete
+        org-beginning-of-line
         org-end-of-line
+        org-force-self-insert
+        org-kill-line
         org-return
         org-self-insert-command
+        org-yank
         yaml-electric-backspace
         yaml-electric-dash-and-dot
         ))
@@ -24,7 +31,10 @@
         helm-M-x
         helm-confirm-and-exit-minibuffer
         help-for-help
+        lsp-ui-doc--handle-mouse-movement
+        mac-mwheel-scroll
         mouse-set-region
         pytest-again
         realgud:cmd-continue
+        suspend-frame
         ))

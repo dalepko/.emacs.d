@@ -11,6 +11,10 @@
  '(backup-directory-alist '((".*" . "~/.emacs.d/backup")))
  '(before-save-hook '(delete-trailing-whitespace))
  '(clean-buffer-list-delay-general 1)
+ '(company-backends
+   '(company-bbdb company-semantic company-cmake company-capf company-clang company-files
+                  (company-dabbrev-code company-gtags company-etags company-keywords)
+                  company-oddmuse company-dabbrev company-tabnine))
  '(company-box-doc-delay 0.1)
  '(company-idle-delay 0.1)
  '(custom-enabled-themes '(smart-mode-line-dark kaolin-galaxy))
@@ -39,7 +43,6 @@
      (ess-indent-with-fancy-comments . t)))
  '(fci-rule-color "#383838")
  '(fill-column 100)
- '(flycheck-disabled-checkers nil)
  '(flycheck-display-errors-delay 0.1)
  '(flycheck-flake8rc ".flake8")
  '(flycheck-javascript-eslint-executable "~/.emacs.d/eslint/node_modules/.bin/eslint")
@@ -85,14 +88,14 @@
  '(js2-strict-missing-semi-warning nil)
  '(js2-strict-trailing-comma-warning nil)
  '(kept-new-versions 10)
- '(lsp-auto-configure nil)
  '(lsp-diagnostics-disabled-modes '(python-mode))
+ '(lsp-enable-symbol-highlighting nil)
  '(lsp-file-watch-ignored-directories
-   '("[/\\\\]\\.git\\'" "[/\\\\]\\.hg\\'" "[/\\\\]\\.bzr\\'" "[/\\\\]_darcs\\'" "[/\\\\]\\.svn\\'" "[/\\\\]_FOSSIL_\\'" "[/\\\\]\\.idea\\'" "[/\\\\]\\.ensime_cache\\'" "[/\\\\]\\.eunit\\'" "[/\\\\]node_modules\\'" "[/\\\\]\\.fslckout\\'" "[/\\\\]\\.tox\\'" "[/\\\\]dist\\'" "[/\\\\]dist-newstyle\\'" "[/\\\\]\\.stack-work\\'" "[/\\\\]\\.bloop\\'" "[/\\\\]\\.metals\\'" "[/\\\\]target\\'" "[/\\\\]\\.ccls-cache\\'" "[/\\\\]\\.vscode\\'" "[/\\\\]\\.deps\\'" "[/\\\\]build-aux\\'" "[/\\\\]autom4te.cache\\'" "[/\\\\]\\.reference\\'" "[/\\\\]\\.lsp\\'" "[/\\\\]\\.clj-kondo\\'" "[/\\\\]\\.cpcache\\'" "[/\\\\]bin/Debug\\'" "[/\\\\]obj\\'" "[/\\\\]data\\'" "[/\\\\]\\.mypy_cache\\'" "[/\\\\]__pycache__\\'"))
+   '("[/\\\\]\\.git\\'" "[/\\\\]\\.hg\\'" "[/\\\\]\\.bzr\\'" "[/\\\\]_darcs\\'" "[/\\\\]\\.svn\\'" "[/\\\\]_FOSSIL_\\'" "[/\\\\]\\.idea\\'" "[/\\\\]\\.ensime_cache\\'" "[/\\\\]\\.eunit\\'" "[/\\\\]node_modules\\'" "[/\\\\]\\.fslckout\\'" "[/\\\\]\\.tox\\'" "[/\\\\]dist\\'" "[/\\\\]dist-newstyle\\'" "[/\\\\]\\.stack-work\\'" "[/\\\\]\\.bloop\\'" "[/\\\\]\\.metals\\'" "[/\\\\]target\\'" "[/\\\\]\\.ccls-cache\\'" "[/\\\\]\\.vscode\\'" "[/\\\\]\\.deps\\'" "[/\\\\]build-aux\\'" "[/\\\\]autom4te.cache\\'" "[/\\\\]\\.reference\\'" "[/\\\\]\\.lsp\\'" "[/\\\\]\\.clj-kondo\\'" "[/\\\\]\\.cpcache\\'" "[/\\\\]bin/Debug\\'" "[/\\\\]obj\\'" "[/\\\\]data\\'" "[/\\\\]\\.mypy_cache\\'" "[/\\\\]__pycache__\\'" "[/\\\\].cache\\'" "[/\\\\].pytest_cache\\'" "/commons/sge/Enedis.SGE" "/docs\\'" "/prof\\'" "/test_[a-z]*_to_json\\'" "/commons/config/entries\\'" "/roles\\'" "/tmp\\'" "/inventory\\'" "/terraform\\'"))
  '(lsp-file-watch-ignored-files
    '("[/\\\\]flycheck_[^/\\\\]+\\'" "[/\\\\]\\.#[^/\\\\]+\\'" "[/\\\\][^/\\\\]+~\\'" "\\.\\(yml\\|svg\\|png\\|jpe?g\\)\\'" "\\.bak\\'" "\\.orig\\'"))
  '(lsp-file-watch-threshold 2000)
- '(lsp-log-io t)
+ '(lsp-headerline-breadcrumb-enable nil)
  '(lsp-pyright-multi-root nil)
  '(menu-bar-mode nil)
  '(midnight-mode t nil (midnight))
@@ -102,13 +105,14 @@
    '(("melpa" . "https://melpa.org/packages/")
      ("gnu" . "http://elpa.gnu.org/packages/")))
  '(package-selected-packages
-   '(company-tabnine flycheck-posframe kaolin-themes lsp-treemacs helm-lsp lsp-pyright lsp-ui company-box git-gutter-fringe helpful ini-mode py-isort dockerfile-mode yasnippet realgud importmagic eslint-fix web-beautify ess base16-theme py-autopep8 markdown-preview-mode markdown-mode cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi))
+   '(orgtbl-join lsp-treemacs company-tabnine flycheck-posframe kaolin-themes helm-lsp lsp-pyright lsp-ui company-box git-gutter-fringe helpful ini-mode py-isort dockerfile-mode yasnippet realgud importmagic eslint-fix web-beautify ess base16-theme py-autopep8 markdown-preview-mode markdown-mode cython-mode nodejs-repl phi-search multiple-cursors which-key company-terraform terraform-mode git fish-mode paradox magit-popup smart-mode-line pyenv-mode helm overseer projectile typescript-mode tide yaml-mode web-mode virtualenvwrapper shell-pop rich-minority po-mode magit helm-projectile haskell-mode groovy-mode flycheck company-jedi))
  '(paradox-execute-asynchronously t)
  '(paradox-github-token t)
  '(projectile-enable-caching t)
  '(projectile-mode t nil (projectile))
  '(projectile-mode-line nil)
  '(projectile-use-git-grep t)
+ '(py-autopep8-on-save-p 'always-for-autopep8)
  '(py-autopep8-options '("--max-line-length=140"))
  '(pyenv-mode-mode-line-format
    '(:eval
@@ -223,12 +227,12 @@
 (add-hook 'web-mode-hook
           (lambda ()
             (company-mode)
-            (flycheck-mode)))
+            (flycheck-mode)
+            (lsp)))
 
-(eval-after-load 'flycheck
-  '(flycheck-add-mode 'javascript-eslint 'web-mode))
+(with-eval-after-load 'flycheck
+  (flycheck-add-mode 'javascript-eslint 'web-mode))
 
-()
 
 (setq web-mode-indentation-params
   '(("lineup-args"       . ())
@@ -434,6 +438,27 @@
 
 ;;--[flycheck-posframe]------------------------------------------
 
-(with-eval-after-load 'flycheck
-  (require 'flycheck-posframe)
-  (add-hook 'flycheck-mode-hook #'flycheck-posframe-mode))
+;; (with-eval-after-load 'flycheck
+;;   (require 'flycheck-posframe)
+;;   (add-hook 'flycheck-mode-hook #'flycheck-posframe-mode))
+
+
+
+;;--{utils]-----------------------------------------------------
+
+(defun toggle-camelcase-underscores ()
+  "Toggle between camelcase and underscore notation for the symbol at point."
+  (interactive)
+  (save-excursion
+    (let* ((bounds (bounds-of-thing-at-point 'symbol))
+           (start (car bounds))
+           (end (cdr bounds))
+           (currently-using-underscores-p (progn (goto-char start)
+                                                 (re-search-forward "_" end t))))
+      (if currently-using-underscores-p
+          (progn
+            (upcase-initials-region start end)
+            (replace-string "_" "" nil start end)
+            (downcase-region start (1+ start)))
+        (replace-regexp "\\([A-Z]\\)" "_\\1" nil (1+ start) end)
+        (downcase-region start (cdr (bounds-of-thing-at-point 'symbol)))))))

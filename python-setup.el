@@ -128,13 +128,10 @@
     (venv-workon project-venv-name))
   (activate-pyenv)
   (importmagic-mode t)
-  ;; (jedi:setup)
-  ;; (setq flycheck-checker 'python-pylint)
   (flycheck-mode t)
-  (py-autopep8-enable-on-save)
+  (py-autopep8-mode t)
   (fix-pyright)
   (lsp)
-  (lsp-completion-mode t)
   (company-mode t)
   (add-hook 'before-save-hook 'py-isort-before-save))
 
@@ -198,3 +195,6 @@
 
 (defun pyenv-folder (workspace)
   (list (expand-file-name "~/.pyenv")))
+
+
+(defun always-for-autopep8 () t)
