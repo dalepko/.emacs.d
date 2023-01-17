@@ -250,7 +250,7 @@
 (when (fboundp 'helm-M-x)
   (global-set-key (kbd "M-x") 'helm-M-x))
 
-(when (require 'helm-config nil 'noerror)
+(when (require 'helm nil 'noerror)
   (global-set-key [(control o)] 'helm-projectile)
   (global-set-key [f3] 'helm-projectile-grep)
   (add-hook 'helm-minibuffer-set-up-hook #'helm-hide-minibuffer-maybe))
