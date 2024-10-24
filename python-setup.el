@@ -1,20 +1,28 @@
 ;;; -*- lexical-binding: t -*-
+(require 'eldoc-box)
 (require 'company)
-;; (require 'company-jedi)
 (require 'realgud)
 (require 'python)
 (require 'which-func)
 (require 'gud)
 (require 'subr-x)
 (require 'pythonic)
-(require 'importmagic)
-(require 'py-isort)
-(require 'lsp)
-(require 'lsp-pyright)
+(require 'eglot)
 (require 'cl-lib)
+(require 'flycheck)
+(require 'reformatter)
 
 (defvar pytest-last-file nil)
 (defvar pytest-last-func nil)
+
+(defconst CHECK_PYTHON_SYNTAX_SCRIPT
+  (concat (file-name-directory (or load-file-name (buffer-file-name))) "check_python_syntax.py"))
+
+(reformatter-define ruff-format-imports
+  :program "ruff"
+  :args (list "check" "--select" "I" "--fix" "--stdin-filename" (or (buffer-file-name) input-file))
+  :lighter " RuffFmtImports"
+  :group 'ruff-format-imports)
 
 (defvar pytest-error-minor-mode-map
   (let ((map (make-sparse-keymap)))
@@ -43,9 +51,16 @@
 
 (defvar-local pdb-tracker nil)
 
+;; to prevent pdbpp from replacing the pdb module which breaks realgud
+(let* ((python_path (getenv "PYTHONPATH"))
+       (python_path_suffix (if python_path (concat ":" python_path) "")))
+  (if (null (cl-search "_pdbpp_path_hack" python_path_suffix))
+      (setenv "PYTHONPATH" (concat "_pdbpp_path_hack" python_path_suffix))))
+
+
 (define-minor-mode pytest-error-minor-mode
   "Highlight errors in pytest buffer"
-  nil " Pytest"
+  :lighter " Pytest"
   :group 'compilation
   (if pytest-error-minor-mode
       (compilation-setup t)
@@ -66,14 +81,14 @@
 
 
 (defun run-pytest (verbose filename func)
-  (let* ((command  (format "py.test%s --tb=short -vvs"
-                           ;;(file-name-directory filename)
+  (let* ((project-root (projectile-project-root))
+         (command  (format "py.test%s --tb=short -vvs"
                            (if verbose " --pdb" "")))
          (last-pdb-buffer (find-last-pdb-buffer))
          (last-pdb-window (if last-pdb-buffer (get-buffer-window last-pdb-buffer))))
     (cleanup-pdb-buffers)
     (if func
-        (let ((node_id (concat filename;;(file-name-nondirectory filename)
+        (let ((node_id (concat filename
                                "::"
                                (mapconcat 'identity (split-string func "\\.") "::"))))
           (setq command (concat command " " node_id)))
@@ -85,12 +100,13 @@
       (if (null last-pdb-window)
           (cl-letf (((symbol-function #'switch-to-buffer)
                      (lambda (buffer) (pop-to-buffer buffer))))
-            (realgud:pdb command))
+            (let ((default-directory project-root))
+              (realgud:pdb command)))
         (select-window last-pdb-window)
-        (realgud:pdb command))
+        (let ((default-directory project-root))
+          (realgud:pdb command)))
       (setq pdb-tracker t)
       (pytest-error-minor-mode))))
-
 
 
 (defun pytest (&optional verbose)
@@ -126,36 +142,25 @@
 
   (when (boundp 'project-venv-name)
     (venv-workon project-venv-name))
+
   (activate-pyenv)
-  (importmagic-mode t)
   (flycheck-mode t)
-  (py-autopep8-mode t)
-  (fix-pyright)
-  (lsp)
+  (eldoc-box-hover-mode t)
+  (ruff-format-imports-on-save-mode t)
+  (format-all-mode t)
+  (eglot-ensure)
   (company-mode t)
-  (add-hook 'before-save-hook 'py-isort-before-save))
-
-(defun py-isort--find-settings-path ()
-  (expand-file-name
-   (or (locate-dominating-file buffer-file-name ".git")
-       (locate-dominating-file buffer-file-name "setup.cfg")
-       (locate-dominating-file buffer-file-name "setup.py")
-       (file-name-directory buffer-file-name))))
-
-(defun pyenv-init()
-  (add-to-list 'exec-path (expand-file-name "~/.pyenv/bin"))
-  (add-to-list 'exec-path (expand-file-name "~/.pyenv/shims"))
-  (setenv "PATH" (mapconcat 'identity exec-path path-separator))
-  (pyenv-mode t))
+  (add-to-list 'flycheck-checkers 'python-ruff))
 
 
 (defun pyenv ()
   (interactive)
-  (pyenv-init)
+  (pyenv-mode t)
   (call-interactively 'pyenv-mode-set))
 
 
 (defun activate-pyenv ()
+  (pyenv-mode t)
   (let* ((root (locate-dominating-file "." ".python-version"))
          (current-pyenv (and python-shell-virtualenv-root (file-name-nondirectory python-shell-virtualenv-root))))
     (if root
@@ -163,22 +168,11 @@
                (target-pyenv (string-trim (get-file-contents pyenv-version-file))))
           (if (not (string-equal target-pyenv current-pyenv))
               (progn
-                (pyenv-init)
                 (setq python-shell-extra-pythonpaths `(,root))
                 (pyenv-mode-set target-pyenv)))))))
 
 
-
-;; prevent autopep8 from running on files with syntax errors
-
-(defun autopep8-check-syntax-error (errbuf file)
-  (zerop (call-process "python" nil nil nil "-m" "py_compile" file)))
-
-(advice-add #'py-autopep8--call-executable :before-while  #'autopep8-check-syntax-error)
-
-
 ;; fix bug in realgud always reselecting the command window
-
 (defun realgud-fix-check-prompt (from to &optional cmd-mark opt-cmdbuf
 				      shortkey-on-tracing? no-warn-if-no-match?)
   (string-match (concat comint-prompt-regexp "$")
@@ -187,14 +181,32 @@
 (advice-add #'realgud:track-from-region :before-while  #'realgud-fix-check-prompt)
 
 
-(defun fix-pyright()
-  (let ((pyright (gethash 'pyright lsp-clients)))
-    (when (not (lsp--client-library-folders-fn pyright))
-      (setf (lsp--client-library-folders-fn pyright) #'pyenv-folder))))
-
-
 (defun pyenv-folder (workspace)
   (list (expand-file-name "~/.pyenv")))
 
 
-(defun always-for-autopep8 () t)
+
+(flycheck-define-checker python-ruff
+  "A Python syntax and style checker using the ruff utility.
+To override the path to the ruff executable, set
+`flycheck-python-ruff-executable'.
+See URL `http://pypi.python.org/pypi/ruff'."
+  :command ("ruff"
+            "check"
+            (eval (when buffer-file-name
+                    (concat "--stdin-filename=" buffer-file-name)))
+            "-")
+  :standard-input t
+  :error-filter (lambda (errors)
+                  (let ((errors (flycheck-sanitize-errors errors)))
+                    (seq-map #'flycheck-flake8-fix-error-level errors)))
+  :error-patterns
+  ((warning line-start
+            (file-name) ":" line ":" (optional column ":") " "
+            (id (one-or-more (any alpha)) (one-or-more digit)) " "
+            (message (one-or-more not-newline))
+            line-end))
+  :modes python-mode
+  :next-checkers ((warning . python-pylint)
+                  (warning . python-mypy))
+  )

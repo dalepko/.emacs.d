@@ -4,6 +4,10 @@
 (setq mc/cmds-to-run-for-all
       '(
         beginning-of-buffer
+        c-electric-paren
+        c-electric-semi&comma
+        c-indent-line-or-region
+        cycle-spacing
         dabbrev-expand
         electric-newline-and-maybe-indent
         end-of-buffer
@@ -11,8 +15,11 @@
         eval-print-last-sexp
         ignore
         indent-for-tab-command
+        isearch-forward-regexp
         kill-region
         lsp-signature-stop
+        markdown-beginning-of-line
+        markdown-end-of-line
         markdown-enter-key
         markdown-outdent-or-delete
         org-beginning-of-line
@@ -22,18 +29,26 @@
         org-return
         org-self-insert-command
         org-yank
+        phi-search
+        query-replace
         yaml-electric-backspace
         yaml-electric-dash-and-dot
         ))
 
 (setq mc/cmds-to-run-once
       '(
+        goto-line
         helm-M-x
         helm-confirm-and-exit-minibuffer
+        helm-projectile
+        helm-projectile-grep
         help-for-help
         lsp-ui-doc--handle-mouse-movement
         mac-mwheel-scroll
+        mouse-drag-vertical-line
+        mouse-select-window
         mouse-set-region
+        pytest
         pytest-again
         realgud:cmd-continue
         suspend-frame
