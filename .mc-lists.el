@@ -16,6 +16,7 @@
         ignore
         indent-for-tab-command
         isearch-forward-regexp
+        just-one-space
         kill-region
         lsp-signature-stop
         markdown-beginning-of-line
@@ -39,6 +40,7 @@
       '(
         goto-line
         helm-M-x
+        helm-buffers-list
         helm-confirm-and-exit-minibuffer
         helm-projectile
         helm-projectile-grep

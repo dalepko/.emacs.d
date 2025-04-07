@@ -22,6 +22,7 @@
   :program "ruff"
   :args (list "check" "--select" "I" "--fix" "--stdin-filename" (or (buffer-file-name) input-file))
   :lighter " RuffFmtImports"
+  :exit-code-success-p (lambda (exit-code) (or (= exit-code 1) (= exit-code 0)))
   :group 'ruff-format-imports)
 
 (defvar pytest-error-minor-mode-map
@@ -136,9 +137,9 @@
       (setq mode-line-format (cons venv-indicator mode-line-format)))
 
   (hack-local-variables)
-  (define-key python-mode-map [(shift f9)] 'pytest)
-  (define-key python-mode-map [(f9)] 'pytest-again)
-  (define-key python-mode-map (kbd "RET") 'newline-and-indent)
+  (define-key python-ts-mode-map [(shift f9)] 'pytest)
+  (define-key python-ts-mode-map [(f9)] 'pytest-again)
+  (define-key python-ts-mode-map (kbd "RET") 'newline-and-indent)
 
   (when (boundp 'project-venv-name)
     (venv-workon project-venv-name))
@@ -149,8 +150,7 @@
   (ruff-format-imports-on-save-mode t)
   (format-all-mode t)
   (eglot-ensure)
-  (company-mode t)
-  (add-to-list 'flycheck-checkers 'python-ruff))
+  (company-mode t))
 
 
 (defun pyenv ()
@@ -183,30 +183,3 @@
 
 (defun pyenv-folder (workspace)
   (list (expand-file-name "~/.pyenv")))
-
-
-
-(flycheck-define-checker python-ruff
-  "A Python syntax and style checker using the ruff utility.
-To override the path to the ruff executable, set
-`flycheck-python-ruff-executable'.
-See URL `http://pypi.python.org/pypi/ruff'."
-  :command ("ruff"
-            "check"
-            (eval (when buffer-file-name
-                    (concat "--stdin-filename=" buffer-file-name)))
-            "-")
-  :standard-input t
-  :error-filter (lambda (errors)
-                  (let ((errors (flycheck-sanitize-errors errors)))
-                    (seq-map #'flycheck-flake8-fix-error-level errors)))
-  :error-patterns
-  ((warning line-start
-            (file-name) ":" line ":" (optional column ":") " "
-            (id (one-or-more (any alpha)) (one-or-more digit)) " "
-            (message (one-or-more not-newline))
-            line-end))
-  :modes python-mode
-  :next-checkers ((warning . python-pylint)
-                  (warning . python-mypy))
-  )
