@@ -23,7 +23,15 @@
   :args (list "check" "--select" "I" "--fix" "--stdin-filename" (or (buffer-file-name) input-file))
   :lighter " RuffFmtImports"
   :exit-code-success-p (lambda (exit-code) (or (= exit-code 1) (= exit-code 0)))
-  :group 'ruff-format-imports)
+  :group 'ruff-format)
+
+(reformatter-define ruff-format
+  :program "ruff"
+  :args (list "format" "--stdin-filename" (or (buffer-file-name) input-file))
+  :lighter " RuffFmt"
+  :exit-code-success-p (lambda (exit-code) (or (= exit-code 1) (= exit-code 0)))
+  :group 'ruff-format)
+
 
 (defvar pytest-error-minor-mode-map
   (let ((map (make-sparse-keymap)))
@@ -146,9 +154,9 @@
 
   (activate-pyenv)
   (flycheck-mode t)
-  (eldoc-box-hover-mode t)
   (ruff-format-imports-on-save-mode t)
-  (format-all-mode t)
+  (ruff-format-on-save-mode)
+  ;;(format-all-mode t)
   (eglot-ensure)
   (company-mode t))
 

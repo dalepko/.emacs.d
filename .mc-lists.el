@@ -54,4 +54,5 @@
         pytest-again
         realgud:cmd-continue
         suspend-frame
+        xref-go-back
         ))

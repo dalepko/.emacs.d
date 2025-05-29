@@ -256,6 +256,7 @@
  '(pyenv-mode-mode-line-format
    '(:eval (when (pyenv-mode-version) (concat "(" (pyenv-mode-version) ") "))))
  '(realgud-populate-common-fn-keys-function 'identity)
+ '(ring-bell-function 'ignore)
  '(rm-text-properties
    '(("\\` Ovwrt\\'" 'face 'font-lock-warning-face) ("\\` FlyC:" 'face 'font-lock-warning-face)))
  '(rust-format-on-save t)
@@ -280,6 +281,7 @@
  '(typescript-indent-level 2)
  '(vc-make-backup-files t)
  '(version-control t)
+ '(visible-bell nil)
  '(web-mode-code-indent-offset 2)
  '(web-mode-css-indent-offset 2)
  '(web-mode-enable-auto-indentation nil)
@@ -316,6 +318,7 @@
 (global-set-key (kbd "M-<up>") (lambda () (interactive) (scroll-other-window -1)))
 (global-set-key (kbd "M-<down>") (lambda () (interactive) (scroll-other-window 1)))
 (global-set-key [f12] #'magit-status)
+(global-set-key (kbd "M-h") #'eldoc)
 
 (global-set-key (kbd "<home>") #'move-beginning-of-line)
 (global-set-key (kbd "<end>") #'move-end-of-line)
@@ -371,9 +374,7 @@
 (define-derived-mode vue-web-mode web-mode "Vue Web" "Vue Mode"
   ;; (eslint-fix-auto-mode)
   (eglot-ensure)
-  (make-local-variable 'eldoc-display-functions)
-  (setq tab-width 2)
-  (setq eldoc-display-functions '(eldoc-display-in-buffer)))
+  (setq tab-width 2))
 
 
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
@@ -382,10 +383,7 @@
 (add-hook 'js-mode-hook (lambda ()
                           (define-key js-mode-map "\M-." nil)
                           (eglot-ensure)
-                          (make-local-variable 'eldoc-display-functions)
-                          ;;(eslint-fix-auto-mode)
-                          (setq tab-width 2)
-                          (setq eldoc-display-functions '(eldoc-display-in-buffer))))
+                          (setq tab-width 2)))
 
 ;;--[helm/projectile]----------------------------------------------------
 
@@ -559,7 +557,7 @@
 (setq rm-regex-list '(" AC" " Ind" " MRev" " Interactive" " $" " Black"
                       " ARev" " company" " tide" " ElDoc" " Guide" " Projectile"
                       " WK" " yas" " import" " Isort" " company-box"
-                      " GitGutter" " Projectile\\[[^]]*\\]" " FmtAll" " RuffFmtImports"))
+                      " GitGutter" " Projectile\\[[^]]*\\]" " FmtAll" " RuffFmtImports" " RuffFmt"))
 (setq rm-blacklist (mapconcat 'identity rm-regex-list "\\|"))
 
 
@@ -666,6 +664,11 @@
         (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
         (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
+
+;;--[eldoc]---------------------------------------------
+
+(setq eldoc-display-functions '(eldoc-display-in-buffer))
+
 ;;--[format-all]---------------------------------------------
 
 (add-hook 'format-all-mode-hook #'format-all-ensure-formatter)
@@ -690,6 +693,11 @@
                 ":"
                 (getenv "PATH")))
 
+(if (equal (system-name) "Deepki-QL4P79YPQ4.local")
+    (let ((netskope-ca (expand-file-name "~/.nskp-cert/netskope-cert-bundle.pem")))
+      (load-library "gnutls")
+      (setenv "CURL_CA_BUNDLE" netskope-ca)
+      (cl-pushnew netskope-ca gnutls-trustfiles)))
 
 ;; installed node packages (npm -g list):
 ;; ├── @vue/typescript-plugin@2.2.8
