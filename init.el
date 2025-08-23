@@ -15,7 +15,7 @@
  '(company-backends
    '(company-bbdb company-semantic company-cmake company-capf company-clang company-files
                   (company-dabbrev-code company-gtags company-etags company-keywords)
-                  company-oddmuse company-dabbrev company-tabnine))
+                  company-oddmuse company-dabbrev))
  '(company-box-doc-delay 0.1)
  '(company-idle-delay 0.1)
  '(css-indent-offset 2)
@@ -239,12 +239,12 @@
      ("localelpa" . "~/.emacs.d/localelpa-packages/")))
  '(package-selected-packages
    '(0x0 ansible ansible-vault base16-theme company-ansible company-box company-terraform
-         dockerfile-mode eldoc-box eslint-fix fish-mode flycheck flycheck-eglot format-all git
-         git-gutter-fringe gruvbox-theme haskell-mode helm-flycheck helm-projectile helm-xref
-         helpful kaolin-themes magit magit-popup markdown-preview-mode multiple-cursors nodejs-repl
-         orgtbl-join phi-search po-mode projectile pyenv-mode realgud realgud-pdbpp rich-minority
-         rust-mode shell-pop smart-mode-line vdiff virtualenvwrapper web-beautify web-mode which-key
-         yaml-mode yasnippet zig-mode))
+         dockerfile-mode eldoc-box eslint-fix fish-mode flycheck flycheck-eglot font-lock-studio
+         format-all git git-gutter-fringe gruvbox-theme haskell-mode helm-flycheck helm-projectile
+         helm-xref helpful kaolin-themes magit magit-popup markdown-preview-mode multiple-cursors
+         nodejs-repl orgtbl-join phi-search po-mode projectile pyenv-mode realgud realgud-pdbpp
+         rich-minority rust-mode shell-pop smart-mode-line vdiff virtualenvwrapper web-beautify
+         web-mode which-key yaml-mode yasnippet zig-mode))
  '(paradox-execute-asynchronously t)
  '(paradox-github-token t)
  '(projectile-enable-caching t)
@@ -305,7 +305,7 @@
  '(flymake-warnline ((t (:background "black"))) t)
  '(web-mode-function-call-face ((t nil))))
 
-(setenv "LIBRARY_PATH" "/opt/homebrew//Cellar/gcc/14.2.0_1/lib/gcc/current/gcc/aarch64-apple-darwin24/14/")
+(setenv "LIBRARY_PATH" "/opt/homebrew//Cellar/gcc/15.1.0/lib/gcc/current/gcc/aarch64-apple-darwin24/15/")
 
 (when (fboundp 'sml/setup)
   (sml/setup))
@@ -395,6 +395,7 @@
   (global-set-key (kbd "C-x b") 'helm-buffers-list)
   (global-set-key (kbd "C-h f") 'helm-apropos)
   (global-set-key [(control o)] 'helm-projectile)
+  (global-set-key [(control f)] 'helm-imenu)
   (global-set-key [f3] 'helm-projectile-grep)
   (add-hook 'helm-minibuffer-set-up-hook #'helm-hide-minibuffer-maybe))
 
@@ -673,6 +674,12 @@
 
 (add-hook 'format-all-mode-hook #'format-all-ensure-formatter)
 
+
+;;--[gitlab-duo]---------------------------------------------
+
+(autoload 'my-repl-start "~/.emacs.d/gitlab-duo.el" "Start the gitlab DUO chat." t)
+(global-set-key (kbd "C-c t") #'my-repl-start)
+
 ;;--[paths for external executables]-------------------------
 
 (add-to-list 'exec-path "~/.local/bin")
@@ -698,6 +705,22 @@
       (load-library "gnutls")
       (setenv "CURL_CA_BUNDLE" netskope-ca)
       (cl-pushnew netskope-ca gnutls-trustfiles)))
+
+
+(let ((creds-file (expand-file-name "~/.config/creds.fish")))
+  (when (file-exists-p creds-file)
+    (with-temp-buffer
+      (insert-file-contents creds-file)
+      (while (not (eobp))
+        (let ((line (buffer-substring-no-properties
+                     (line-beginning-position)
+                     (line-end-position))))
+          (when (string-match "^set  *-gx  *\\([A-Z0-9_]*\\)  *\\([^ ].*[^ ]\\) *$" line)
+            (let ((name (match-string 1 line))
+                  (value (substitute-env-vars (match-string 2 line))))
+              (setenv name value)
+              (message "Set env var %s from creds file" name))))
+        (forward-line 1)))))
 
 ;; installed node packages (npm -g list):
 ;; ├── @vue/typescript-plugin@2.2.8

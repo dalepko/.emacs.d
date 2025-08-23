@@ -45,6 +45,7 @@
         helm-projectile
         helm-projectile-grep
         help-for-help
+        ido-find-file-other-window
         lsp-ui-doc--handle-mouse-movement
         mac-mwheel-scroll
         mouse-drag-vertical-line
