@@ -25,3 +25,6 @@ projectile.cache
 /.local
 /transient
 /eln-cache/
+/tramp
+/tree-sitter/
+/url/
