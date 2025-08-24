@@ -83,14 +83,10 @@ gitlab-duo.el
 
 (defun my-repl--insert-newline ()
   (interactive)
-  (insert "\n"))
-
+  (insert (propertize "\n" 'font-lock-face 'comint-highlight-prompt)))
 
 (defvar my-repl-font-lock-keywords
   `(
-    ;; Prompts
-    ("^> .*" . 'comint-highlight-prompt)
-
     ;; File paths (at start of SEARCH/REPLACE blocks)
     ("^\\([a-zA-Z0-9_./\\-]+\\.[a-zA-Z]+\\) (\\([a-zA-Z0-9_./\\-]+\\)) "
      (1 'font-lock-variable-name-face)
@@ -139,6 +135,7 @@ gitlab-duo.el
   (setq-local default-directory (expand-file-name (projectile-project-root)))
   (setq-local font-lock-defaults '(my-repl-font-lock-keywords t))
   (setq-local my-repl--conversation-log-buffer (my-repl--create-conversation-log-buffer))
+  (setq-local my-repl--prompt-beginning-marker (make-marker))
   (add-hook 'completion-at-point-functions
             #'my-repl--completion-at-point
             nil t)
@@ -188,19 +185,19 @@ gitlab-duo.el
   "Insert the REPL prompt."
   (let ((insert-point (point-max)))
     (goto-char insert-point)
-    (insert (propertize "> " 'read-only t 'rear-nonsticky t))
+    (insert (propertize "> " 'font-lock-face 'comint-highlight-prompt))
     (font-lock-fontify-region insert-point (point))
-    (goto-char (point-max))))
+    (goto-char (point-max))  ;; font lock may reset the point
+    (set-marker my-repl--prompt-beginning-marker (point))))
 
 
 (defun my-repl-send-input ()
   "Send current line to the API."
   (interactive)
   (when gitlab-duo-request-in-progress
-    (message "Request in progress, please wait...")
-    (return))
+    (error "Request in progress, please wait..."))
   (let ((input (string-trim (buffer-substring-no-properties
-                             (comint-line-beginning-position)
+                             (marker-position my-repl--prompt-beginning-marker)
                              (line-end-position)))))
     (goto-char (point-max))
     (insert "\n")
