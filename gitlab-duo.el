@@ -170,16 +170,18 @@ gitlab-duo.el
          (final-name (if (string-prefix-p default-directory file)
                          (file-relative-name abs-path default-directory)
                        abs-path)))
-    (cl-pushnew final-name gitlab-duo-context-files)))
+    (cl-pushnew final-name gitlab-duo-context-files :test #'equal)))
 
 
 (defun my-repl--add-open-files-to-context ()
   "Add all open files to the context."
-  (dolist (buffer (buffer-list))
-    (with-current-buffer buffer
-      (when (and buffer-file-name
-                 (file-exists-p buffer-file-name))
-        (my-repl--add-context buffer-file-name)))))
+  (let ((root-directory default-directory))
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (and buffer-file-name
+                   (file-exists-p buffer-file-name)
+                   (string-prefix-p root-directory buffer-file-name))
+          (my-repl--add-context buffer-file-name))))))
 
 
 (defun my-repl-insert-prompt ()
@@ -363,7 +365,7 @@ gitlab-duo.el
                "^\\(#+\\)  *\\(.*\\)$"
                "\\*\\*\\([^*]+\\)\\*\\*"
                "\\*\\([^*]+\\)\\*"
-               "`\\([^`]+\\)`")
+               "\\([^`]\\)`\\([^`\n]+\\)`")
              "\\|"))
 
 
@@ -409,7 +411,7 @@ gitlab-duo.el
 
      ;; inline code
      ((match-string 9)
-      (replace-match (propertize (match-string 9) 'font-lock-face 'font-lock-constant-face) t t))))
+      (replace-match (concat (match-string 9) (propertize (match-string 10) 'font-lock-face 'font-lock-constant-face)) t t))))
   (goto-char (point-max)))
 
 
@@ -582,8 +584,8 @@ Returns a list of files with changes, or nil if all are clean."
                  gitlab-duo-collected-edits)
         (if (= files-modified 0)
             (my-repl--output "No edits to apply")
-          (magit-stage-files files-to-modify)
           (my-repl--output (format "✅ Applied %d edits across %d files" total-edits files-modified))
+          (magit-stage-files files-to-modify)
           (magit-commit))
         ;; Clear the collected edits after applying
         (setq-local gitlab-duo-collected-edits (make-hash-table :test 'equal))))))
