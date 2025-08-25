@@ -591,7 +591,7 @@ Returns a list of files with changes, or nil if all are clean."
 (defun my-repl--apply-all-edits ()
   "Apply all collected edits to their respective files."
   (let ((files-to-modify '())
-        (files-modified 0)
+        (files-modified '())
         (total-edits 0))
     ;; Collect all files that will be modified
     (maphash (lambda (filename edits)
@@ -608,12 +608,12 @@ Returns a list of files with changes, or nil if all are clean."
         (maphash (lambda (filename edits)
                    (when edits
                      (my-repl--apply-edits filename edits)
-                     (push files-modified (1+ files-modified))
+                     (cl-pushnew files-modified files-modified :test #'equal)
                      (setq total-edits (+ total-edits (length edits)))))
                  gitlab-duo-collected-edits)
-        (if (= files-modified 0)
+        (if (= (length files-modified) 0)
             (my-repl--output "No edits to apply")
-          (my-repl--output (format "✅ Applied %d edits across %d files" total-edits files-modified))
+          (my-repl--output (format "✅ Applied %d edits across %d files" total-edits (length files-modified)))
           (magit-stage-files files-to-modify)
           (magit-commit))
         ;; Clear the collected edits after applying
