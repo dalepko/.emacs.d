@@ -120,8 +120,6 @@ gitlab-duo.el
 (define-derived-mode my-repl-mode comint-mode "API-REPL"
   "A REPL connected to a polling API."
   ;; Create a dummy process so comint is happy
-  (let ((proc (start-process "my-repl-dummy" (current-buffer) "cat")))
-    (set-process-query-on-exit-flag proc nil))
   (local-set-key (kbd "S-<return>") #'my-repl--insert-newline)
   (setq comint-process-echoes nil)
   (setq comint-prompt-regexp "^> ")
@@ -136,6 +134,8 @@ gitlab-duo.el
   (setq-local font-lock-defaults '(my-repl-font-lock-keywords t))
   (setq-local my-repl--conversation-log-buffer (my-repl--create-conversation-log-buffer))
   (setq-local my-repl--prompt-beginning-marker (make-marker))
+  ;; Customize mode line to hide process status
+  (setq-local mode-line-process nil)
   (add-hook 'completion-at-point-functions
             #'my-repl--completion-at-point
             nil t)
@@ -302,7 +302,6 @@ gitlab-duo.el
 (defun my-repl--handle-ai-messages-response (ai-messages-response thread-id request-id tries-count buffer)
   (let* ((ai-messages (alist-get 'aiMessages ai-messages-response))
          (nodes (alist-get 'nodes ai-messages)))
-    (message "parsing ai message")
     (if (not nodes)
         (run-at-time 0.5 nil #'my-repl--get-completion thread-id request-id (+ tries-count 1) buffer)
       (let ((content (alist-get 'content (car nodes)))
@@ -310,8 +309,8 @@ gitlab-duo.el
         (when errors
           (error "AI assistant failed: %s" (mapconcat 'identity errors "\n")))
         (my-repl--conversation-log "AI_RESPONSE" content)
-        (with-current-buffer buffer
-          (setq-local gitlab-duo-request-in-progress nil))
+        (setq-local gitlab-duo-request-in-progress nil)
+        (setq-local gitlab-duo-collected-edits (make-hash-table :test 'equal))
         (my-repl--output content)))))
 
 
@@ -368,7 +367,6 @@ gitlab-duo.el
 
 (defun my-repl--format-search-replace-blocks (start)
   (goto-char start)
-  (setq-local gitlab-duo-collected-edits (make-hash-table :test 'equal))
   (while (re-search-forward my-repl--big-regex nil t)
     (cond
 
