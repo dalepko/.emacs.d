@@ -93,6 +93,9 @@ gitlab-duo.el
      (2 'font-lock-constant-face)))
     "Font lock keywords for my-repl-mode.")
 
+(defvar my-repl--spinner-chars ["◐" "◓" "◑" "◒"]
+  "Characters for the spinner animation.")
+
 
 (defun my-repl-start ()
   "Start the API REPL."
@@ -127,6 +130,8 @@ gitlab-duo.el
   (setq-local gitlab-thread-id nil)
   (setq-local gitlab-duo-request-in-progress nil)
   (setq-local gitlab-duo-collected-edits (make-hash-table :test 'equal))
+  (setq-local my-repl--spinner-index 0)
+  (setq-local my-repl--spinner-timer nil)
   (setq-local company-idle-delay 0.2)
   (setq company-minimum-prefix-length 1)
   (setq gitlab-duo-context-files ())
@@ -134,8 +139,8 @@ gitlab-duo.el
   (setq-local font-lock-defaults '(my-repl-font-lock-keywords t))
   (setq-local my-repl--conversation-log-buffer (my-repl--create-conversation-log-buffer))
   (setq-local my-repl--prompt-beginning-marker (make-marker))
-  ;; Customize mode line to hide process status
-  (setq-local mode-line-process nil)
+  ;; Customize mode line to show spinner
+  (setq-local mode-line-process '(:eval (my-repl--mode-line-spinner)))
   (add-hook 'completion-at-point-functions
             #'my-repl--completion-at-point
             nil t)
@@ -151,6 +156,35 @@ gitlab-duo.el
       (setq buffer-read-only t))
     buffer))
 
+
+(defun my-repl--mode-line-spinner ()
+  "Return spinner text for mode line when request is in progress."
+  (if gitlab-duo-request-in-progress
+      (format " %s" (aref my-repl--spinner-chars my-repl--spinner-index))
+    ""))
+
+(defun my-repl--request-started ()
+  "Start the spinner animation and set request state."
+  (setq-local gitlab-duo-request-in-progress t)
+  (when my-repl--spinner-timer
+    (cancel-timer my-repl--spinner-timer))
+  (setq-local my-repl--spinner-timer
+              (run-with-timer 0 0.2
+                              (lambda ()
+                                (when (buffer-live-p (current-buffer))
+                                  (with-current-buffer (current-buffer)
+                                    (setq-local my-repl--spinner-index
+                                                (mod (1+ my-repl--spinner-index)
+                                                     (length my-repl--spinner-chars)))
+                                    (force-mode-line-update)))))))
+
+(defun my-repl--request-stopped ()
+  "Stop the spinner animation and clear request state."
+  (setq-local gitlab-duo-request-in-progress nil)
+  (when my-repl--spinner-timer
+    (cancel-timer my-repl--spinner-timer)
+    (setq-local my-repl--spinner-timer nil))
+  (force-mode-line-update))
 
 (defun my-repl--conversation-log (type content)
   "Log content to the hidden log buffer with timestamp and type."
@@ -220,7 +254,7 @@ gitlab-duo.el
       (other
        (my-repl--save-context-files-if-needed)
        (my-repl--add-open-files-to-context)
-       (setq-local gitlab-duo-request-in-progress t)
+       (my-repl--request-started)
        (my-repl--send-prompt input #'my-repl--handle-ai-action-response)))))
 
 
@@ -263,7 +297,7 @@ gitlab-duo.el
     (error
      (with-current-buffer buffer
        (my-repl--output (propertize (format "❌ %s\n" (error-message-string err)) 'font-lock-face 'error))
-       (setq-local gitlab-duo-request-in-progress nil)))))
+       (my-repl--request-stopped)))))
 
 
 (defun my-repl--handle-setup-ai-action-response (ai-action-response)
@@ -309,7 +343,7 @@ gitlab-duo.el
         (when errors
           (error "AI assistant failed: %s" (mapconcat 'identity errors "\n")))
         (my-repl--conversation-log "AI_RESPONSE" content)
-        (setq-local gitlab-duo-request-in-progress nil)
+        (my-repl--request-stopped)
         (setq-local gitlab-duo-collected-edits (make-hash-table :test 'equal))
         (my-repl--output content)))))
 
