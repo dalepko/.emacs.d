@@ -134,12 +134,6 @@
 
 (defconst venv-indicator '(:exec venv-current-name))
 
-(defun get-file-contents (filename)
-  "Read a file and return foo-file as a string."
-  (with-temp-buffer
-    (insert-file-contents filename)
-    (buffer-string)))
-
 (defun my-python-setup ()
   (if (not (eq (car mode-line-format) venv-indicator))
       (setq mode-line-format (cons venv-indicator mode-line-format)))
@@ -165,20 +159,6 @@
   (interactive)
   (pyenv-mode t)
   (call-interactively 'pyenv-mode-set))
-
-
-(defun activate-pyenv ()
-  (pyenv-mode t)
-  (let* ((root (locate-dominating-file "." ".python-version"))
-         (current-pyenv (and python-shell-virtualenv-root (file-name-nondirectory python-shell-virtualenv-root))))
-    (if root
-        (let* ((pyenv-version-file (concat root ".python-version"))
-               (target-pyenv (string-trim (get-file-contents pyenv-version-file))))
-          (if (not (string-equal target-pyenv current-pyenv))
-              (progn
-                (setq python-shell-extra-pythonpaths `(,root))
-                (pyenv-mode-set target-pyenv)))))))
-
 
 ;; fix bug in realgud always reselecting the command window
 (defun realgud-fix-check-prompt (from to &optional cmd-mark opt-cmdbuf

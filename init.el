@@ -218,6 +218,26 @@
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024))
 
+(defun get-file-contents (filename)
+  "Read a file and return foo-file as a string."
+  (with-temp-buffer
+    (insert-file-contents filename)
+    (buffer-string)))
+
+
+
+(defun activate-pyenv ()
+  (pyenv-mode t)
+  (let* ((root (locate-dominating-file "." ".python-version"))
+         (current-pyenv (and python-shell-virtualenv-root (file-name-nondirectory python-shell-virtualenv-root))))
+    (if root
+        (let* ((pyenv-version-file (concat root ".python-version"))
+               (target-pyenv (string-trim (get-file-contents pyenv-version-file))))
+          (if (not (string-equal target-pyenv current-pyenv))
+              (progn
+                (setq python-shell-extra-pythonpaths `(,root))
+                (pyenv-mode-set target-pyenv)))))))
+
 ;;--[binds]------------------------------------------------------
 
 (global-set-key (kbd "M-<up>") (lambda () (interactive) (scroll-other-window -1)))
@@ -469,8 +489,8 @@
 
 ;;--[flycheck]------------------------------------------
 
-(eval-after-load 'flycheck
-  '(define-key flycheck-mode-map (kbd "C-c ! l") 'helm-flycheck))
+(with-eval-after-load 'flycheck
+  (define-key flycheck-mode-map (kbd "C-c ! l") 'helm-flycheck))
 
 
 ;;--{utils]-----------------------------------------------------
@@ -544,7 +564,10 @@
 
 ;;--[rust-mode]--------------------------------------------
 
-(add-hook 'rust-mode-hook 'eglot-ensure)
+(add-hook 'rust-mode-hook (lambda ()
+                            (eglot-ensure)
+                            (define-key rust-mode-map [(f9)] 'rust-test)))
+
 
 ;;--[terraform]--------------------------------------------
 
@@ -582,13 +605,37 @@
 
 ;;--[gitlab-duo]---------------------------------------------
 
-(autoload 'my-repl-start "~/.emacs.d/gitlab-duo.el" "Start the gitlab DUO chat." t)
-(global-set-key (kbd "C-c t") #'my-repl-start)
+(autoload 'gitlab-duo-start "~/.emacs.d/gitlab-duo.el" "Start the gitlab DUO chat." t)
+(global-set-key (kbd "C-c t") #'gitlab-duo-start)
+
+;;--[ansible]---------------------------------------------
+
+(with-eval-after-load 'flycheck
+  (flycheck-define-checker flycheck-ansible-lint
+    "An Ansible playbook syntax checker using ansible-lint."
+    :command ("ansible-lint" "--profile=production" "--strict" "--nocolor" "--parseable" source-inplace)
+    :error-patterns
+    ((warning line-start (file-name) ":" line (optional ":" column) ": " (message) ". (warning)" line-end)
+     (error line-start (file-name) ":" line (optional ":" column) ": " (message) line-end))
+    :modes yaml-mode))
+
+
+(defun is-ansible-file ()
+  (when buffer-file-name
+    (let ((root (locate-dominating-file buffer-file-name ".git")))
+      (when root
+        (string= (file-name-nondirectory (directory-file-name root)) "architecture")))))
+
+(add-hook 'yaml-mode-hook (lambda () (if (is-ansible-file) (ansible-mode 1))))
+(add-hook 'ansible-mode-hook
+          (lambda ()
+            (activate-pyenv)
+            (flycheck-mode)
+            (flycheck-select-checker 'flycheck-ansible-lint)))
 
 ;;--[paths for external executables]-------------------------
-
-(add-to-list 'exec-path "~/.local/bin")
-(add-to-list 'exec-path "~/.cargo/bin")
+(add-to-list 'exec-path (expand-file-name "~/.local/bin"))
+(add-to-list 'exec-path (expand-file-name "~/.cargo/bin"))
 (add-to-list 'exec-path "/opt/node/bin")
 (add-to-list 'exec-path "/usr/local/bin")
 (add-to-list 'exec-path (expand-file-name "~/.nvm/versions/node/v20.11.0/bin/"))
@@ -596,6 +643,8 @@
 (add-to-list 'exec-path (expand-file-name "~/.pyenv/shims"))
 (setenv "PATH" (concat
                 "/opt/node/bin:/usr/local/bin"
+                ":"
+                (expand-file-name "~/.cargo/bin")
                 ":"
                 (expand-file-name "~/.nvm/versions/node/v20.11.0/bin/")
                 ":"
@@ -605,11 +654,12 @@
                 ":"
                 (getenv "PATH")))
 
-(if (equal (system-name) "Deepki-QL4P79YPQ4.local")
+(if (member (system-name) '("MacBookPro.lan" "Deepki-QL4P79YPQ4.local"))
     (let ((netskope-ca (expand-file-name "~/.nskp-cert/netskope-cert-bundle.pem")))
       (load-library "gnutls")
       (setenv "CURL_CA_BUNDLE" netskope-ca)
-      (cl-pushnew netskope-ca gnutls-trustfiles)))
+      (setenv "REQUESTS_CA_BUNDLE" netskope-ca)
+      (cl-pushnew netskope-ca gnutls-trustfiles :test #'equal)))
 
 
 (let ((creds-file (expand-file-name "~/.config/creds.fish")))
