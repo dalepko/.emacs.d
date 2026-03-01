@@ -638,7 +638,7 @@
 (add-to-list 'exec-path (expand-file-name "~/.cargo/bin"))
 (add-to-list 'exec-path "/opt/node/bin")
 (add-to-list 'exec-path "/usr/local/bin")
-(add-to-list 'exec-path (expand-file-name "~/.nvm/versions/node/v20.11.0/bin/"))
+(add-to-list 'exec-path (expand-file-name "~/.nvm/versions/node/v22.15.1/bin/"))
 (add-to-list 'exec-path "/opt/homebrew/bin/")
 (add-to-list 'exec-path (expand-file-name "~/.pyenv/shims"))
 (setenv "PATH" (concat
@@ -646,7 +646,7 @@
                 ":"
                 (expand-file-name "~/.cargo/bin")
                 ":"
-                (expand-file-name "~/.nvm/versions/node/v20.11.0/bin/")
+                (expand-file-name "~/.nvm/versions/node/v22.15.1/bin/")
                 ":"
                 (expand-file-name "~/.pyenv/shims")
                 ":"
@@ -654,11 +654,12 @@
                 ":"
                 (getenv "PATH")))
 
-(if (member (system-name) '("MacBookPro.lan" "Deepki-QL4P79YPQ4.local"))
+(if (member (system-name) '("MacBookPro.lan" "Deepki-DDFDGDTYW4.local" "Mac.lan"))
     (let ((netskope-ca (expand-file-name "~/.nskp-cert/netskope-cert-bundle.pem")))
       (load-library "gnutls")
       (setenv "CURL_CA_BUNDLE" netskope-ca)
       (setenv "REQUESTS_CA_BUNDLE" netskope-ca)
+      (setenv "AWS_PROFILE" "ssoAppTesting")
       (cl-pushnew netskope-ca gnutls-trustfiles :test #'equal)))
 
 
