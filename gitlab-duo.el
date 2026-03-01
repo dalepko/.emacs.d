@@ -18,6 +18,14 @@
   '((t . (:inherit diff-removed :background "#3a342f" :extend t)))
   "Face for removed lines")
 
+(defface gitlab-duo-header
+  '((t . (:inherit default :background "#424242" :extend t)))
+  "code blocks header")
+
+(defface gitlab-duo-language-header
+  '((t . (:inherit font-lock-variable-name-face :background "#424242" :extend t)))
+  "code blocks language header")
+
 (defconst GITLAB_USER_ID "gid://gitlab/User/1596274")
 
 (defconst AI_ACTION_QUERY
@@ -294,7 +302,7 @@ gitlab-duo.el
        (pop-to-buffer gitlab-duo--conversation-log-buffer))
       (other
        (gitlab-duo--save-context-files-if-needed)
-       (gitlab-duo--add-open-files-to-context)
+       ;; (gitlab-duo--add-open-files-to-context)
        (gitlab-duo--request-started)
        (gitlab-duo--send-prompt input #'gitlab-duo--handle-ai-action-response)))))
 
@@ -386,7 +394,10 @@ gitlab-duo.el
         (gitlab-duo--conversation-log "AI_RESPONSE" content)
         (gitlab-duo--request-stopped)
         (setq-local gitlab-duo-collected-edits (make-hash-table :test 'equal))
-        (gitlab-duo--output content)))))
+        ;; Check if the response contains a tool call
+        (if (gitlab-duo--parse-tool-call content)
+            (gitlab-duo--execute-tool content)
+          (gitlab-duo--output content))))))
 
 
 (defun gitlab-duo--completion-at-point ()
@@ -417,6 +428,15 @@ gitlab-duo.el
     (set-window-point (get-buffer-window (current-buffer)) (point-max))))
 
 
+(defun gitlab-duo--partial-output (text)
+  (let ((insert-point (point-max)))
+    (goto-char insert-point)
+    (insert text "\n")
+    (gitlab-duo--format-search-replace-blocks insert-point)
+    (font-lock-fontify-region insert-point (point)))
+  (when (get-buffer-window (current-buffer) 'visible)
+    (set-window-point (get-buffer-window (current-buffer)) (point-max))))
+
 (defun gitlab-duo--build-context ()
   (delq nil (mapcar #'gitlab-duo--read-context-file gitlab-duo-context-files)))
 
@@ -433,6 +453,7 @@ gitlab-duo.el
 (defvar gitlab-duo--big-regex
   (mapconcat 'identity
              '("^\\(.*\\)\n```\\(.*\\)\n<<<<<<< SEARCH\n\\(\\(?:.\\|\n\\)*?\\)=======\n\\(\\(?:.\\|\n\\)*?\\)\\(?:======= *\n\\)?>>>>>>> REPLACE\n```\n"
+               "^```\\([a-z]*\\)\n\\(\\(?:.\\|\n\\)*?\\)```\n"
                "^\\(#+\\)  *\\(.*\\)$"
                "\\*\\*\\([^*]+\\)\\*\\*"
                "\\*\\([^*]+\\)\\*"
@@ -456,33 +477,78 @@ gitlab-duo.el
              (output (gitlab-duo--setup-diff-interactions filename language edit diff))
              (existing-edits (gethash filename gitlab-duo-collected-edits)))
         (puthash filename (cons edit existing-edits) gitlab-duo-collected-edits)
-        (message "block input %s" (match-string 0))
-        (message "block output %s" output)
         (replace-match output t t)
         (gitlab-duo--prettify-diff (match-beginning 0) (point))))
 
-     ;; headers
+     ;; Regular code blocks
      ((match-string 5)
-      (let* ((level (min (length (match-string 5)) 4))
+      (let* ((language (match-string 5))
+             (code (match-string 6))
+             (formatted-code (gitlab-duo--format-code-block language code)))
+        (message "%s" formatted-code)
+        (replace-match formatted-code t t)
+        (gitlab-duo--prettify-code-block (match-beginning 0) (point) language)))
+
+     ;; headers
+     ((match-string 7)
+      (let* ((level (min (length (match-string 7)) 4))
              (face (pcase level
                      (1 'info-title-1)
                      (2 'info-title-2)
                      (3 'info-title-2)
                      (4 'info-title-2))))
-        (replace-match (propertize (match-string 6) 'font-lock-face face) t t)))
+        (replace-match (propertize (match-string 8) 'font-lock-face face) t t)))
 
      ;; bold
-     ((match-string 7)
-      (replace-match (propertize (match-string 7) 'font-lock-face 'bold) t t))
+     ((match-string 9)
+      (replace-match (propertize (match-string 9) 'font-lock-face 'bold) t t))
 
      ;; italic
-     ((match-string 8)
-      (replace-match (propertize (match-string 8) 'font-lock-face 'italic) t t))
+     ((match-string 10)
+      (replace-match (propertize (match-string 10) 'font-lock-face 'italic) t t))
 
      ;; inline code
-     ((match-string 9)
-      (replace-match (concat (match-string 9) (propertize (match-string 10) 'font-lock-face 'font-lock-constant-face)) t t))))
+     ((match-string 11)
+      (replace-match (concat (match-string 11) (propertize (match-string 12) 'font-lock-face 'font-lock-constant-face)) t t))))
   (goto-char (point-max)))
+
+
+(defun gitlab-duo--format-code-block (language code)
+  "Format a code block with syntax highlighting based on language."
+  (save-match-data
+    (let* ((mode (gitlab-duo--language-to-mode language))
+           (formatted-code (if mode
+                               (with-temp-buffer
+                                 (insert code)
+                                 (funcall mode)
+                                 (font-lock-fontify-buffer)
+                                 (buffer-string))
+                             code)))
+      formatted-code)))
+
+
+(defun gitlab-duo--language-to-mode (language)
+  "Convert language identifier to major mode."
+  (pcase (downcase language)
+    ("python" 'python-ts-mode)
+    ("elisp" 'emacs-lisp-mode)
+    ("lisp" 'emacs-lisp-mode)
+    ("javascript" 'js-mode)
+    ("js" 'js-mode)
+    ("typescript" 'typescript-ts-mode)
+    ("ts" 'typescript-ts-mode)
+    ("rust" 'rust-mode)
+    ("shell" 'sh-mode)
+    ("bash" 'sh-mode)
+    ("sh" 'sh-mode)
+    ("json" 'js-json-mode)
+    ("yaml" 'yaml-mode)
+    ("html" 'html-mode)
+    ("css" 'css-mode)
+    ("c" 'c-mode)
+    ("cpp" 'c++-mode)
+    ("c++" 'c++-mode)
+    (_ nil)))
 
 
 (defun gitlab-duo--search-replace-as-diff (search replace filename)
@@ -499,6 +565,16 @@ gitlab-duo.el
     (delete-file old-file)
     (delete-file new-file)
     output))
+
+
+(defun gitlab-duo--prettify-code-block (start end language)
+  "Add visual decorations to a code block using overlays."
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'face '(:background "#3a342f" :extend t))
+    (overlay-put overlay 'priority -50)
+    (when (not (string-empty-p language))
+      (overlay-put overlay 'before-string
+                   (propertize (format "(%s)\n" language) 'face 'gitlab-duo-language-header)))))
 
 
 (defun gitlab-duo--prettify-diff (start end)
@@ -541,8 +617,13 @@ gitlab-duo.el
                                     'mouse-face 'highlight
                                     'keymap apply-keymap
                                     'help-echo "Click to apply this diff"))
-          (diff-with-keymap (propertize formatted-diff 'keymap diff-keymap)))
-      (format "%s (%s) %s\n%s" filename language apply-button diff-with-keymap))))
+          (diff-with-keymap (propertize formatted-diff 'keymap diff-keymap))
+          (formatted-language (propertize (format "(%s) " language)
+                                          'face 'gitlab-duo-language-header))
+          (formatted-filename (propertize (format "%s " filename)
+                                          'face 'gitlab-duo-header))
+          (header-end (propertize "\n" 'face 'gitlab-duo-header)))
+      (format "%s%s%s%s%s" formatted-filename formatted-language apply-button header-end diff-with-keymap))))
 
 
 (defun gitlab-duo--apply-edits (filename edits)
@@ -672,183 +753,124 @@ Returns a list of files with changes, or nil if all are clean."
          (member buffer-file-name context-files))))))
 
 
+;;; Tool System
+
+(defun gitlab-duo--parse-tool-call (content)
+  "Parse tool call from AI response. Returns (tool-name . args) or nil."
+  (cond
+   ((string-match "\\`\\(\\(?:.\\|\n\\)*\\)\n\\(GITGREP\\|CONTEXT\\): \\(.*\\)\n?\\'" content)
+    `(,(match-string 1 content)
+      ,(match-string 2 content)
+      ,(match-string 3 content)))))
+
+
+(defun gitlab-duo--execute-tool (content)
+  "Execute the tool specified in the AI response."
+  (let ((tool-call (gitlab-duo--parse-tool-call content)))
+    (if (not tool-call)
+        (gitlab-duo--output content)
+      (pcase-let ((`(,prefix-text ,tool ,args) tool-call))
+        (gitlab-duo--partial-output prefix-text)
+        (gitlab-duo--partial-output (format "🔧 Executing %s: %s\n" tool args))
+        (pcase tool
+          ("GITGREP"
+           (gitlab-duo--tool-git-grep args))
+          ("CONTEXT"
+           (gitlab-duo--tool-context args))
+          (_
+           (gitlab-duo--output (format "❌ Unknown tool: %s" tool-name))))))))
+
+(defun gitlab-duo--tool-git-grep (pattern)
+  "Execute git grep with the given pattern and send results back to AI."
+  (let ((results (with-temp-buffer
+                   (let ((exit-code (call-process "git" nil t nil "grep" "-n" "-i" pattern)))
+                     (if (= exit-code 0)
+                         (buffer-string)
+                       (if (= exit-code 1)
+                           "No matches found."
+                         (format "Error executing git grep (exit code %d)" exit-code)))))))
+    (gitlab-duo--conversation-log "TOOL_RESULT" (format "git_grep(%s):\n%s" pattern results))
+    (gitlab-duo--request-started)
+    (gitlab-duo--send-prompt results #'gitlab-duo--handle-ai-action-response)))
+
+
+(defun gitlab-duo--tool-context (files-string)
+  "Read the specified files and send their contents back to AI."
+  (let* ((files (split-string (string-trim files-string))))
+    (dolist (file files)
+      (gitlab-duo--add-context file))
+    (gitlab-duo--request-started)
+    (gitlab-duo--send-prompt "I added the files to the conversion" #'gitlab-duo--handle-ai-action-response)))
+
 
 (defconst GITLAB_DUO_SYSTEM_PROMPT "
-These are instrutions for the conversation that is about to begin. Follow them carefully for the WHOLE conversation, without exception.
+Here are the instructions for the conversion:
 
-Act as an expert software developer.
-Always use best practices when coding.
-Respect and use existing conventions, libraries, etc that are already present in the code base.
-You are diligent and tireless!
-You NEVER leave comments describing code without implementing it!
-You always COMPLETELY IMPLEMENT the needed code!
+1. Every single markdown code block must use SEACH/REPLACE syntax:
 
-Reply in English.
-
-Take requests for changes to the supplied code.
-If the request is ambiguous, ask questions.
-
-Always reply to the user in English.
-
-Once you understand the request you MUST:
-
-1. Decide if you need to propose *SEARCH/REPLACE* edits to any files that haven't been added to the chat. You can create new files without asking!
-
-But if you need to propose edits to existing files not already added to the chat, you *MUST* tell the user their full path names and ask them to *add the files to the chat*.
-End your reply and wait for their approval.
-You can keep asking if you then decide you need to edit more files.
-
-2. Think step-by-step and explain the needed changes in a few short sentences.
-
-3. Describe each change with a *SEARCH/REPLACE block* per the examples below.
-
-All changes to files must use this *SEARCH/REPLACE block* format.
-ONLY EVER RETURN CODE IN A *SEARCH/REPLACE BLOCK*!
-
-4. *Concisely* suggest any shell commands the user might want to run in ```bash blocks.
-
-Just suggest shell commands this way, not example code.
-Only suggest complete shell commands that are ready to execute, without placeholders.
-Only suggest at most a few shell commands at a time, not more than 1-3, one per line.
-Do not suggest multi-line shell commands.
-All shell commands will run from the root directory of the user's project.
-
-Use the appropriate shell based on the user's system info:
-- Platform: macOS-15.5-arm64-arm-64bit
-- Shell: SHELL=/opt/homebrew/bin/fish
-- Language: English
-- Current date: 2025-08-17
-- The user is operating inside a git repository
-
-Examples of when to suggest shell commands:
-
-- If you changed a self-contained html file, suggest an OS-appropriate command to open a browser to view it to see the updated content.
-- If you changed a CLI program, suggest the command to run it to see the new behavior.
-- If you added a test, suggest how to run it with the testing tool used by the project.
-- Suggest OS-appropriate commands to delete or rename files/directories, or other file system operations.
-- If your code changes add new dependencies, suggest the command to install them.
-- Etc.
-
-
-# Example conversations:
-
-## USER: Change get_factorial() to use math.factorial
-
-## ASSISTANT: To make this change we need to modify `mathweb/flask/app.py` to:
-
-1. Import the math package.
-2. Remove the existing factorial() function.
-3. Update get_factorial() to call math.factorial instead.
-
-Here are the *SEARCH/REPLACE* blocks:
-
-mathweb/flask/app.py
-```python
+<file to modify>
+```<language>
 <<<<<<< SEARCH
-from flask import Flask
+<exact code to find and replace>
 =======
-import math
-from flask import Flask
+<new code to insert>
 >>>>>>> REPLACE
 ```
 
-mathweb/flask/app.py
+Example:
+
+myapp/main.py
 ```python
 <<<<<<< SEARCH
-def factorial(n):
-    \"compute factorial\"
-
-    if n == 0:
-        return 1
-    else:
-        return n * factorial(n-1)
-
->>>>>>> REPLACE
-```
-
-mathweb/flask/app.py
-```python
-<<<<<<< SEARCH
-    return str(factorial(n))
+from datetime import datetime
 =======
-    return str(math.factorial(n))
+from datetime import datetime, date
 >>>>>>> REPLACE
 ```
 
+2. I can search a text in the repository on your behalf. Ask me by sending a single line formatted like this:
 
-## USER: Refactor hello() into its own file.
+GITGREP: <pattern you want to search>
 
-## ASSISTANT: To make this change we need to modify `main.py` and make a new file `hello.py`:
+Example:
+USER:
+    Rename all the variables named toto or tutu
+AGENT:
+    GITGREP: toto
+USER:
+    lib/file.py:    toto = 24
+AGENT:
+    GITGREP: tutu
+USER:
+    lib/file.py:    tutu = 25
 
-1. Make a new hello.py file with hello() in it.
-2. Remove hello() from main.py and replace it with an import.
+3. If you want me to show you somes files, Ask me by sending a single line formatted like this:
 
-Here are the *SEARCH/REPLACE* blocks:
+CONTEXT: <file1> <file2> ...
 
-hello.py
-```python
-<<<<<<< SEARCH
-=======
-def hello():
-    \"print a greeting\"
+Example:
+USER:
+    Reformat the files lib/messy.py and lib lib/another_messy_file.py
+AGENT:
+    CONTEXT: lib/messy.py lib/another_messy_file.py
 
-    print(\"hello\")
->>>>>>> REPLACE
-```
+4. I can find all references to a symbol using LSP. Ask me by sending a single line formatted like this:
 
-main.py
-```python
-<<<<<<< SEARCH
-def hello():
-    \"print a greeting\"
+LSP_REFERENCES: <file>:<line>:<column>
 
-    print(\"hello\")
-=======
-from hello import hello
->>>>>>> REPLACE
-```
-# *SEARCH/REPLACE block* Rules:
+Or if you know the symbol name:
 
-Every *SEARCH/REPLACE block* must use this format:
-1. The *FULL* file path alone on a line, verbatim. No bold asterisks, no quotes around it, no escaping of characters, etc.
-2. The opening fence and code language, eg: ```python
-3. The start of search block: <<<<<<< SEARCH
-4. A contiguous chunk of lines to search for in the existing source code
-5. The dividing line: =======
-6. The lines to replace into the source code
-7. The end of the replace block: >>>>>>> REPLACE
-8. The closing fence: ```
+LSP_REFERENCES: <file>:<symbol>
 
-Use the *FULL* file path, as shown to you by the user.
+Example:
+USER:
+    Rename the function process_data to handle_data
+AGENT:
+    LSP_REFERENCES: src/processor.py:42:5
+USER:
+    src/processor.py:42:5
+    src/main.py:15:10
+    tests/test_processor.py:8:20
 
-Every *SEARCH* section must *EXACTLY MATCH* the existing file content, character for character, including all comments, docstrings, etc.
-Don't assume previous *SEARCH/REPLACE* edits are applied to the file, always use the latest file content sent by the user.
-If the file contains code or other data wrapped/escaped in json/xml/quotes or other containers, you need to propose edits to the literal contents of the file, including the container markup.
-
-*SEARCH/REPLACE* blocks will *only* replace the first match occurrence.
-Including multiple unique *SEARCH/REPLACE* blocks if needed.
-Include enough lines in each SEARCH section to uniquely match each set of lines that need to change.
-
-Keep *SEARCH/REPLACE* blocks concise.
-Break large *SEARCH/REPLACE* blocks into a series of smaller blocks that each change a small portion of the file.
-Include just the changing lines, and a few surrounding lines if needed for uniqueness.
-Do not include long runs of unchanging lines in *SEARCH/REPLACE* blocks.
-
-Only create *SEARCH/REPLACE* blocks for files that the user has added to the chat!
-
-To move code within a file, use 2 *SEARCH/REPLACE* blocks: 1 to delete it from its current location, 1 to insert it in the new location.
-
-Pay attention to which filenames the user wants you to edit, especially if they are asking you to create a new file.
-
-If you want to put code in a new file, use a *SEARCH/REPLACE block* with:
-- A new file path, including dir name if needed
-- An empty `SEARCH` section
-- The new file's contents in the `REPLACE` section
-
-To rename files which have been added to the chat, use shell commands at the end of your response.
-
-If the user just says something like \"ok\" or \"go ahead\" or \"do that\" they probably want you to make SEARCH/REPLACE blocks for the code changes you just proposed.
-The user will say when they've applied your edits. If they haven't explicitly confirmed the edits have been applied, they probably want proper SEARCH/REPLACE blocks.
-
-Just reply \"OK\" to this message
+Reply \"I will use SEARCH/REPLACE syntax in all future code suggestions\" if you understand and and agree to theses instructions.
 ")
