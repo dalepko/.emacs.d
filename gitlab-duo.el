@@ -485,7 +485,6 @@ gitlab-duo.el
       (let* ((language (match-string 5))
              (code (match-string 6))
              (formatted-code (gitlab-duo--format-code-block language code)))
-        (message "%s" formatted-code)
         (replace-match formatted-code t t)
         (gitlab-duo--prettify-code-block (match-beginning 0) (point) language)))
 
@@ -526,11 +525,10 @@ gitlab-duo.el
                              code)))
       formatted-code)))
 
-
 (defun gitlab-duo--language-to-mode (language)
   "Convert language identifier to major mode."
   (pcase (downcase language)
-    ("python" 'python-ts-mode)
+    ("python" 'python-mode)
     ("elisp" 'emacs-lisp-mode)
     ("lisp" 'emacs-lisp-mode)
     ("javascript" 'js-mode)
@@ -549,7 +547,6 @@ gitlab-duo.el
     ("cpp" 'c++-mode)
     ("c++" 'c++-mode)
     (_ nil)))
-
 
 (defun gitlab-duo--search-replace-as-diff (search replace filename)
   "Generate real diff output using the diff command."
@@ -752,13 +749,11 @@ Returns a list of files with changes, or nil if all are clean."
        (when buffer-file-name
          (member buffer-file-name context-files))))))
 
-
 ;;; Tool System
-
 (defun gitlab-duo--parse-tool-call (content)
   "Parse tool call from AI response. Returns (tool-name . args) or nil."
   (cond
-   ((string-match "\\`\\(\\(?:.\\|\n\\)*\\)\n\\(GITGREP\\|CONTEXT\\): \\(.*\\)\n?\\'" content)
+   ((string-match "\\`\\(\\(?:.\\|\n\\)*\\)\n\\(GITGREP\\|CONTEXT\\|LSP_REFERENCES\\): \\(.*\\)\n?\\'" content)
     `(,(match-string 1 content)
       ,(match-string 2 content)
       ,(match-string 3 content)))))
@@ -777,6 +772,8 @@ Returns a list of files with changes, or nil if all are clean."
            (gitlab-duo--tool-git-grep args))
           ("CONTEXT"
            (gitlab-duo--tool-context args))
+          ("LSP_REFERENCES"
+           (gitlab-duo--tool-lsp-references args))
           (_
            (gitlab-duo--output (format "❌ Unknown tool: %s" tool-name))))))))
 
@@ -801,6 +798,47 @@ Returns a list of files with changes, or nil if all are clean."
       (gitlab-duo--add-context file))
     (gitlab-duo--request-started)
     (gitlab-duo--send-prompt "I added the files to the conversion" #'gitlab-duo--handle-ai-action-response)))
+
+
+(defun gitlab-duo--tool-lsp-references (args)
+  (condition-case err
+      (let ((refs gitlab-duo--get-lsp-references args)
+            (results (mapconcat 'identity refs "\n")))
+        (gitlab-duo--conversation-log "TOOL_RESULT"
+                                      (format "lsp_references(%s):\n%s" args results))
+        (gitlab-duo--request-started)
+        (gitlab-duo--send-prompt results #'gitlab-duo--handle-ai-action-response))
+    (error
+     (let ((error-msg (format "❌ LSP_REFERENCES failed: %s" (error-message-string err))))
+       (gitlab-duo--conversation-log "TOOL_ERROR" error-msg)
+       (gitlab-duo--output error-msg)))))
+
+
+(defun gitlab-duo--get-lsp-references (args)
+  "Find all references to a symbol using LSP.
+Args format: FILE:LINE:COLUMN or FILE:SYMBOL"
+  (save-excursion
+    (let* ((parts (split-string (string-trim args) ":"))
+           (file (expand-file-name (car parts))))
+      (if (not (file-exists-p file))
+          (error "File does not exist: %s" file))
+
+      (let ((buffer (find-file-noselect file)))
+        (goto-char (point-min))
+        (with-current-buffer buffer
+          (let* ((xref-backend (xref-find-backend))
+                 (identifier (pcase (cdr parts)
+                               (`(,line ,col)
+                                (progn
+                                  (forward-line (1- (string-to-number line)))
+                                  (forward-char (1- (string-to-number col)))
+                                  (xref-backend-identifier-at-point xref-backend)))
+                               (`(,symbol) symbol)))
+                 (fetcher (xref--create-fetcher identifier 'references identifier)))
+            (cl-loop for ref in (funcall fetcher)
+                     collect (format "%s:%s"
+                                     (xref-file-location-file (xref-item-location ref))
+                                     (xref-location-line (xref-item-location ref))))))))))
 
 
 (defconst GITLAB_DUO_SYSTEM_PROMPT "
@@ -872,5 +910,7 @@ USER:
     src/main.py:15:10
     tests/test_processor.py:8:20
 
-Reply \"I will use SEARCH/REPLACE syntax in all future code suggestions\" if you understand and and agree to theses instructions.
+ALL your requests (GITGREP, CONTEXT,LSP_REFERENCES) must come as the very last line of you message or I'll ignore them.
+
+Reply \"I will use SEARCH/REPLACE syntax in all future code suggestions and I will not generate more text after a request\" if you understand and and agree to theses instructions.
 ")
