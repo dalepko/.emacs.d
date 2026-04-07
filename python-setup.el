@@ -91,7 +91,9 @@
 
 (defun run-pytest (verbose filename func)
   (let* ((project-root (projectile-project-root))
-         (command  (format "py.test%s --tb=short -vvs"
+         (pytest-path (or (executable-find "py.test") "py.test"))
+         (command  (format "%s%s --tb=short -vvs"
+                           pytest-path
                            (if verbose " --pdb" "")))
          (last-pdb-buffer (find-last-pdb-buffer))
          (last-pdb-window (if last-pdb-buffer (get-buffer-window last-pdb-buffer))))
@@ -146,7 +148,7 @@
   (when (boundp 'project-venv-name)
     (venv-workon project-venv-name))
 
-  (activate-pyenv)
+  (activate-venv)
   (flycheck-mode t)
   (ruff-format-imports-on-save-mode t)
   (ruff-format-on-save-mode)

@@ -24,6 +24,7 @@
         markdown-enter-key
         markdown-outdent-or-delete
         org-beginning-of-line
+        org-cycle
         org-end-of-line
         org-force-self-insert
         org-kill-line
@@ -44,7 +45,9 @@
         helm-confirm-and-exit-minibuffer
         helm-projectile
         helm-projectile-grep
+        helm-resume
         help-for-help
+        ido-dired
         ido-find-file-other-window
         lsp-ui-doc--handle-mouse-movement
         mac-mwheel-scroll

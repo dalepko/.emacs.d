@@ -792,8 +792,21 @@ Returns a list of files with changes, or nil if all are clean."
 
 
 (defun gitlab-duo--tool-context (files-string)
-  "Read the specified files and send their contents back to AI."
-  (let* ((files (split-string (string-trim files-string))))
+  "Read the specified files and send their contents back to AI.
+If a path is a directory, add all files in that directory."
+  (let* ((paths (split-string (string-trim files-string)))
+         (files '()))
+    (dolist (path paths)
+      (let ((expanded-path (expand-file-name path)))
+        (cond
+         ((file-directory-p expanded-path)
+          (dolist (file (directory-files expanded-path t "^[^.]"))
+            (when (file-regular-p file)
+              (push file files))))
+         ((file-regular-p expanded-path)
+          (push expanded-path files))
+         (t
+          (message "Warning: %s is neither a file nor a directory" path)))))
     (dolist (file files)
       (gitlab-duo--add-context file))
     (gitlab-duo--request-started)
@@ -802,7 +815,7 @@ Returns a list of files with changes, or nil if all are clean."
 
 (defun gitlab-duo--tool-lsp-references (args)
   (condition-case err
-      (let ((refs gitlab-duo--get-lsp-references args)
+      (let ((refs (gitlab-duo--get-lsp-references args))
             (results (mapconcat 'identity refs "\n")))
         (gitlab-duo--conversation-log "TOOL_RESULT"
                                       (format "lsp_references(%s):\n%s" args results))

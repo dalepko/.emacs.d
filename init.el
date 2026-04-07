@@ -143,7 +143,7 @@
    '(("melpa" . "https://melpa.org/packages/") ("gnu" . "http://elpa.gnu.org/packages/")
      ("localelpa" . "~/.emacs.d/localelpa-packages/")))
  '(package-selected-packages
-   '(0x0 ansible ansible-vault base16-theme company-ansible company-box company-terraform
+   '(0x0 agent-shell ansible ansible-vault base16-theme company-ansible company-box company-terraform
          dockerfile-mode eldoc-box eslint-fix fish-mode flycheck flycheck-eglot font-lock-studio
          format-all git git-gutter-fringe gruvbox-theme haskell-mode helm-flycheck helm-projectile
          helm-xref helpful kaolin-themes magit magit-popup markdown-preview-mode multiple-cursors
@@ -226,17 +226,25 @@
 
 
 
-(defun activate-pyenv ()
-  (pyenv-mode t)
-  (let* ((root (locate-dominating-file "." ".python-version"))
-         (current-pyenv (and python-shell-virtualenv-root (file-name-nondirectory python-shell-virtualenv-root))))
-    (if root
-        (let* ((pyenv-version-file (concat root ".python-version"))
-               (target-pyenv (string-trim (get-file-contents pyenv-version-file))))
-          (if (not (string-equal target-pyenv current-pyenv))
-              (progn
-                (setq python-shell-extra-pythonpaths `(,root))
-                (pyenv-mode-set target-pyenv)))))))
+(defun activate-venv ()
+  (interactive)
+  (let* ((venv-root (locate-dominating-file "." ".venv"))
+         (pyenv-root (locate-dominating-file "." ".python-version"))
+         (old-venv (getenv "VIRTUAL_ENV"))
+         (new-venv (cond
+                    (venv-root (concat venv-root ".venv"))
+                    (pyenv-root (let* ((pyenv-version-file (concat pyenv-root ".python-version"))
+                                       (target-pyenv (string-trim (get-file-contents pyenv-version-file))))
+                                  (require 'pyenv-mode)
+                                  (pyenv-mode-full-path target-pyenv)))))
+         (new-venv (and new-venv (expand-file-name new-venv))))
+    (when (and new-venv (not (equal new-venv old-venv)))
+      (if (and old-venv (equal (car exec-path) (concat old-venv "/bin")))
+          (setq exec-path (cdr exec-path)))
+      (setenv "VIRTUAL_ENV" new-venv)
+      (setq exec-path (cons (concat new-venv "/bin") exec-path))
+      (setenv "PATH" (mapconcat 'identity exec-path ":")))))
+
 
 ;;--[binds]------------------------------------------------------
 
@@ -542,6 +550,7 @@
   (add-to-list 'eglot-server-programs
                '((rust-ts-mode rust-mode) .
                  ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+  ;;(add-to-list 'eglot-server-programs '((python-ts-mode) . ("uvx" "ty" "server" )))
 
   (setq eglot-stay-out-of '(flymake))
   (require 'flycheck-eglot)
@@ -603,6 +612,12 @@
 (add-hook 'format-all-mode-hook #'format-all-ensure-formatter)
 
 
+;;--[agent-shell]---------------------------------------------
+
+(with-eval-after-load 'agent-shell
+  (setq agent-shell-anthropic-authentication
+      (agent-shell-anthropic-make-authentication :login t)))
+
 ;;--[gitlab-duo]---------------------------------------------
 
 (autoload 'gitlab-duo-start "~/.emacs.d/gitlab-duo.el" "Start the gitlab DUO chat." t)
@@ -629,7 +644,7 @@
 (add-hook 'yaml-mode-hook (lambda () (if (is-ansible-file) (ansible-mode 1))))
 (add-hook 'ansible-mode-hook
           (lambda ()
-            (activate-pyenv)
+            (activate-venv)
             (flycheck-mode)
             (flycheck-select-checker 'flycheck-ansible-lint)))
 
