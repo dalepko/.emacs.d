@@ -1,11 +1,6 @@
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file)
 
-(setenv "LIBRARY_PATH" "/opt/homebrew//Cellar/gcc/15.1.0/lib/gcc/current/gcc/aarch64-apple-darwin24/15/")
-
-(when (fboundp 'sml/setup)
-  (sml/setup))
-
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024))
 
@@ -62,6 +57,12 @@
 
 (put 'erase-buffer 'disabled nil)
 (put 'downcase-region 'disabled nil)
+
+
+(use-package smart-mode-line
+  :config
+  (sml/setup))
+
 
 ;;--[python-mode]------------------------------------------------------
 
@@ -393,14 +394,19 @@
 
 ;;--[agent-shell]---------------------------------------------
 
-(with-eval-after-load 'agent-shell
+(use-package agent-shell
+  :defer t
+  :autoload agent-shell-anthropic-start-claude-code
+  :bind (("C-c a" . #'agent-shell-anthropic-start-claude-code))
+  :config
   (setq agent-shell-anthropic-authentication
-      (agent-shell-anthropic-make-authentication :login t)))
+        (agent-shell-anthropic-make-authentication :login t)))
+
 
 ;;--[gitlab-duo]---------------------------------------------
 
-(autoload 'gitlab-duo-start "~/.emacs.d/gitlab-duo.el" "Start the gitlab DUO chat." t)
-(global-set-key (kbd "C-c t") #'gitlab-duo-start)
+;; (autoload 'gitlab-duo-start "~/.emacs.d/gitlab-duo.el" "Start the gitlab DUO chat." t)
+;; (global-set-key (kbd "C-c t") #'gitlab-duo-start)
 
 ;;--[ansible]---------------------------------------------
 
@@ -432,8 +438,8 @@
 (add-to-list 'exec-path (expand-file-name "~/.cargo/bin"))
 (add-to-list 'exec-path "/opt/node/bin")
 (add-to-list 'exec-path "/usr/local/bin")
-(add-to-list 'exec-path (expand-file-name "~/.nvm/versions/node/v22.15.1/bin/"))
 (add-to-list 'exec-path "/opt/homebrew/bin/")
+(add-to-list 'exec-path (expand-file-name "~/.nvm/versions/node/v22.15.1/bin/"))
 (add-to-list 'exec-path (expand-file-name "~/.pyenv/shims"))
 (setenv "PATH" (concat
                 "/opt/node/bin:/usr/local/bin"
