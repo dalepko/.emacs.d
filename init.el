@@ -408,6 +408,11 @@
 ;; (autoload 'gitlab-duo-start "~/.emacs.d/gitlab-duo.el" "Start the gitlab DUO chat." t)
 ;; (global-set-key (kbd "C-c t") #'gitlab-duo-start)
 
+
+(use-package acp
+  :load-path "~/.emacs.d/acp"
+  :bind (("C-c t" . #'acp)))
+
 ;;--[ansible]---------------------------------------------
 
 (with-eval-after-load 'flycheck
