@@ -89,19 +89,20 @@ The widget's `:on-response' property is a function called with
          (label (format "Permission request: %s" title))
          (on-response (widget-get widget :on-response))
          (start (point)))
-    
+
     (insert "\n")
-    
+
     (pcase (acp-tool-call-kind tool-call)
-      ("edit"  (acp-permission-widget--body-edit tool-call))
-      ("other" (acp-permission-widget--body-other tool-call)))
+      ("edit"    (acp-permission-widget--body-edit tool-call))
+      ("execute" (acp-permission-widget--body-execute tool-call))
+      ("other"   (acp-permission-widget--body-other tool-call)))
 
     (widget-put widget :buttons (acp-permission-widget--buttons widget options on-response))
-    
+
     (insert "\n\n")
-    
+
     (widget-put widget :frame-overlays (acp-frame-create label start (point)))
-    
+
     (let ((ov (make-overlay start (point) nil nil nil)))
       (overlay-put ov 'keymap acp-permission-widget-keymap)
       (overlay-put ov 'acp-permission-request widget)
@@ -112,23 +113,33 @@ The widget's `:on-response' property is a function called with
             (diffs (cl-remove-if-not (lambda (c) (acp-tool-call-diff-p c)) content))
             (diff (car diffs))
             (path (acp-tool-call-diff-path diff))
-            (old-text (acp-tool-call-diff-oldText diff))
             (new-text (acp-tool-call-diff-newText diff)))
       (progn
         (insert (propertize (format "Edit file: %s" path) 'face 'acp-permission-widget-description-face))
         (insert "\n\n")
-        (condition-case nil
-            (insert (acp-diff-create-and-format path old-text new-text) "\n")
-          (error (insert "(diff unavailable)\n"))))
+        (condition-case err
+            (insert (acp-diff-create-and-format path (acp-tool-call-diff-oldText diff) new-text) "\n")
+          (error (insert (format "(diff unavailable: %s)\n" (error-message-string err))))))
+
     ;; Fallback: raw-input format with :filepath and :diff
     (when-let* ((raw (acp-tool-call-raw-input tool-call))
                 (fp (plist-get raw :filepath))
                 (diff (plist-get raw :diff)))
       (insert (propertize (format "Edit file: %s" fp) 'face 'acp-permission-widget-description-face))
       (insert "\n\n")
-      (condition-case nil
+      (condition-case err
           (insert (acp-diff-format (acp-diff-cleanup-diff diff)) "\n")
-        (error (insert "(diff unavailable)\n"))))))
+        (error (insert (format "(diff unavailable: %s)\n" (error-message-string err)))))))
+)
+
+(defun acp-permission-widget--body-execute (tool-call)
+  (let* ((raw-input (acp-tool-call-raw-input tool-call))
+         (command (plist-get raw-input :command)))
+    (insert (propertize "Execute command:" 'face 'acp-permission-widget-description-face))
+    (insert "\n\n")
+    (when command
+      (insert (propertize command 'face 'acp-permission-widget-command-face))
+      (insert "\n\n"))))
 
 (defun acp-permission-widget--body-other (tool-call)
   (let* ((raw-input (acp-tool-call-raw-input tool-call))
@@ -150,7 +161,7 @@ The widget's `:on-response' property is a function called with
       (insert spacing)
       (let* ((opt-id (plist-get opt :optionId))
              (opt-name (plist-get opt :name))
-             (key (car (rassoc opt-id acp-permission-widget--shortcuts)))
+             (key (car (cl-rassoc opt-id acp-permission-widget--shortcuts :test #'member)))
              (tag (if key
                       (format " %s (%c) " opt-name key)
                     (concat " " opt-name " ")))

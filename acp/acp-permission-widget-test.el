@@ -183,6 +183,81 @@ Edit file: test-file.el
 └ ┘
 ")))))
 
+;; ── Execute-kind permission ──────────────────────────────────────────────────
+
+(defvar sample-kind-execute
+  (acp-permission-request--create
+   :session-id "ses_test_execute"
+   :request-id 5
+   :tool-call
+   (acp-tool-call--create
+    :id "call_execute_001"
+    :status "pending"
+    :title "execute"
+    :kind "execute"
+    :raw-input
+    (list :command "emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1"
+          :timeout 30000
+          :description "Run permission widget tests"))
+   :options
+   '((:optionId "allow" :kind "allow_once" :name "Allow")
+     (:optionId "allow_always" :kind "allow_always" :name "Always Allow")
+     (:optionId "reject" :kind "reject_once" :name "Reject"))))
+
+(ert-deftest acp-permission-widget-kind-execute ()
+  "When kind is execute, show command with Execute command: label."
+  (with-temp-buffer
+    (widget-create 'acp-permission-widget :value sample-kind-execute)
+    (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
+┌── Permission request: execute  ┐
+
+Execute command:
+
+emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
+
+[ Allow (y) ]  [ Always Allow (!) ]  [ Reject (n) ]
+
+└ ┘
+"))))
+
+;; ── Edit-kind with nil oldText (new file creation) ──────────────────────────
+
+(ert-deftest acp-permission-widget-kind-edit-nil-oldtext ()
+  "When kind is edit with nil oldText, show diff for new file creation."
+  (let ((edit-request
+         (acp-permission-request--create
+          :session-id "ses_test_new_file"
+          :request-id 4
+          :tool-call
+          (acp-tool-call--create
+           :id "call_new_file_001"
+           :status "pending"
+           :title "create_file"
+           :kind "edit"
+           :content
+           (list (acp-tool-call-diff--create
+                  :path "/tmp/new-file.txt"
+                  :oldText nil
+                  :newText "new file content\n")))
+          :options
+          '((:optionId "once" :kind "allow_once" :name "Allow once")
+            (:optionId "always" :kind "allow_always" :name "Always allow")
+            (:optionId "reject" :kind "reject_once" :name "Reject")))))
+    (with-temp-buffer
+      (widget-create 'acp-permission-widget :value edit-request)
+      (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
+┌── Permission request: create_file  ┐
+
+Edit file: /tmp/new-file.txt
+
+@@ -0,0 +1 @@
++new file content
+
+[ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
+
+└ ┘
+")))))
+
 ;; ── Interactive test utility ─────────────────────────────────────────────────
 
 (defun acp-permission-widget-test ()

@@ -118,7 +118,7 @@
 
 (defun acp--config-option (config-options id)
   "Extract :currentValue from CONFIG-OPTIONS for the option with :id ID."
-  (let ((option (seq-some (lambda (o) (equal (plist-get o :id) id)) config-options)))
+  (let ((option (seq-find (lambda (o) (equal (plist-get o :id) id)) config-options)))
     (if option
         (plist-get option :currentValue)
       nil)))
@@ -292,7 +292,9 @@ any pending permission requests, per the ACP specification."
   (let ((input (widget-value widget)))
     (when (string-blank-p input)
       (user-error "[acp] Empty prompt, ignoring"))
-    (save-some-buffers t)
+    (let ((proj (project-current)))
+      (save-some-buffers t (lambda ()
+                             (equal (project-current) proj))))
     (setq acp--snapshot-before (ignore-errors (acp-git-snapshot-create)))
     (setq acp--plan-widget nil)
     (widget-delete acp--prompt)
@@ -346,7 +348,7 @@ already exists for this project."
   (setq-local acp--agent nil)
   (setq-local acp--prompt nil)
   (setq-local acp--tool-widgets (make-hash-table :test 'equal))
-  (setq-local acp--pending-permission-requests (make-hash-table :test 'eql))
+  (setq-local acp--pending-permission-requests (make-hash-table :test 'equal))
   (setq-local acp--plan-widget nil)
   (setq-local completion-auto-help 'always)
   (setq-local acp--markdown-buffer (acp-markdown-buffer-create))
@@ -376,11 +378,7 @@ in dependency order, and starts a fresh session."
   (dolist (buf (buffer-list))
     (when (string-prefix-p "*acp" (buffer-name buf))
       (kill-buffer buf)))
-  (let* ((lib (find-library "acp"))
-         (dir (file-name-directory
-               (if (bufferp lib)
-                   (buffer-file-name lib)
-                 lib))))
+  (let* ((dir (file-name-directory (locate-library "acp"))))
     (dolist (file '("acp-agent.el" "acp-diff.el" "acp-icon.el"
                      "acp-frame.el"
                      "acp-markdown.el" "acp-tool-call-widget.el"

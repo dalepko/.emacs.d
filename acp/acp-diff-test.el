@@ -30,6 +30,14 @@
 +new content
 "))))
 
+(ert-deftest acp-diff-create-nil-old-text ()
+  "old-text is nil — treated as new file creation, all content added."
+  (let ((diff (acp-diff-create "./nonexisting-file" nil "new content\n")))
+    (should (equal diff "\
+@@ -0,0 +1 @@
++new content
+"))))
+
 (ert-deftest acp-diff-format-works ()
   "acp-diff-format propertizes diff lines with appropriate faces."
   (let ((diff "\

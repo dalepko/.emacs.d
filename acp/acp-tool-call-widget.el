@@ -7,7 +7,7 @@
 ;; ── Faces ───────────────────────────────────────────────────────────────────
 
 (defface acp-tool-call-widget-icon-face
-  `((t :foreground "yellow"))
+  `((t :foreground "gold"))
   "Face for tool icon."
   :group 'acp)
 
@@ -67,16 +67,7 @@
     (insert-image icon)
     (insert "  " (propertize label 'face '(:weight bold)))
     (insert (propertize " " 'display '(space :align-to 80)))
-    (insert (propertize (acp-tool-call-widget--status-label status) 'face face))
-    (when (acp-tool-call-widget--has-content-p tool-call)
-      (insert (propertize " " 'display '(space :align-to 92)))
-      (let ((view-button (widget-create-child widget
-					      `(push-button
-						:tag "View"
-						:notify ,(lambda (_button &rest _)
-							   (acp-tool-call-widget--view-content
-							    (widget-get widget :value)))))))
-	(widget-put widget :children (list view-button))))))
+    (insert (propertize (acp-tool-call-widget--status-label status) 'face face))))
 
 (defun acp-tool-call-widget--face (tool-call)
   "Return the appropriate face for TOOL-CALL based on its status."
@@ -103,10 +94,10 @@
                    (unless (string-empty-p s) s))))
     (cond
      ((and verb target) (format "%s %s" verb target))
-     (title             title)         
+     (title             title)
      (verb              (format "%s..." verb))
      (target            (format "Working on %s" target))
-     (t                 (or title "unknown")))))
+     (t                 "unknown"))))
 
 (defun acp-tool-call-widget--status-label (status)
   (concat " "
@@ -119,36 +110,6 @@
           " "))
 
 ;; ─────────────────────────────────────────────────────────────
-
-
-(defun acp-tool-call-widget--has-content-p (tool-call)
-  "Return non-nil if TOOL-CALL has any `acp-tool-call-content' items."
-  (cl-some (lambda (item) (cl-typep item 'acp-tool-call-content))
-           (acp-tool-call-content tool-call)))
-
-(defun acp-tool-call-widget--view-content (tool-call)
-  "Open a buffer showing only `acp-tool-call-content' items of TOOL-CALL."
-  (let* ((items (seq-filter
-                 (lambda (item) (cl-typep item 'acp-tool-call-content))
-                 (acp-tool-call-content tool-call)))
-         (buf (get-buffer-create "*acp-tool-call-content*")))
-    (with-current-buffer buf
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (dolist (item items)
-          (insert (format "Type: %s\n" (acp-tool-call-content-type item)))
-          (when-let ((text (acp-tool-call-content-text item)))
-            (insert (format "Text:\n%s\n" text)))
-          (when-let ((mime (acp-tool-call-content-mime-type item)))
-            (insert (format "MIME: %s\n" mime)))
-          (when-let ((uri (acp-tool-call-content-uri item)))
-            (insert (format "URI: %s\n" uri)))
-          (when-let ((resource (acp-tool-call-content-resource item)))
-            (insert (format "Resource: %s\n" (prin1-to-string resource))))
-          (insert "\n")))
-      (goto-char (point-min))
-      (special-mode))
-    (pop-to-buffer buf)))
 
 
 ;; ── Merge helper (used by acp.el callback) ──────────────────────────────────

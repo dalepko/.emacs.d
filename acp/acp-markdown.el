@@ -161,14 +161,14 @@
              (concat
               (acp-markdown--add-face (substring text 0 (- (length text) 1)) 'acp-markdown-code-block-face)
               "\n")
-           (acp-markdown--add-face text  'acp-markdown-code-block-face))))
+           (acp-markdown--add-face text 'acp-markdown-code-block-face))))
       ("fenced_code_block"
        (let* ((content-node (treesit-search-subtree node "code_fence_content"))
               (text (if content-node (acp-markdown--extract-code-block content-node) "\n"))
               (lang-node (treesit-search-subtree node "language")))
          (when lang-node
            (setq text (acp-markdown--fontify (treesit-node-text lang-node) text)))
-         (propertize (acp-markdown--add-face text 'acp-markdown-code-block-face))))
+         (acp-markdown--add-face text 'acp-markdown-code-block-face)))
       ("fenced_code_block_delimiter" "")
       ("info_string" "")
       ("code_fence_content" "")

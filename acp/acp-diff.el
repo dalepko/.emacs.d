@@ -36,9 +36,13 @@ Returns the unified diff string produced by `diff-no-select'."
         (insert-file-contents base-file)
       (file-missing (setq base-file "/dev/null")))
 
-    (if (search-forward old-text nil t)
-        (replace-match new-text t t)
-      (error "acp-diff: old-text not found in %s" base-file))
+    (cond
+     ((null old-text)
+      (goto-char (point-max))
+      (insert new-text))
+     ((search-forward old-text nil t)
+      (replace-match new-text t t))
+     (t (error "acp-diff: old-text not found in %s" base-file)))
 
     (let ((target-file (make-temp-file (file-name-nondirectory base-file) nil nil (buffer-string))))
       (unwind-protect

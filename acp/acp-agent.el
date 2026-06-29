@@ -246,7 +246,7 @@ Returns non-nil if accepted.  Call only after :on-ready fires."
   (let ((id (plist-get msg :id))
         (method (plist-get msg :method))
         (result (plist-get msg :result))
-        (error (plist-get msg :error))
+        (error-message (plist-get msg :error))
         (params (plist-get msg :params)))
     (cond
      ;; Response to our request — dispatch by method
@@ -255,7 +255,7 @@ Returns non-nil if accepted.  Call only after :on-ready fires."
         (when entry
           (setf (acp-agent-pending agent)
                 (assq-delete-all id (acp-agent-pending agent)))
-          (acp-agent--on-response agent (cdr entry) result error))))
+          (acp-agent--on-response agent (cdr entry) result error-message))))
      ;; Notification from agent
      ((and method (not id))
       (acp-agent--on-notification agent method params))
