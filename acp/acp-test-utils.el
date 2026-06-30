@@ -22,5 +22,14 @@ The temporary file is guaranteed to be deleted when BODY finishes."
                   (cons (substring-no-properties str start end) plist)))
               (object-intervals str)))))
 
+(defun create-tool-call (kind status &rest plist)
+  "Create an `acp-tool-call' for testing.
+KIND and STATUS are required.  PLIST supplies remaining fields;
+:title defaults to \"Test KIND\" if not given."
+  (apply #'acp-tool-call--create
+         :id "t1" :kind kind :status status
+         (plist-put (copy-sequence plist) :title
+                    (or (plist-get plist :title) (format "Test %s" kind)))))
+
 (provide 'acp-test-utils)
 ;;; acp-test-utils.el ends here

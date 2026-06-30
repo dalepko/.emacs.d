@@ -13,6 +13,17 @@
   "Directory containing this test file.")
 
 
+;; ── Utilities ──────────────────────────────────────────────────────────────
+
+(defun acp-frame-test--extract-title (overlays)
+  "Extract the frame title from the start overlay in OVERLAYS."
+  (seq-some (lambda (ov)
+              (when-let* ((s (overlay-get ov 'before-string))
+                          (plain (substring-no-properties s))
+                          (_ (string-match "╔══ \\(.*?\\) +══╗" plain)))
+                (match-string 1 plain)))
+            overlays))
+
 ;; ── Tests ───────────────────────────────────────────────────────────────────
 
 (defvar sample-kind-other-with-command
@@ -20,9 +31,7 @@
    :session-id "ses_120e484b3ffeNGhdr35ZYNVjmu"
    :request-id 0
    :tool-call
-   (acp-tool-call--create
-    :id "call_00_o4lgcMuEI1rVaKGeSJ4K7020"
-    :status "pending"
+   (create-tool-call "other" "pending"
     :title "external_directory"
     :raw-input
     (list :command
@@ -33,7 +42,6 @@
           '("C:\\Users\\david\\AppData\\Local\\Temp")
           :patterns
           '("C:\\Users\\david\\AppData\\Local\\Temp\\*"))
-    :kind "other"
     :locations '((:path "C:\\Users\\david\\AppData\\Local\\Temp")))
    :options
    '((:optionId "once" :kind "allow_once" :name "Allow once")
@@ -44,10 +52,11 @@
 (ert-deftest acp-permission-widget-kind-other-with-command ()
   "When rawInput has :filepath instead of :description, show filepath."
   (with-temp-buffer
-    (widget-create 'acp-permission-widget :value sample-kind-other-with-command)
-    (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                   "\
-┌── Permission request: external_directory  ┐
+    (let ((w (widget-create 'acp-permission-widget :value sample-kind-other-with-command)))
+      (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
+                     "Permission request: external_directory"))
+      (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                     "\
 
 Write temp elisp file
 
@@ -55,9 +64,8 @@ Set-Content -Path \"$env:TEMP\\check-magit.el\" -Value ...
 
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
 
-└ ┘
 "
-))))
+)))))
 
 ;; ── Filepath-style rawInput ────────────────────────────────────────────────
 
@@ -66,14 +74,11 @@ Set-Content -Path \"$env:TEMP\\check-magit.el\" -Value ...
    :session-id "ses_11ae4d0c8ffes826f1dLMwPJTY"
    :request-id 0
    :tool-call
-   (acp-tool-call--create
-    :id "call_00_A4Qu4V0GHCRyqRSGrV4r5363"
-    :status "pending"
+   (create-tool-call "other" "pending"
     :title "external_directory"
     :raw-input
     (list :filepath "C:\\Windows\\acp-test-file.txt"
           :parentDir "C:\\Windows")
-    :kind "other"
     :locations '((:path "C:\\Windows\\acp-test-file.txt")
                  (:path "C:\\Windows")))
    :options
@@ -85,17 +90,17 @@ Set-Content -Path \"$env:TEMP\\check-magit.el\" -Value ...
 (ert-deftest acp-permission-widget-kind-other-with-filepath ()
   "When rawInput has :filepath instead of :description, show filepath."
   (with-temp-buffer
-    (widget-create 'acp-permission-widget :value sample-kind-other-with-filepath)
-    (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                   "\
-┌── Permission request: external_directory  ┐
+    (let ((w (widget-create 'acp-permission-widget :value sample-kind-other-with-filepath)))
+      (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
+                     "Permission request: external_directory"))
+      (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                     "\
 
 Write file: C:\\Windows\\acp-test-file.txt
 
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
 
-└ ┘
-"))))
+")))))
 
 ;; ── Edit-kind permission ─────────────────────────────────────────────────────
 
@@ -107,11 +112,8 @@ Write file: C:\\Windows\\acp-test-file.txt
             :session-id "ses_test_edit_kind"
             :request-id 2
             :tool-call
-            (acp-tool-call--create
-             :id "call_edit_001"
-             :status "pending"
+            (create-tool-call "edit" "pending"
              :title "edit_file"
-             :kind "edit"
              :content
              (list (acp-tool-call-diff--create
                     :path tmp-file
@@ -122,9 +124,10 @@ Write file: C:\\Windows\\acp-test-file.txt
               (:optionId "always" :kind "allow_always" :name "Always allow")
               (:optionId "reject" :kind "reject_once" :name "Reject")))))
       (with-temp-buffer
-        (widget-create 'acp-permission-widget :value edit-request)
-        (should (equal (buffer-substring-no-properties (point-min) (point-max)) (format "\
-┌── Permission request: edit_file  ┐
+        (let ((w (widget-create 'acp-permission-widget :value edit-request)))
+          (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
+                         "Permission request: edit_file"))
+          (should (equal (buffer-substring-no-properties (point-min) (point-max)) (format "\
 
 Edit file: %s
 
@@ -134,8 +137,7 @@ Edit file: %s
 
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
 
-└ ┘
-" tmp-file)))))))
+" tmp-file))))))))
       
 ;; ── Edit-kind with raw-input diff ────────────────────────────────────────────
 
@@ -155,11 +157,8 @@ Index: test-file.el
           :session-id "ses_test_raw_edit"
           :request-id 3
           :tool-call
-         (acp-tool-call--create
-          :id "call_raw_edit_001"
-          :status "pending"
+         (create-tool-call "edit" "pending"
           :title "edit_file"
-          :kind "edit"
           :raw-input
           (list :filepath "test-file.el"
                 :diff sample-diff))
@@ -168,9 +167,10 @@ Index: test-file.el
            (:optionId "always" :kind "allow_always" :name "Always allow")
            (:optionId "reject" :kind "reject_once" :name "Reject")))))
     (with-temp-buffer
-      (widget-create 'acp-permission-widget :value edit-request)
-      (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
-┌── Permission request: edit_file  ┐
+      (let ((w (widget-create 'acp-permission-widget :value edit-request)))
+        (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
+                       "Permission request: edit_file"))
+        (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
 
 Edit file: test-file.el
 
@@ -180,21 +180,18 @@ Edit file: test-file.el
 
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
 
-└ ┘
-")))))
+"))))))
 
 ;; ── Execute-kind permission ──────────────────────────────────────────────────
 
+;; opencode format: title is short, no content
 (defvar sample-kind-execute
   (acp-permission-request--create
    :session-id "ses_test_execute"
    :request-id 5
    :tool-call
-   (acp-tool-call--create
-    :id "call_execute_001"
-    :status "pending"
+   (create-tool-call "execute" "pending"
     :title "execute"
-    :kind "execute"
     :raw-input
     (list :command "emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1"
           :timeout 30000
@@ -207,9 +204,10 @@ Edit file: test-file.el
 (ert-deftest acp-permission-widget-kind-execute ()
   "When kind is execute, show command with Execute command: label."
   (with-temp-buffer
-    (widget-create 'acp-permission-widget :value sample-kind-execute)
-    (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
-┌── Permission request: execute  ┐
+    (let ((w (widget-create 'acp-permission-widget :value sample-kind-execute)))
+      (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
+                     "Permission request: execute"))
+      (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
 
 Execute command:
 
@@ -217,8 +215,43 @@ emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
 
 [ Allow (y) ]  [ Always Allow (!) ]  [ Reject (n) ]
 
-└ ┘
-"))))
+")))))
+
+;; claude-code format: title is full command, content has description
+(defvar sample-kind-execute-claude-code
+  (acp-permission-request--create
+   :session-id "321c03af-1e53-4c18-a999-d15b061438ff"
+   :request-id 8
+   :tool-call
+   (create-tool-call "execute" "pending"
+    :title "emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1"
+    :content
+    (list (acp-tool-call-content--create
+           :type "text"
+           :text "Run permission widget tests"))
+    :raw-input
+    (list :command "emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1"
+          :description "Run permission widget tests"))
+   :options
+   '((:optionId "allow_always" :kind "allow_always" :name "Always Allow")
+     (:optionId "allow" :kind "allow_once" :name "Allow")
+     (:optionId "reject" :kind "reject_once" :name "Reject"))))
+
+(ert-deftest acp-permission-widget-kind-execute-claude-code ()
+  "Claude-code format: frame title uses content description, not the full command."
+  (with-temp-buffer
+    (let ((w (widget-create 'acp-permission-widget :value sample-kind-execute-claude-code)))
+      (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
+                     "Permission request: Run permission widget tests"))
+      (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
+
+Execute command:
+
+emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
+
+[ Always Allow (!) ]  [ Allow (y) ]  [ Reject (n) ]
+
+")))))
 
 ;; ── Edit-kind with nil oldText (new file creation) ──────────────────────────
 
@@ -229,11 +262,8 @@ emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
           :session-id "ses_test_new_file"
           :request-id 4
           :tool-call
-          (acp-tool-call--create
-           :id "call_new_file_001"
-           :status "pending"
+          (create-tool-call "edit" "pending"
            :title "create_file"
-           :kind "edit"
            :content
            (list (acp-tool-call-diff--create
                   :path "/tmp/new-file.txt"
@@ -244,9 +274,10 @@ emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
             (:optionId "always" :kind "allow_always" :name "Always allow")
             (:optionId "reject" :kind "reject_once" :name "Reject")))))
     (with-temp-buffer
-      (widget-create 'acp-permission-widget :value edit-request)
-      (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
-┌── Permission request: create_file  ┐
+      (let ((w (widget-create 'acp-permission-widget :value edit-request)))
+        (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
+                       "Permission request: create_file"))
+        (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
 
 Edit file: /tmp/new-file.txt
 
@@ -255,8 +286,7 @@ Edit file: /tmp/new-file.txt
 
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
 
-└ ┘
-")))))
+"))))))
 
 ;; ── Interactive test utility ─────────────────────────────────────────────────
 
@@ -276,11 +306,8 @@ Edit file: /tmp/new-file.txt
                     :session-id "ses_12testdiff123"
                     :request-id 1
                     :tool-call
-                    (acp-tool-call--create
-                     :id "call_00_test_diff_edit"
-                     :status "pending"
+                    (create-tool-call "edit" "pending"
                      :title "edit_file"
-                     :kind "edit"
                      :content
                      (list (acp-tool-call-diff--create
                             :path diff-file

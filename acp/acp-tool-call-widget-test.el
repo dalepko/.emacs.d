@@ -7,12 +7,6 @@
 
 ;; ── Helpers ─────────────────────────────────────────────────────────────────
 
-(defun tcw--make (kind status &rest plist)
-  (apply #'acp-tool-call--create
-         :id "t1" :kind kind :status status
-         (plist-put (copy-sequence plist) :title
-                    (or (plist-get plist :title) (format "Test %s" kind)))))
-
 (defun tcw--render (tool-call)
   (let ((text (with-temp-buffer
                (cl-letf (((symbol-function 'acp-icon-get)
@@ -30,74 +24,84 @@
 
 (ert-deftest acp-tool-call-widget--label-think ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "think" "pending" :title "Explore the codebase"))
+                  (create-tool-call "think" "pending" :title "Explore the codebase"))
                  "Explore the codebase")))
 
 (ert-deftest acp-tool-call-widget--label-read ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "read" "pending" :title "Read acp.el"
+                  (create-tool-call "read" "pending" :title "Read acp.el"
                              :locations '((:path "acp.el"))))
                  "Reading acp.el")))
 
 (ert-deftest acp-tool-call-widget--label-edit ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "edit" "pending" :title "Refactor function"
+                  (create-tool-call "edit" "pending" :title "Refactor function"
                              :locations '((:path "src/main.go"))))
                  "Editing main.go")))
 
 (ert-deftest acp-tool-call-widget--label-delete ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "delete" "pending" :title "Delete temp file"
+                  (create-tool-call "delete" "pending" :title "Delete temp file"
                              :locations '((:path "tmp/old.txt"))))
                  "Deleting old.txt")))
 
 (ert-deftest acp-tool-call-widget--label-move ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "move" "pending" :title "Move file"
+                  (create-tool-call "move" "pending" :title "Move file"
                              :locations '((:path "src/a.go"))))
                  "Moving a.go")))
 
 (ert-deftest acp-tool-call-widget--label-search ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "search" "pending" :title "Search function defs"))
+                  (create-tool-call "search" "pending" :title "Search function defs"))
                  "Search function defs")))
 
 (ert-deftest acp-tool-call-widget--label-execute ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "execute" "pending" :title "npm test"))
+                  (create-tool-call "execute" "pending" :title "npm test"))
                  "npm test")))
+
+(ert-deftest acp-tool-call-widget--label-execute-claude-code ()
+  "Claude-code format: label uses content text description, not the full command title."
+  (should (equal (acp-tool-call-widget--label
+                  (create-tool-call "execute" "pending"
+                             :title "emacs --batch -L acp -l acp-test -f ert-run-tests-batch 2>&1"
+                             :content (list (acp-tool-call-content--create
+                                            :type "text"
+                                            :text "Run permission widget tests"))))
+                 "Run permission widget tests")))
 
 (ert-deftest acp-tool-call-widget--label-fetch ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "fetch" "pending" :title "Fetch weather API"))
+                  (create-tool-call "fetch" "pending" :title "Fetch weather API"))
                  "Fetch weather API")))
 
 (ert-deftest acp-tool-call-widget--label-empty-title ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "read" "pending" :title ""
+                  (create-tool-call "read" "pending" :title ""
                              :locations '((:path "acp.el"))))
                  "Reading acp.el")))
 
 (ert-deftest acp-tool-call-widget--label-empty-title-no-locations ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "other" "pending" :title ""))
+                  (create-tool-call "other" "pending" :title ""))
                  "unknown")))
 
 (ert-deftest acp-tool-call-widget--label-raw-input-pattern ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "read" "pending" :title "" :raw-input '(:pattern "*.el")))
+                  (create-tool-call "read" "pending" :title "" :raw-input '(:pattern "*.el")))
                  "Reading *.el")))
 
 (ert-deftest acp-tool-call-widget--label-locations-over-pattern ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "read" "pending" :title "Read acp.el"
+                  (create-tool-call "read" "pending" :title "Read acp.el"
                              :locations '((:path "acp.el"))
                              :raw-input '(:pattern "*.el")))
                  "Reading acp.el")))
 
 (ert-deftest acp-tool-call-widget--label-other ()
   (should (equal (acp-tool-call-widget--label
-                  (tcw--make "other" "pending"))
+                  (create-tool-call "other" "pending"))
                  "Test other")))
 
 ;; ── Status-label tests (one per status) ─────────────────────────────────────
@@ -117,28 +121,28 @@
 ;; ── Widget rendering tests (status faces via intervals) ─────────────────────
 
 (ert-deftest acp-tool-call-widget-status-pending-face ()
-  (let* ((tc (tcw--make "read" "pending" :title "Read acp.el"
+  (let* ((tc (create-tool-call "read" "pending" :title "Read acp.el"
                           :locations '((:path "acp.el"))))
          (ivals (tcw--render tc)))
     (should (equal (nth (- (length ivals) 2) ivals)
                    '(" waiting " face acp-tool-call-widget-status-pending-face)))))
 
 (ert-deftest acp-tool-call-widget-status-in-progress-face ()
-  (let* ((tc (tcw--make "read" "in_progress" :title "Read acp.el"
+  (let* ((tc (create-tool-call "read" "in_progress" :title "Read acp.el"
                           :locations '((:path "acp.el"))))
          (ivals (tcw--render tc)))
     (should (equal (nth (- (length ivals) 2) ivals)
                    '(" running " face acp-tool-call-widget-status-in-progress-face)))))
 
 (ert-deftest acp-tool-call-widget-status-completed-face ()
-  (let* ((tc (tcw--make "read" "completed" :title "Read acp.el"
+  (let* ((tc (create-tool-call "read" "completed" :title "Read acp.el"
                           :locations '((:path "acp.el"))))
          (ivals (tcw--render tc)))
     (should (equal (nth (- (length ivals) 2) ivals)
                    '(" completed " face acp-tool-call-widget-status-completed-face)))))
 
 (ert-deftest acp-tool-call-widget-status-failed-face ()
-  (let* ((tc (tcw--make "read" "failed" :title "Read acp.el"
+  (let* ((tc (create-tool-call "read" "failed" :title "Read acp.el"
                           :locations '((:path "acp.el"))))
          (ivals (tcw--render tc)))
     (should (equal (nth (- (length ivals) 2) ivals)

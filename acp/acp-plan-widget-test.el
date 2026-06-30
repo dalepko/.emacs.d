@@ -32,22 +32,17 @@
     (widget-create 'acp-plan-widget :value acp-plan-widget-test--sample-entries)
     (should (equal (buffer-substring-no-properties (point-min) (point-max))
                    "\
-┌── Plan  ┐
 [ ] Analyze the existing codebase structure (high)
 [ ] Identify components that need refactoring (high)
 [X] Create unit tests for critical functions (medium)
 [ ] Update documentation (low)
-└ ┘
 "))))
 
 (ert-deftest acp-plan-widget-empty-entries ()
   (with-temp-buffer
     (widget-create 'acp-plan-widget :value nil)
     (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                                      "\
-┌── Plan  ┐
-└ ┘
-"))))
+                   ""))))
 
 ;; ── Interactive test ─────────────────────────────────────────────────────────
 
