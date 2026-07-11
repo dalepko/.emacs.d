@@ -1,6 +1,5 @@
 ;;; -*- lexical-binding: t -*-
 (require 'eldoc-box)
-(require 'company)
 (require 'realgud)
 (require 'python)
 (require 'which-func)
@@ -153,8 +152,7 @@
   (ruff-format-imports-on-save-mode t)
   (ruff-format-on-save-mode)
   ;;(format-all-mode t)
-  (eglot-ensure)
-  (company-mode t))
+  (eglot-ensure))
 
 
 (defun pyenv ()

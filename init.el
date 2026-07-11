@@ -4,34 +4,6 @@
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024))
 
-(defun get-file-contents (filename)
-  "Read a file and return foo-file as a string."
-  (with-temp-buffer
-    (insert-file-contents filename)
-    (buffer-string)))
-
-
-
-(defun activate-venv ()
-  (interactive)
-  (let* ((venv-root (locate-dominating-file "." ".venv"))
-         (pyenv-root (locate-dominating-file "." ".python-version"))
-         (old-venv (getenv "VIRTUAL_ENV"))
-         (new-venv (cond
-                    (venv-root (concat venv-root ".venv"))
-                    (pyenv-root (let* ((pyenv-version-file (concat pyenv-root ".python-version"))
-                                       (target-pyenv (string-trim (get-file-contents pyenv-version-file))))
-                                  (require 'pyenv-mode)
-                                  (pyenv-mode-full-path target-pyenv)))))
-         (new-venv (and new-venv (expand-file-name new-venv))))
-    (when (and new-venv (not (equal new-venv old-venv)))
-      (if (and old-venv (equal (car exec-path) (concat old-venv "/bin")))
-          (setq exec-path (cdr exec-path)))
-      (setenv "VIRTUAL_ENV" new-venv)
-      (setq exec-path (cons (concat new-venv "/bin") exec-path))
-      (setenv "PATH" (mapconcat 'identity exec-path ":")))))
-
-
 ;;--[binds]------------------------------------------------------
 
 (global-set-key (kbd "M-<up>") (lambda () (interactive) (scroll-other-window -1)))
@@ -63,14 +35,57 @@
   :config
   (sml/setup))
 
+(use-package corfu
+  :ensure t
+  :init (global-corfu-mode)
+  :custom
+  (corfu-auto t)
+  (corfu-auto-delay 0.1)
+  (corfu-auto-prefix 1)
+  (corfu-quit-at-boundary 'separtor)
+  (corfu-quit-no-match 'separator))
+
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-default nil)
+  (orderless-component-separtor "[ -/]"))
 
 ;;--[python-mode]------------------------------------------------------
 
 (autoload 'my-python-setup "~/.emacs.d/python-setup.el")
-(add-hook 'python-mode-hook #'my-python-setup)
+(add-hook 'python-mode-hok #'my-python-setup)
 (add-hook 'python-ts-mode-hook #'my-python-setup)
 (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
 (add-hook 'fish-mode-hook (lambda () (setq tab-width 4)))
+
+(defun get-file-contents (filename)
+  "Read a file and return foo-file as a string."
+  (with-temp-buffer
+    (insert-file-contents filename)
+    (buffer-string)))
+
+
+
+(defun activate-venv ()
+  (interactive)
+  (let* ((venv-root (locate-dominating-file "." ".venv"))
+         (pyenv-root (locate-dominating-file "." ".python-version"))
+         (old-venv (getenv "VIRTUAL_ENV"))
+         (new-venv (cond
+                    (venv-root (concat venv-root ".venv"))
+                    (pyenv-root (let* ((pyenv-version-file (concat pyenv-root ".python-version"))
+                                       (target-pyenv (string-trim (get-file-contents pyenv-version-file))))
+                                  (require 'pyenv-mode)
+                                  (pyenv-mode-full-path target-pyenv)))))
+         (new-venv (and new-venv (expand-file-name new-venv))))
+    (when (and new-venv (not (equal new-venv old-venv)))
+      (if (and old-venv (equal (car exec-path) (concat old-venv "/bin")))
+          (setq exec-path (cdr exec-path)))
+      (setenv "VIRTUAL_ENV" new-venv)
+      (setq exec-path (cons (concat new-venv "/bin") exec-path))
+      (setenv "PATH" (mapconcat 'identity exec-path ":")))))
 
 ;;--[web-mode]----------------------------------------------------------
 
@@ -79,7 +94,6 @@
 
 (add-hook 'web-mode-hook
           (lambda ()
-            (company-mode)
             (flycheck-mode)))
 
 (with-eval-after-load 'flycheck
@@ -128,13 +142,6 @@
 ;;--[haskell-mode configuration]------------------------------------------
 
 (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
-(add-hook 'haskell-mode-hook
-          (lambda ()
-            (require 'company)
-            (set (make-local-variable 'company-backends)
-                 (append '((company-capf company-dabbrev-code))
-                         company-backends))
-            (company-mode)))
 
 (add-hook 'interactive-haskell-mode-hook
           (lambda ()
@@ -252,10 +259,6 @@
   [0 0 0 0 0 0 0 0 0 0 0 0 0 128 192 224 240 248]
   nil nil 'center)
 
-;;--[company-box]------------------------------------------
-
-(add-hook 'company-mode-hook 'company-box-mode) ;
-
 ;;--[emacs-mac]--------------------------------------------
 
 (when (string-equal system-type "darwin")
@@ -269,8 +272,8 @@
 ;;--[rich-minority]----------------------------------------------
 
 (setq rm-regex-list '(" AC" " Ind" " MRev" " Interactive" " $" " Black"
-                      " ARev" " company" " tide" " ElDoc" " Guide" " Projectile"
-                      " WK" " yas" " import" " Isort" " company-box"
+                      " ARev" " tide" " ElDoc" " Guide" " Projectile"
+                      " WK" " yas" " import" " Isort"
                       " GitGutter" " Projectile\\[[^]]*\\]" " FmtAll" " RuffFmtImports" " RuffFmt"))
 (setq rm-blacklist (mapconcat 'identity rm-regex-list "\\|"))
 
@@ -361,7 +364,6 @@
 ;;--[terraform]--------------------------------------------
 
 (add-hook 'terraform-mode-hook #'terraform-format-on-save-mode)
-(add-hook 'terraform-mode-hook #'company-terraform-init)
 
 ;;--[treesitter-sources]------------------------------------
 

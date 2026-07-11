@@ -60,7 +60,6 @@
 
 (defvar-keymap gitlab-duo-mode-map
   "RET" #'gitlab-duo-send-input
-  "TAB" #'company-complete
   "C-b" #'send-diff
   "C-a" #'comint-bol)
 

@@ -3,6 +3,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(agent-shell-session-strategy 'latest)
  '(ansi-color-names-vector
    ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
  '(auto-save-visited-mode t)
@@ -12,12 +13,6 @@
  '(backup-directory-alist '((".*" . "~/.emacs.d/backup")))
  '(before-save-hook '(delete-trailing-whitespace))
  '(clean-buffer-list-delay-general 1)
- '(company-backends
-   '(company-bbdb company-semantic company-cmake company-capf company-clang company-files
-                  (company-dabbrev-code company-gtags company-etags company-keywords)
-                  company-oddmuse company-dabbrev))
- '(company-box-doc-delay 0.1)
- '(company-idle-delay 0.1)
  '(css-indent-offset 2)
  '(custom-enabled-themes '(gruvbox-dark-medium))
  '(custom-safe-themes
@@ -95,7 +90,6 @@
  '(format-all-show-errors 'never)
  '(frame-resize-pixelwise t)
  '(git-gutter:update-interval 1)
- '(global-company-mode t)
  '(global-diff-hl-mode t)
  '(global-git-gutter-mode t)
  '(groovy-indent-offset 2)
@@ -140,16 +134,16 @@
  '(ns-≥right-alternate-modifier 'none)
  '(overseer-command "~/.cask/bin/cask exec ert-runner")
  '(package-archives
-   '(("melpa" . "https://melpa.org/packages/") ("gnu" . "http://elpa.gnu.org/packages/")
-     ("localelpa" . "~/.emacs.d/localelpa-packages/")))
+   '(("melpa" . "https://melpa.org/packages/") ("gnu" . "http://elpa.gnu.org/packages/")))
  '(package-selected-packages
-   '(0x0 agent-shell ansible ansible-vault base16-theme company-ansible company-box company-terraform
-         dockerfile-mode eldoc-box eslint-fix fish-mode flycheck flycheck-eglot font-lock-studio
-         format-all git git-gutter-fringe gruvbox-theme haskell-mode helm-flycheck helm-projectile
-         helm-xref helpful kaolin-themes magit magit-popup markdown-preview-mode multiple-cursors
-         nodejs-repl orgtbl-join phi-search po-mode projectile pyenv-mode realgud realgud-pdbpp
-         rich-minority rust-mode shell-pop smart-mode-line vdiff virtualenvwrapper web-beautify
-         web-mode which-key yaml-mode yasnippet zig-mode))
+   '(0x0 agent-shell ansible ansible-vault base16-theme corfu dockerfile-mode eldoc-box eslint-fix
+         fish-mode flycheck-eglot format-all frame-local git git-gutter-fringe gruvbox-theme
+         haskell-mode helm-flycheck helm-projectile helm-xref helpful kaolin-themes magit
+         magit-popup markdown-preview-mode multiple-cursors orderless orgtbl-join phi-search po-mode
+         pyenv-mode realgud rust-mode shell-pop smart-mode-line terraform-mode virtualenvwrapper vui
+         wasp-mode web-beautify web-mode yaml-mode yasnippet zig-mode))
+ '(package-vc-selected-packages
+   '((claude-code-ide :url "https://github.com/manzaltu/claude-code-ide.el")))
  '(paradox-execute-asynchronously t)
  '(paradox-github-token t)
  '(projectile-enable-caching t)
