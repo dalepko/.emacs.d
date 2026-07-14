@@ -1,9 +1,8 @@
-;; -*- lexical-binding: t -*-
+;;; hspec.el --- Run Haskell HSpec tests from Emacs -*- lexical-binding: t -*-
 
 (require 'ansi-color)
 
-
-(setq hspec-last-test-file nil)
+(defvar hspec-last-test-file nil)
 
 (defun hspec-set-buffer (buffer arg)
   (let ((ansi-color-context nil))
@@ -29,6 +28,7 @@
                 (haskell-utils-async-stop-watching-changes init-buffer)))))
 
 
+;;;###autoload
 (defun hspec-process-load-file (file &optional cont)
   "Load the current buffer file."
   (interactive)
@@ -73,6 +73,7 @@ for various things, but is optional."
                      cont)))))))
 
 
+;;;###autoload
 (defun hspec-run-file (test-file)
   (interactive)
   (let ((init-buffer (current-buffer))
@@ -93,6 +94,7 @@ for various things, but is optional."
                                       (haskell-process-response process)))))))
 
 
+;;;###autoload
 (defun hspec-rerun ()
   (interactive)
   (if hspec-last-test-file
@@ -100,8 +102,12 @@ for various things, but is optional."
     (hspec-run)))
 
 
+;;;###autoload
 (defun hspec-run ()
   (interactive)
   (let ((file (buffer-file-name (current-buffer))))
     (setq hspec-last-test-file file)
     (hspec-run-file file)))
+
+(provide 'hspec)
+;;; hspec.el ends here

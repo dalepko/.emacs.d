@@ -1,128 +1,194 @@
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file)
+;; Force UTF-8 as the default coding system
+(set-language-environment "UTF-8")
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+(setq-default buffer-file-coding-system 'utf-8-unix)
 
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024))
 
-;;--[binds]------------------------------------------------------
-
-(global-set-key (kbd "M-<up>") (lambda () (interactive) (scroll-other-window -1)))
-(global-set-key (kbd "M-<down>") (lambda () (interactive) (scroll-other-window 1)))
-(global-set-key [f12] #'magit-status)
-(global-set-key (kbd "M-h") #'eldoc)
-
-(global-set-key (kbd "<home>") #'move-beginning-of-line)
-(global-set-key (kbd "<end>") #'move-end-of-line)
-(global-set-key (kbd "ESC <left>") #'windmove-left)
-(global-set-key (kbd "ESC <right>") #'windmove-right)
-(global-set-key (kbd "ESC <up>") #'windmove-up)
-(global-set-key (kbd "ESC <down>") #'windmove-down)
-
-(global-set-key [M-left] #'windmove-left)
-(global-set-key [M-right] #'windmove-right)
-(global-set-key [M-up] #'windmove-up)
-(global-set-key [M-down] #'windmove-down)
-
-(global-set-key [(f9)] #'compile)
-(global-set-key [(f1)] #'helm-apropos)
-;; (global-set-key (kbd "C-s") 'helm-occur)
-
 (put 'erase-buffer 'disabled nil)
 (put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
+(put 'dired-find-alternate-file 'disabled nil)
 
+(global-set-key [f9] #'compile)
+(global-set-key [f1] #'helm-apropos)
+
+(use-package treesit
+  :init
+  (setq treesit-language-source-alist
+        '((bash "https://github.com/tree-sitter/tree-sitter-bash" "v0.23.1")
+          (javascript "https://github.com/tree-sitter/tree-sitter-javascript"
+                      "master"
+                      "src")
+          (json "https://github.com/tree-sitter/tree-sitter-json")
+          (markdown "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+                    "split_parser"
+                    "tree-sitter-markdown/src")
+          (markdown-inline "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+                           "split_parser"
+                           "tree-sitter-markdown-inline/src")
+          (python "https://github.com/tree-sitter/tree-sitter-python")
+          (rust "https://github.com/tree-sitter/tree-sitter-rust")
+          (toml "https://github.com/tree-sitter/tree-sitter-toml")
+          (tsx "https://github.com/tree-sitter/tree-sitter-typescript"
+               "master"
+               "tsx/src")
+          (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+                      "master"
+                      "typescript/src")
+          (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+  (setq major-mode-remap-alist
+        '((bash-mode . bash-ts-mode)
+          (js-mode . js-ts-mode)
+          (json-mode . json-ts-mode)
+          (markdown-mode . markdown-ts-mode)
+          (python-mode . python-ts-mode)
+          (rust-mode . rust-ts-mode)
+          (toml-mode . toml-ts-mode)
+          (typescript-mode . typescript-ts-mode)
+          (yaml-mode . yaml-ts-mode))))
+
+(use-package windmove
+  :config
+  (windmove-default-keybindings 'meta))
+
+(use-package magit
+  :ensure t
+  :bind (([f12] . #'magit-status)))
+
+(use-package diff-hl
+  :ensure t
+  :after magit
+  :config
+  (global-diff-hl-mode 1)
+  :custom
+  (diff-hl-draw-borders nil)
+  :custom-face
+  (diff-hl-change ((t (:background "steel blue" :foreground "blue3"))))
+  (diff-hl-delete ((t (:inherit magit-diff-removed-highlight))))
+  (diff-hl-insert ((t (:inherit magit-diff-added-highlight)))))
 
 (use-package smart-mode-line
+  :ensure t
   :config
   (sml/setup))
 
 (use-package corfu
   :ensure t
-  :init (global-corfu-mode)
-  :custom
-  (corfu-auto t)
-  (corfu-auto-delay 0.1)
-  (corfu-auto-prefix 1)
-  (corfu-quit-at-boundary 'separtor)
-  (corfu-quit-no-match 'separator))
+  :init
+  (global-corfu-mode)
+  :config
+  (setq corfu-auto t           ; Enable auto-completion
+        corfu-auto-delay 0.1   ; Super fast popup delay
+        corfu-auto-prefix 2))  ; Start completing after 2 characters
 
 (use-package orderless
   :ensure t
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-default nil)
-  (orderless-component-separtor "[ -/]"))
+  :config
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles basic partial-completion)))
+        orderless-component-separator " +\\|[-/]"))
 
-;;--[python-mode]------------------------------------------------------
-
-(autoload 'my-python-setup "~/.emacs.d/python-setup.el")
-(add-hook 'python-mode-hok #'my-python-setup)
-(add-hook 'python-ts-mode-hook #'my-python-setup)
-(add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
-(add-hook 'fish-mode-hook (lambda () (setq tab-width 4)))
-
-(defun get-file-contents (filename)
-  "Read a file and return foo-file as a string."
-  (with-temp-buffer
-    (insert-file-contents filename)
-    (buffer-string)))
-
-
-
-(defun activate-venv ()
-  (interactive)
-  (let* ((venv-root (locate-dominating-file "." ".venv"))
-         (pyenv-root (locate-dominating-file "." ".python-version"))
-         (old-venv (getenv "VIRTUAL_ENV"))
-         (new-venv (cond
-                    (venv-root (concat venv-root ".venv"))
-                    (pyenv-root (let* ((pyenv-version-file (concat pyenv-root ".python-version"))
-                                       (target-pyenv (string-trim (get-file-contents pyenv-version-file))))
-                                  (require 'pyenv-mode)
-                                  (pyenv-mode-full-path target-pyenv)))))
-         (new-venv (and new-venv (expand-file-name new-venv))))
-    (when (and new-venv (not (equal new-venv old-venv)))
-      (if (and old-venv (equal (car exec-path) (concat old-venv "/bin")))
-          (setq exec-path (cdr exec-path)))
-      (setenv "VIRTUAL_ENV" new-venv)
-      (setq exec-path (cons (concat new-venv "/bin") exec-path))
-      (setenv "PATH" (mapconcat 'identity exec-path ":")))))
-
-;;--[web-mode]----------------------------------------------------------
-
-
-(setq web-mode-engines-alist '(("django" . "\\.html\\'")))
-
-(add-hook 'web-mode-hook
-          (lambda ()
-            (flycheck-mode)))
-
-(with-eval-after-load 'flycheck
+(use-package flycheck
+  :ensure t
+  :bind (:map flycheck-mode-map ("C-c ! l" . helm-flycheck))
+  :hook ((web-mode . flycheck-mode)
+         (python-ts-mode . flycheck-mode)
+         (ansible-mode . flycheck-mode))
+  :config
   (flycheck-add-mode 'javascript-eslint 'web-mode)
-  (flycheck-add-mode 'javascript-eslint 'vue-web-mode))
+  (flycheck-add-mode 'javascript-eslint 'vue-web-mode)
+  (flycheck-define-checker flycheck-ansible-lint
+    "An Ansible playbook syntax checker using ansible-lint."
+    :command ("ansible-lint" "--profile=production" "--strict" "--nocolor" "--parseable" source-inplace)
+    :error-patterns
+    ((warning line-start (file-name) ":" line (optional ":" column) ": " (message) ". (warning)" line-end)
+     (error line-start (file-name) ":" line (optional ":" column) ": " (message) line-end))
+    :modes (yaml-ts-mode yaml-mode)))
 
+(use-package apheleia
+  :ensure t
+  :config
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist)
+        '(ruff-isort ruff))
+  (apheleia-global-mode +1))
 
-(setq web-mode-indentation-params
-  '(("lineup-args"       . ())
-    ("lineup-calls"      . ())
-    ("lineup-concats"    . t)
-    ("lineup-quotes"     . t)
-    ("lineup-ternary"    . t)
-    ("case-extra-offset" . t)
-    ))
+(use-package python
+  :bind (:map python-mode-map
+              ("RET" . newline-and-indent)))
 
-(define-derived-mode vue-web-mode web-mode "Vue Web" "Vue Mode"
-  ;; (eslint-fix-auto-mode)
-  (eglot-ensure)
-  (setq tab-width 2))
+(use-package pytest
+  :load-path "~/.emacs.d/lisp"
+  :after python
+  :commands (pytest pytest-again)
+  :bind (:map python-mode-map
+              ([shift f9] . pytest)
+              ([f9] . pytest-again)))
 
+(use-package python-venv
+  :load-path "~/.emacs.d/lisp"
+  :hook ((python-ts-mode . python-venv-setup)))
 
-(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.vue\\'" . vue-web-mode))
+(use-package realgud
+  :ensure t
+  :defer t
+  :bind (:map realgud-track-mode-map
+              ([M-right])
+              ([M-up])
+              ([M-down])
+              :map realgud:shortkey-mode-map
+              ([M-up])
+              ([M-down]))
+  :config
+  (defun realgud-fix-check-prompt (from to &optional cmd-mark opt-cmdbuf
+                                        shortkey-on-tracing? no-warn-if-no-match?)
+    (string-match (concat comint-prompt-regexp "$")
+                  (buffer-substring-no-properties from to)))
 
-(add-hook 'js-mode-hook (lambda ()
-                          (define-key js-mode-map "\M-." nil)
-                          (eglot-ensure)
-                          (setq tab-width 2)))
+  (advice-add #'realgud:track-from-region :before-while #'realgud-fix-check-prompt))
+
+(use-package fish-mode
+  :ensure t
+  :hook (fish-mode . (lambda () (setq tab-width 4))))
+
+(use-package typescript-ts-mode
+  :hook (typescript-ts-mode . (lambda () (setq-local tab-width 2))))
+
+(use-package js
+  :hook (js-ts-mode . (lambda () (setq-local tab-width 2))))
+
+(use-package web-mode
+  :ensure t
+  :mode (("\\.html?\\'" . web-mode)
+         ("\\.vue\\'" . vue-web-mode))
+  :custom
+  (web-mode-code-indent-offset 2)
+  (web-mode-css-indent-offset 2)
+  (web-mode-enable-auto-indentation nil)
+  (web-mode-enable-current-element-highlight t)
+  (web-mode-markup-indent-offset 2)
+  (web-mode-script-padding 0)
+  (web-mode-style-padding 0)
+  (web-mode-engines-alist '(("django" . "\\.html\\'")))
+  (web-mode-indentation-params
+   '(("lineup-args"       . ())
+     ("lineup-calls"      . ())
+     ("lineup-concats"    . t)
+     ("lineup-quotes"     . t)
+     ("lineup-ternary"    . t)
+     ("case-extra-offset" . t)))
+  :custom-face
+  (web-mode-function-call-face ((t nil)))
+  :config
+  (define-derived-mode vue-web-mode web-mode "Vue Web" "Vue Mode"
+    (setq tab-width 2)))
 
 ;;--[helm/projectile]----------------------------------------------------
 
@@ -141,147 +207,149 @@
 
 ;;--[haskell-mode configuration]------------------------------------------
 
-(add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+(use-package haskell-mode
+  :ensure t
+  :custom
+  (haskell-ask-also-kill-buffers nil)
+  (haskell-indentation-show-indentations nil)
+  (haskell-indentation-show-indentations-after-eol nil)
+  (haskell-stylish-on-save t)
+  (haskell-tags-on-save t)
+  :hook
+  (haskell-mode . interactive-haskell-mode)
+  (interactive-haskell-mode . (lambda ()
+                                (define-key interactive-haskell-mode-map (kbd "M-.") 'haskell-mode-goto-loc)
+                                (define-key interactive-haskell-mode-map (kbd "C-c C-t") 'haskell-mode-show-type-at))))
 
-(add-hook 'interactive-haskell-mode-hook
-          (lambda ()
-            (define-key interactive-haskell-mode-map (kbd "M-.") 'haskell-mode-goto-loc)
-            (define-key interactive-haskell-mode-map (kbd "C-c C-t") 'haskell-mode-show-type-at)
-            (define-key interactive-haskell-mode-map [(shift f9)] 'hspec-run)
-            (define-key interactive-haskell-mode-map [(f9)] 'hspec-rerun)))
+(use-package hspec
+  :load-path "~/.emacs.d/lisp"
+  :bind (:map interactive-haskell-mode-map
+              ("<S-f9>" . hspec-run)
+              ("<f9>" . hspec-rerun)))
 
-(autoload 'hspec-run "~/.emacs.d/hspec.el")
-(autoload 'hspec-rerun "~/.emacs.d/hspec.el")
+(use-package multiple-cursors
+  :ensure t
+  :bind (("C-S-c C-S-c" . mc/edit-lines)
+         ("C-*" . mc/mark-next-like-this)
+         ("C-ù" . mc/mark-previous-like-this)
+         ("C-c *" . mc/mark-all-like-this)
+         :map mc/keymap
+         ("<return>" . nil)))
 
-(add-hook 'interactive-haskell-mode-hook
-          (lambda ()
-            (define-key interactive-haskell-mode-map [(shift f9)] 'hspec-run)
-            (define-key interactive-haskell-mode-map [(f9)] 'hspec-rerun)))
+(use-package helpful
+  :ensure t
+  :bind (("C-h f" . helpful-callable)
+         ("C-h v" . helpful-variable)
+         ("C-h k" . helpful-key))
+  :custom
+  (helm-describe-function-function #'helpful-callable)
+  (helm-describe-variable-function #'helpful-variable))
 
-
-;;--[ert]--------------------------------------------------------------------
-
-(defvar last-ert-test nil)
-
-
-(defun rerun-ert ()
-  (interactive)
-  (save-buffer)
-  (load-file (buffer-file-name))
-  (ert last-ert-test))
-
-(defun run-ert (selector)
-  (interactive
-   (list (let ((default (if ert--selector-history
-                            ;; Can't use `first' here as this form is
-                            ;; not compiled, and `first' is not
-                            ;; defined without cl.
-                            (car ert--selector-history)
-                          "t")))
-           (read
-            (completing-read (if (null default)
-                                 "Run tests: "
-                               (format "Run tests (default %s): " default))
-                             obarray #'ert-test-boundp nil nil
-                             'ert--selector-history default nil)))
-         ))
-  (setq last-ert-test selector)
-  (rerun-ert))
-
-(define-key emacs-lisp-mode-map [(f9)] 'rerun-ert)
-(define-key emacs-lisp-mode-map [(shift f9)] 'run-ert)
-
-;;--[erlang]--------------------------------------------------------------
-
-(add-hook 'erlang-mode-hook #'my-erlang-setup)
-(defun my-erlang-setup ()
-  (auto-complete-mode))
-
-;;--[typescript-mode setup]-----------------------------------------------
-
-(defun setup-ts-mode ()
-  (interactive)
-  (eglot-ensure)
-  (make-local-variable 'eldoc-display-functions)
-  ;; (eslint-fix-auto-mode)
-  (setq tab-width 2)
-  (setq eldoc-display-functions '(eldoc-display-in-buffer)))
-
-(add-hook 'typescript-ts-mode-hook #'setup-ts-mode)
-
-(when (fboundp 'define-compilation-mode)
-  (define-compilation-mode jasmine-compilation-mode "Jasmine"
-    "Jasmine compilation mode."
-    (progn
-      (set (make-local-variable 'compilation-error-regexp-alist)
-           '(("(\\([^:)]*\\):\\([0-9]*\\):\\([0-9]*\\))" 1 2 3)))
-      (add-hook 'compilation-filter-hook
-                (lambda ()
-                  (toggle-read-only)
-                  (ansi-color-apply-on-region compilation-filter-start (point))
-                  (toggle-read-only))
-                nil t)
-      )))
-
-(put 'upcase-region 'disabled nil)
-
-(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
-
-(setenv "LANG" "fr_FR.UTF-8")
+(use-package rich-minority
+  :ensure t
+  :custom
+  (rm-blacklist (mapconcat 'identity
+                           '(" AC" " Ind" " MRev" " Interactive" " $" " Black"
+                             " ARev" " tide" " ElDoc" " Guide" " Projectile"
+                             " WK" " yas" " import" " Isort"
+                             " GitGutter" " Projectile\\[[^]]*\\]" " FmtAll" " Apheleia")
+                           "\\\\|"))
+  (rm-text-properties
+   '(("\\` Ovwrt\\'" 'face 'font-lock-warning-face)
+     ("\\` FlyC:" 'face 'font-lock-warning-face))))
 
 
-;;--[multiple cursor]--------------------------------------------
+(use-package eglot
+  :ensure nil
+  :custom
+  (eglot-ignored-server-capabilities
+   '(:documentFormattingProvider :documentRangeFormattingProvider :documentOnTypeFormattingProvider))
+  (eglot-stay-out-of '(flymake))
+  :config
+  (defun projet-root-for-node (orig-fun &rest args)
+    (locate-dominating-file default-directory "package.json"))
 
-(require 'multiple-cursors)
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-(global-set-key (kbd "C-*") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-ù") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c *") 'mc/mark-all-like-this)
-(define-key mc/keymap (kbd "<return>") nil)
+  (defun overload-projet-root-for-node (orig-fun modes &rest args)
+    (if (not (cl-some (lambda (x) (member x '(vue-web-mode typescript-ts-mode js-ts-mode))) modes))
+        (apply orig-fun modes args)
+      (advice-add 'project-root :around #'projet-root-for-node)
+      (apply orig-fun modes args)
+      (advice-remove 'project-root #'projet-root-for-node)))
 
+  (defun typescript-eglot-init-options (&rest _)
+    (let ((vue-typescript-plugin-path (shell-command-to-string "npm list -g --parseable @vue/typescript-plugin 2>nul")))
+      `(:plugins [(:name "@vue/typescript-plugin"
+                         :location ,(string-trim vue-typescript-plugin-path)
+                         :languages ["javascript", "typescript", "vue"])])))
 
-;;--[helpful]----------------------------------------------------
+  ;; disable this slow function
+  (cl-defun jsonrpc--log-event (connection origin
+                                           &key _kind message
+                                           foreign-message log-text json
+                                           type ((:id ref-id))
+                                           &allow-other-keys))
 
-(global-set-key (kbd "C-h f") #'helpful-callable)
-(global-set-key (kbd "C-h v") #'helpful-variable)
-(global-set-key (kbd "C-h k") #'helpful-key)
+  (add-to-list 'eglot-server-programs
+               `((vue-web-mode :language-id "vue") . ("typescript-language-server" "--stdio" :initializationOptions ,#'typescript-eglot-init-options)))
+  (add-to-list 'eglot-server-programs
+               `(((js-ts-mode js-mode) :language-id "javascript") . ("typescript-language-server" "--stdio" :initializationOptions ,#'typescript-eglot-init-options)))
+  (add-to-list 'eglot-server-programs
+               `((typescript-ts-mode :language-id "typescript") . ("typescript-language-server" "--stdio" :initializationOptions ,#'typescript-eglot-init-options)))
+  (add-to-list 'eglot-server-programs
+               '((rust-ts-mode rust-mode) .
+                 ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+  (add-to-list 'eglot-server-programs '(((python-ts-mode python-mode)) . ("ty" "server")))
 
-;;--[git-gutter-fringe]------------------------------------------
+  (advice-add 'eglot--connect :around #'overload-projet-root-for-node)
 
-(require 'git-gutter-fringe)
-(define-fringe-bitmap 'git-gutter-fr:added
-  [224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224]
-  nil nil 'center)
-(define-fringe-bitmap 'git-gutter-fr:modified
-  [224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224]
-  nil nil 'center)
-(define-fringe-bitmap 'git-gutter-fr:deleted
-  [0 0 0 0 0 0 0 0 0 0 0 0 0 128 192 224 240 248]
-  nil nil 'center)
+  :hook
+  ((js-ts-mode . eglot-ensure)
+   (tsx-ts-mode . eglot-ensure)
+   (vue-web-mode . eglot-ensure)
+   (rust-ts-mode . eglot-ensure)
+   (python-ts-mode . eglot-ensure)
+   (eglot-managed-mode . (lambda ()
+                           (if (member major-mode '(vue-web-mode js-ts-mode typescript-ts-mode rust-ts-mode))
+                               (progn
+                                 (flycheck-eglot-mode t)
+                                 (setq flycheck-checker 'eglot-check)))))))
 
-;;--[emacs-mac]--------------------------------------------
+(use-package rust-mode
+  :ensure t
+  :bind (:map rust-mode-map ([f9] . rust-test)))
 
-(when (string-equal system-type "darwin")
-  ; (toggle-frame-fullscreen))modifier
-  (setq mac-command-modifier 'super)
-  (setq mac-right-option-modifier 'ns-right-alternate-modifier)
-  (setq mac-option-modifier 'meta)
-  (global-set-key (kbd "s-v") #'yank)
-  (global-set-key (kbd "s-c") #'kill-ring-save))
+(use-package terraform-mode
+  :ensure t
+  :hook (terraform-mode . terraform-format-on-save-mode))
 
-;;--[rich-minority]----------------------------------------------
+(use-package eldoc
+  :bind ("M-h" . eldoc)
+  :custom
+  (eldoc-display-functions '(eldoc-display-in-buffer))
+  (eldoc-idle-delay 0.4)
+  :config
+  (global-eldoc-mode 1))
 
-(setq rm-regex-list '(" AC" " Ind" " MRev" " Interactive" " $" " Black"
-                      " ARev" " tide" " ElDoc" " Guide" " Projectile"
-                      " WK" " yas" " import" " Isort"
-                      " GitGutter" " Projectile\\[[^]]*\\]" " FmtAll" " RuffFmtImports" " RuffFmt"))
-(setq rm-blacklist (mapconcat 'identity rm-regex-list "\\|"))
+(use-package acp
+  :load-path "~/.emacs.d/acp"
+  :bind (("C-c t" . #'acp)))
 
+(use-package yaml-mode
+  :ensure t
+  :init
+  (defun is-ansible-file ()
+    (when buffer-file-name
+      (let ((root (locate-dominating-file buffer-file-name ".git")))
+        (when root
+          (string= (file-name-nondirectory (directory-file-name root))
+                   "architecture")))))
+  :hook (yaml-ts-mode . (lambda () (if (is-ansible-file) (ansible-mode 1)))))
 
-;;--[flycheck]------------------------------------------
-
-(with-eval-after-load 'flycheck
-  (define-key flycheck-mode-map (kbd "C-c ! l") 'helm-flycheck))
+(use-package ansible
+  :ensure t
+  :hook (ansible-mode . (lambda ()
+                          (python-venv-activate)
+                          (flycheck-select-checker 'flycheck-ansible-lint))))
 
 
 ;;--{utils]-----------------------------------------------------
@@ -303,144 +371,22 @@
         (replace-regexp "\\([A-Z]\\)" "_\\1" nil (1+ start) end)
         (downcase-region start (cdr (bounds-of-thing-at-point 'symbol)))))))
 
+;;--[environment]--------------------------------------------
 
-;;---[eglot]-----------------------------------------------------------
+(setenv "LANG" "fr_FR.UTF-8")
 
-(defun projet-root-for-node (orig-fun &rest args)
-  (locate-dominating-file default-directory "package.json"))
+(when (string-equal system-type "darwin")
+  (setq mac-command-modifier 'super)
+  (setq mac-right-option-modifier 'ns-right-alternate-modifier)
+  (setq mac-option-modifier 'meta)
+  (global-set-key (kbd "s-v") #'yank)
+  (global-set-key (kbd "s-c") #'kill-ring-save))
 
+(when (eq system-type 'windows-nt)
+  (add-to-list 'exec-path "C:/Program Files/zig/")
+  (add-to-list 'exec-path "C:/Program Files/Git/usr/bin")
+  (add-to-list 'exec-path "C:/Program Files/GnuPG/bin/"))
 
-(defun overload-projet-root-for-node (orig-fun modes &rest args)
-  (if (not (cl-some (lambda (x) (member x '(vue-web-mode js-mode))) modes))
-      (apply orig-fun modes args)
-    (advice-add 'project-root :around #'projet-root-for-node)
-    (apply orig-fun modes args)
-    (advice-remove 'project-root #'projet-root-for-node)))
-
-(defun typescript-eglot-init-options ()
-  (let ((vue-typescript-plugin-path (shell-command-to-string "npm list --global --parseable @vue/typescript-plugin | head -n1 | tr -d \"\n\"")))
-    `(:plugins [(:name "@vue/typescript-plugin"
-                 :location ,vue-typescript-plugin-path
-                 :languages ["javascript", "typescript", "vue"])])))
-
-(with-eval-after-load 'eglot
-  (add-to-list 'eglot-server-programs
-               `((vue-web-mode :language-id "vue") . ("typescript-language-server" "--stdio" :initializationOptions ,(typescript-eglot-init-options))))
-  (add-to-list 'eglot-server-programs
-               `((js-mode :language-id "javascript") . ("typescript-language-server" "--stdio" :initializationOptions ,(typescript-eglot-init-options))))
-  (add-to-list 'eglot-server-programs
-               `((typescript-ts-mode :language-id "typescript") . ("typescript-language-server" "--stdio" :initializationOptions ,(typescript-eglot-init-options))))
-  (add-to-list 'eglot-server-programs
-               '((rust-ts-mode rust-mode) .
-                 ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
-  ;;(add-to-list 'eglot-server-programs '((python-ts-mode) . ("uvx" "ty" "server" )))
-
-  (setq eglot-stay-out-of '(flymake))
-  (require 'flycheck-eglot)
-  ;; disable this slow function
-  (cl-defun jsonrpc--log-event (connection origin
-                                           &key _kind message
-                                           foreign-message log-text json
-                                           type ((:id ref-id))
-                                           &allow-other-keys))
-  (advice-add 'eglot--connect :around #'overload-projet-root-for-node))
-
-
-(add-hook 'eglot-managed-mode-hook
-          (lambda ()
-            (if (member major-mode '(vue-web-mode js-mode typescript-ts-mode rust-mode))
-                (progn
-                  (flycheck-eglot-mode t)
-                  (format-all-mode t)
-                  (setq flycheck-checker 'eglot-check)))))
-
-;;--[rust-mode]--------------------------------------------
-
-(add-hook 'rust-mode-hook (lambda ()
-                            (eglot-ensure)
-                            (define-key rust-mode-map [(f9)] 'rust-test)))
-
-
-;;--[terraform]--------------------------------------------
-
-(add-hook 'terraform-mode-hook #'terraform-format-on-save-mode)
-
-;;--[treesitter-sources]------------------------------------
-
-(setq treesit-language-source-alist
-      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-        (cmake "https://github.com/uyha/tree-sitter-cmake")
-        (css "https://github.com/tree-sitter/tree-sitter-css")
-        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-        (go "https://github.com/tree-sitter/tree-sitter-go")
-        (html "https://github.com/tree-sitter/tree-sitter-html")
-        (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-        (json "https://github.com/tree-sitter/tree-sitter-json")
-        (make "https://github.com/alemuller/tree-sitter-make")
-        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-        (python "https://github.com/tree-sitter/tree-sitter-python")
-        (toml "https://github.com/tree-sitter/tree-sitter-toml")
-        (tsx        "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-        (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-        (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
-
-
-;;--[eldoc]---------------------------------------------
-
-(setq eldoc-display-functions '(eldoc-display-in-buffer))
-
-;;--[format-all]---------------------------------------------
-
-(add-hook 'format-all-mode-hook #'format-all-ensure-formatter)
-
-
-;;--[agent-shell]---------------------------------------------
-
-(use-package agent-shell
-  :defer t
-  :autoload agent-shell-anthropic-start-claude-code
-  :bind (("C-c a" . #'agent-shell-anthropic-start-claude-code))
-  :config
-  (setq agent-shell-anthropic-authentication
-        (agent-shell-anthropic-make-authentication :login t)))
-
-
-;;--[gitlab-duo]---------------------------------------------
-
-;; (autoload 'gitlab-duo-start "~/.emacs.d/gitlab-duo.el" "Start the gitlab DUO chat." t)
-;; (global-set-key (kbd "C-c t") #'gitlab-duo-start)
-
-
-(use-package acp
-  :load-path "~/.emacs.d/acp"
-  :bind (("C-c t" . #'acp)))
-
-;;--[ansible]---------------------------------------------
-
-(with-eval-after-load 'flycheck
-  (flycheck-define-checker flycheck-ansible-lint
-    "An Ansible playbook syntax checker using ansible-lint."
-    :command ("ansible-lint" "--profile=production" "--strict" "--nocolor" "--parseable" source-inplace)
-    :error-patterns
-    ((warning line-start (file-name) ":" line (optional ":" column) ": " (message) ". (warning)" line-end)
-     (error line-start (file-name) ":" line (optional ":" column) ": " (message) line-end))
-    :modes yaml-mode))
-
-
-(defun is-ansible-file ()
-  (when buffer-file-name
-    (let ((root (locate-dominating-file buffer-file-name ".git")))
-      (when root
-        (string= (file-name-nondirectory (directory-file-name root)) "architecture")))))
-
-(add-hook 'yaml-mode-hook (lambda () (if (is-ansible-file) (ansible-mode 1))))
-(add-hook 'ansible-mode-hook
-          (lambda ()
-            (activate-venv)
-            (flycheck-mode)
-            (flycheck-select-checker 'flycheck-ansible-lint)))
-
-;;--[paths for external executables]-------------------------
 (add-to-list 'exec-path (expand-file-name "~/.local/bin"))
 (add-to-list 'exec-path (expand-file-name "~/.cargo/bin"))
 (add-to-list 'exec-path "/opt/node/bin")
@@ -496,5 +442,3 @@
 ;; ├── pyright@1.1.398
 ;; ├── typescript-language-server@4.3.4
 ;; └── typescript@5.8.3
-
-(put 'dired-find-alternate-file 'disabled nil)

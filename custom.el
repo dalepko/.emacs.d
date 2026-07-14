@@ -19,12 +19,8 @@
    '("5a0ddbd75929d24f5ef34944d78789c6c3421aa943c15218bac791c199fc897d"
      "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default))
  '(delete-old-versions t)
- '(diff-hl-draw-borders nil)
  '(ediff-split-window-function 'split-window-horizontally)
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
- '(eglot-ignored-server-capabilities
-   '(:documentFormattingProvider :documentRangeFormattingProvider :documentOnTypeFormattingProvider))
- '(eldoc-idle-delay 0.4)
  '(eshell-cmpl-cycle-completions nil)
  '(eslint-fix-executable "~/.emacs.d/eslint/node_modules/.bin/eslint")
  '(ess-default-style 'DEFAULT)
@@ -89,21 +85,11 @@
      ("_Ledger" ledger-mode) ("_Nginx" nginxfmt) ("_Snakemake" snakefmt)))
  '(format-all-show-errors 'never)
  '(frame-resize-pixelwise t)
- '(git-gutter:update-interval 1)
- '(global-diff-hl-mode t)
- '(global-git-gutter-mode t)
  '(groovy-indent-offset 2)
- '(haskell-ask-also-kill-buffers nil)
- '(haskell-indentation-show-indentations nil)
- '(haskell-indentation-show-indentations-after-eol nil)
- '(haskell-stylish-on-save t)
- '(haskell-tags-on-save t)
  '(helm-boring-buffer-regexp-list
    '("\\` " "\\`\\*helm" "\\`\\*Echo Area" "\\`\\*Minibuf" "\\`\\*helpful" "\\`\\*Flycheck"
      "\\`\\*EGLOT"))
  '(helm-buffer-details-flag nil)
- '(helm-describe-function-function 'helpful-callable)
- '(helm-describe-variable-function 'helpful-variable)
  '(helm-display-buffer-default-height 15)
  '(helm-echo-input-in-header-line t)
  '(helm-grep-file-path-style 'relative)
@@ -136,12 +122,10 @@
  '(package-archives
    '(("melpa" . "https://melpa.org/packages/") ("gnu" . "http://elpa.gnu.org/packages/")))
  '(package-selected-packages
-   '(0x0 agent-shell ansible ansible-vault base16-theme corfu dockerfile-mode eldoc-box eslint-fix
-         fish-mode flycheck-eglot format-all frame-local git git-gutter-fringe gruvbox-theme
-         haskell-mode helm-flycheck helm-projectile helm-xref helpful kaolin-themes magit
-         magit-popup markdown-preview-mode multiple-cursors orderless orgtbl-join phi-search po-mode
-         pyenv-mode realgud rust-mode shell-pop smart-mode-line terraform-mode virtualenvwrapper vui
-         wasp-mode web-beautify web-mode yaml-mode yasnippet zig-mode))
+   '(ansible ansible-vault corfu dockerfile-mode fish-mode flycheck-eglot gruvbox-theme
+     haskell-mode helm-flycheck helm-projectile helm-xref helpful magit multiple-cursors
+     orderless orgtbl-join phi-search po-mode pyenv-mode realgud rust-mode shell-pop
+     smart-mode-line terraform-mode web-mode yaml-mode yasnippet))
  '(package-vc-selected-packages
    '((claude-code-ide :url "https://github.com/manzaltu/claude-code-ide.el")))
  '(paradox-execute-asynchronously t)
@@ -150,23 +134,17 @@
  '(projectile-mode t nil (projectile))
  '(projectile-mode-line nil)
  '(projectile-use-git-grep t)
- '(py-autopep8-on-save-p 'is-buffer-valid-python)
- '(py-autopep8-options '("--max-line-length=140"))
  '(pyenv-mode-mode-line-format
    '(:eval (when (pyenv-mode-version) (concat "(" (pyenv-mode-version) ") "))))
  '(realgud-populate-common-fn-keys-function 'identity)
  '(ring-bell-function 'ignore)
- '(rm-text-properties
-   '(("\\` Ovwrt\\'" 'face 'font-lock-warning-face) ("\\` FlyC:" 'face 'font-lock-warning-face)))
  '(rust-format-on-save t)
  '(safe-local-variable-values
    '((format-all-formatters ("Python" ruff))
      (flycheck-python-mypy-cache-dir . "/Users/david.couderc/dev/invoice_parsing/.mypy_cache")
      (flycheck-python-mypy-config . "/Users/david.couderc/dev/invoice_parsing/mypy.ini")
      (flycheck-python-mypy-cache-dir . "/Users/david.couderc/dev/telecollecte/.mypy_cache")
-     (flycheck-python-mypy-config . "/Users/david.couderc/dev/telecollecte/mypy.ini")
-     (project-venv-name . "tina") (project-venv-name . "tina-2.2")
-     (project-venv-name . "tina-develop") (project-venv-name . "netlink2")))
+     (flycheck-python-mypy-config . "/Users/david.couderc/dev/telecollecte/mypy.ini")))
  '(savehist-mode t)
  '(scroll-bar-mode nil)
  '(scss-compile-at-save nil)
@@ -181,13 +159,6 @@
  '(vc-make-backup-files t)
  '(version-control t)
  '(visible-bell nil)
- '(web-mode-code-indent-offset 2)
- '(web-mode-css-indent-offset 2)
- '(web-mode-enable-auto-indentation nil)
- '(web-mode-enable-current-element-highlight t)
- '(web-mode-markup-indent-offset 2)
- '(web-mode-script-padding 0)
- '(web-mode-style-padding 0)
  '(which-key-mode t)
  '(yas-global-mode t))
 
@@ -197,9 +168,5 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:family "Menlo" :height 140))))
- '(diff-hl-change ((t (:background "steel blue" :foreground "blue3"))))
- '(diff-hl-delete ((t (:inherit magit-diff-removed-highlight))))
- '(diff-hl-insert ((t (:inherit magit-diff-added-highlight))))
  '(eldoc-box-border ((t (:background "gray69"))))
- '(flymake-warnline ((t (:background "black"))) t)
- '(web-mode-function-call-face ((t nil))))
+ '(flymake-warnline ((t (:background "black"))) t))
