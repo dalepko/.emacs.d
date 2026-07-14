@@ -1,5 +1,7 @@
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file)
+
+
 ;; Force UTF-8 as the default coding system
 (set-language-environment "UTF-8")
 (set-default-coding-systems 'utf-8)
@@ -45,7 +47,7 @@
           (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
   (setq major-mode-remap-alist
         '((bash-mode . bash-ts-mode)
-          (js-mode . js-ts-mode)
+          (javascript-mode . js-ts-mode)
           (json-mode . json-ts-mode)
           (markdown-mode . markdown-ts-mode)
           (python-mode . python-ts-mode)
@@ -83,10 +85,10 @@
   :ensure t
   :init
   (global-corfu-mode)
-  :config
-  (setq corfu-auto t           ; Enable auto-completion
-        corfu-auto-delay 0.1   ; Super fast popup delay
-        corfu-auto-prefix 2))  ; Start completing after 2 characters
+  :custom
+  (corfu-auto t)           ; Enable auto-completion
+  (corfu-auto-delay 0.1)   ; Super fast popup delay
+  (corfu-auto-prefix 2))   ; Start completing after 2 characters
 
 (use-package orderless
   :ensure t
@@ -100,8 +102,13 @@
   :ensure t
   :bind (:map flycheck-mode-map ("C-c ! l" . helm-flycheck))
   :hook ((web-mode . flycheck-mode)
+         (vue-web-mode . flycheck-mode)
          (python-ts-mode . flycheck-mode)
+         (js-ts-mode . flycheck-mode)
+         (typescript-ts-mode . flycheck-mode)
          (ansible-mode . flycheck-mode))
+  :custom
+  (flycheck-javascript-eslint-executable "eslint_d")
   :config
   (flycheck-add-mode 'javascript-eslint 'web-mode)
   (flycheck-add-mode 'javascript-eslint 'vue-web-mode)
@@ -118,17 +125,29 @@
   :config
   (setf (alist-get 'python-ts-mode apheleia-mode-alist)
         '(ruff-isort ruff))
+  (setf (alist-get 'eslint_d apheleia-formatters)
+        '("eslint_d" "--fix-to-stdout" "--stdin" "--stdin-filename" filepath))
+  (setf (alist-get 'vue-web-mode apheleia-mode-alist)
+        '(eslint_d))
+  (setf (alist-get 'typescript-ts-mode apheleia-mode-alist)
+        '(eslint_d))
+  (setf (alist-get 'js-ts-mode apheleia-mode-alist)
+        '(eslint_d))
   (apheleia-global-mode +1))
 
 (use-package python
-  :bind (:map python-mode-map
-              ("RET" . newline-and-indent)))
+  :config
+  ;; prevent pdbpp from replacing the pdb module which breaks realgud
+  (let* ((python_path (getenv "PYTHONPATH"))
+         (python_path_suffix (if python_path (concat ":" python_path) "")))
+    (if (null (cl-search "_pdbpp_path_hack" python_path_suffix))
+        (setenv "PYTHONPATH" (concat "_pdbpp_path_hack" python_path_suffix)))))
 
 (use-package pytest
   :load-path "~/.emacs.d/lisp"
   :after python
   :commands (pytest pytest-again)
-  :bind (:map python-mode-map
+  :bind (:map python-ts-mode-map
               ([shift f9] . pytest)
               ([f9] . pytest-again)))
 
@@ -198,7 +217,6 @@
 (when (require 'helm nil 'noerror)
   (global-set-key (kbd "C-x C-f") 'helm-find-files)
   (global-set-key (kbd "C-x b") 'helm-buffers-list)
-  (global-set-key (kbd "C-h f") 'helm-apropos)
   (global-set-key [(control o)] 'helm-projectile)
   (global-set-key [(control f)] 'helm-imenu)
   (global-set-key [f3] 'helm-projectile-grep)
@@ -247,12 +265,14 @@
 
 (use-package rich-minority
   :ensure t
+  :config
+  (rich-minority-mode 1)
   :custom
   (rm-blacklist (mapconcat 'identity
-                           '(" AC" " Ind" " MRev" " Interactive" " $" " Black"
-                             " ARev" " tide" " ElDoc" " Guide" " Projectile"
-                             " WK" " yas" " import" " Isort"
-                             " GitGutter" " Projectile\\[[^]]*\\]" " FmtAll" " Apheleia")
+                           '(" AC" " Ind" " MRev" " Interactive" " $"
+                             " ARev" " ElDoc" " Guide" " Projectile"
+                             " WK" " yas"
+                             " Projectile\\[[^]]*\\]" " Apheleia")
                            "\\\\|"))
   (rm-text-properties
    '(("\\` Ovwrt\\'" 'face 'font-lock-warning-face)
@@ -264,8 +284,8 @@
   :custom
   (eglot-ignored-server-capabilities
    '(:documentFormattingProvider :documentRangeFormattingProvider :documentOnTypeFormattingProvider))
-  (eglot-stay-out-of '(flymake))
   :config
+  (setq eglot-stay-out-of '(flymake))
   (defun projet-root-for-node (orig-fun &rest args)
     (locate-dominating-file default-directory "package.json"))
 
@@ -277,7 +297,7 @@
       (advice-remove 'project-root #'projet-root-for-node)))
 
   (defun typescript-eglot-init-options (&rest _)
-    (let ((vue-typescript-plugin-path (shell-command-to-string "npm list -g --parseable @vue/typescript-plugin 2>nul")))
+    (let ((vue-typescript-plugin-path (shell-command-to-string "npm list -g --parseable @vue/typescript-plugin 2>/dev/null")))
       `(:plugins [(:name "@vue/typescript-plugin"
                          :location ,(string-trim vue-typescript-plugin-path)
                          :languages ["javascript", "typescript", "vue"])])))
@@ -308,15 +328,21 @@
    (vue-web-mode . eglot-ensure)
    (rust-ts-mode . eglot-ensure)
    (python-ts-mode . eglot-ensure)
-   (eglot-managed-mode . (lambda ()
-                           (if (member major-mode '(vue-web-mode js-ts-mode typescript-ts-mode rust-ts-mode))
-                               (progn
-                                 (flycheck-eglot-mode t)
-                                 (setq flycheck-checker 'eglot-check)))))))
+   (typescript-ts-mode . eglot-ensure)))
+
+(use-package flycheck-eglot
+  :ensure t
+  :after (flycheck eglot)
+  :custom
+  (flycheck-eglot-exclusive nil)
+  :hook
+  (eglot-managed-mode . (lambda ()
+                          (when (member major-mode '(vue-web-mode js-ts-mode typescript-ts-mode tsx-ts-mode))
+                            (flycheck-eglot-mode 1)))))
 
 (use-package rust-mode
   :ensure t
-  :bind (:map rust-mode-map ([f9] . rust-test)))
+  :bind (:map rust-ts-mode-map ([f9] . rust-test)))
 
 (use-package terraform-mode
   :ensure t
@@ -376,6 +402,7 @@
 (setenv "LANG" "fr_FR.UTF-8")
 
 (when (string-equal system-type "darwin")
+  (setenv "LIBRARY_PATH" "/opt/homebrew/Cellar/gcc/16.1.0/lib/gcc/current/gcc/aarch64-apple-darwin25/16/")
   (setq mac-command-modifier 'super)
   (setq mac-right-option-modifier 'ns-right-alternate-modifier)
   (setq mac-option-modifier 'meta)
@@ -434,11 +461,10 @@
         (forward-line 1)))))
 
 ;; installed node packages (npm -g list):
+;; ├── @agentclientprotocol/claude-agent-acp@0.25.3
 ;; ├── @vue/typescript-plugin@2.2.8
-;; ├── cloc@2.4.0-cloc
-;; ├── corepack@0.23.0
-;; ├── npm@10.8.2
-;; ├── prettier@3.5.3
-;; ├── pyright@1.1.398
+;; ├── corepack@0.34.5
+;; ├── eslint_d@15.0.2
+;; ├── npm@10.9.2
 ;; ├── typescript-language-server@4.3.4
 ;; └── typescript@5.8.3
