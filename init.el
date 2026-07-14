@@ -2,6 +2,8 @@
 (load custom-file)
 
 
+;;--[defaults]--------------------------------------------------
+
 ;; Force UTF-8 as the default coding system
 (set-language-environment "UTF-8")
 (set-default-coding-systems 'utf-8)
@@ -56,13 +58,27 @@
           (typescript-mode . typescript-ts-mode)
           (yaml-mode . yaml-ts-mode))))
 
-(use-package windmove
-  :config
-  (windmove-default-keybindings 'meta))
+;;--[UI]--------------------------------------------------------
 
-(use-package magit
+(use-package smart-mode-line
   :ensure t
-  :bind (([f12] . #'magit-status)))
+  :config
+  (sml/setup))
+
+(use-package rich-minority
+  :ensure t
+  :config
+  (rich-minority-mode 1)
+  :custom
+  (rm-blacklist (mapconcat 'identity
+                           '(" AC" " Ind" " MRev" " Interactive" " $"
+                             " ARev" " ElDoc" " Guide" " Projectile"
+                             " WK" " yas"
+                             " Projectile\\[[^]]*\\]" " Apheleia")
+                           "\\\\|"))
+  (rm-text-properties
+   '(("\\` Ovwrt\\'" 'face 'font-lock-warning-face)
+     ("\\` FlyC:" 'face 'font-lock-warning-face))))
 
 (use-package diff-hl
   :ensure t
@@ -76,10 +92,24 @@
   (diff-hl-delete ((t (:inherit magit-diff-removed-highlight))))
   (diff-hl-insert ((t (:inherit magit-diff-added-highlight)))))
 
-(use-package smart-mode-line
-  :ensure t
+(use-package eldoc
+  :bind ("M-h" . eldoc)
+  :custom
+  (eldoc-display-functions '(eldoc-display-in-buffer))
+  (eldoc-idle-delay 0.4)
   :config
-  (sml/setup))
+  (global-eldoc-mode 1))
+
+(use-package helpful
+  :ensure t
+  :bind (("C-h f" . helpful-callable)
+         ("C-h v" . helpful-variable)
+         ("C-h k" . helpful-key))
+  :custom
+  (helm-describe-function-function #'helpful-callable)
+  (helm-describe-variable-function #'helpful-variable))
+
+;;--[completion]------------------------------------------------
 
 (use-package corfu
   :ensure t
@@ -97,6 +127,34 @@
         completion-category-defaults nil
         completion-category-overrides '((file (styles basic partial-completion)))
         orderless-component-separator " +\\|[-/]"))
+
+(when (fboundp 'helm-M-x)
+  (global-set-key (kbd "M-x") 'helm-M-x))
+
+(when (require 'helm nil 'noerror)
+  (global-set-key (kbd "C-x C-f") 'helm-find-files)
+  (global-set-key (kbd "C-x b") 'helm-buffers-list)
+  (global-set-key [(control o)] 'helm-projectile)
+  (global-set-key [(control f)] 'helm-imenu)
+  (global-set-key [f3] 'helm-projectile-grep)
+  (add-hook 'helm-minibuffer-set-up-hook #'helm-hide-minibuffer-maybe))
+
+;;--[editing]---------------------------------------------------
+
+(use-package windmove
+  :config
+  (windmove-default-keybindings 'meta))
+
+(use-package multiple-cursors
+  :ensure t
+  :bind (("C-S-c C-S-c" . mc/edit-lines)
+         ("C-*" . mc/mark-next-like-this)
+         ("C-ù" . mc/mark-previous-like-this)
+         ("C-c *" . mc/mark-all-like-this)
+         :map mc/keymap
+         ("<return>" . nil)))
+
+;;--[code quality]----------------------------------------------
 
 (use-package flycheck
   :ensure t
@@ -135,149 +193,7 @@
         '(eslint_d))
   (apheleia-global-mode +1))
 
-(use-package python
-  :config
-  ;; prevent pdbpp from replacing the pdb module which breaks realgud
-  (let* ((python_path (getenv "PYTHONPATH"))
-         (python_path_suffix (if python_path (concat ":" python_path) "")))
-    (if (null (cl-search "_pdbpp_path_hack" python_path_suffix))
-        (setenv "PYTHONPATH" (concat "_pdbpp_path_hack" python_path_suffix)))))
-
-(use-package pytest
-  :load-path "~/.emacs.d/lisp"
-  :after python
-  :commands (pytest pytest-again)
-  :bind (:map python-ts-mode-map
-              ([shift f9] . pytest)
-              ([f9] . pytest-again)))
-
-(use-package python-venv
-  :load-path "~/.emacs.d/lisp"
-  :hook ((python-ts-mode . python-venv-setup)))
-
-(use-package realgud
-  :ensure t
-  :defer t
-  :bind (:map realgud-track-mode-map
-              ([M-right])
-              ([M-up])
-              ([M-down])
-              :map realgud:shortkey-mode-map
-              ([M-up])
-              ([M-down]))
-  :config
-  (defun realgud-fix-check-prompt (from to &optional cmd-mark opt-cmdbuf
-                                        shortkey-on-tracing? no-warn-if-no-match?)
-    (string-match (concat comint-prompt-regexp "$")
-                  (buffer-substring-no-properties from to)))
-
-  (advice-add #'realgud:track-from-region :before-while #'realgud-fix-check-prompt))
-
-(use-package fish-mode
-  :ensure t
-  :hook (fish-mode . (lambda () (setq tab-width 4))))
-
-(use-package typescript-ts-mode
-  :hook (typescript-ts-mode . (lambda () (setq-local tab-width 2))))
-
-(use-package js
-  :hook (js-ts-mode . (lambda () (setq-local tab-width 2))))
-
-(use-package web-mode
-  :ensure t
-  :mode (("\\.html?\\'" . web-mode)
-         ("\\.vue\\'" . vue-web-mode))
-  :custom
-  (web-mode-code-indent-offset 2)
-  (web-mode-css-indent-offset 2)
-  (web-mode-enable-auto-indentation nil)
-  (web-mode-enable-current-element-highlight t)
-  (web-mode-markup-indent-offset 2)
-  (web-mode-script-padding 0)
-  (web-mode-style-padding 0)
-  (web-mode-engines-alist '(("django" . "\\.html\\'")))
-  (web-mode-indentation-params
-   '(("lineup-args"       . ())
-     ("lineup-calls"      . ())
-     ("lineup-concats"    . t)
-     ("lineup-quotes"     . t)
-     ("lineup-ternary"    . t)
-     ("case-extra-offset" . t)))
-  :custom-face
-  (web-mode-function-call-face ((t nil)))
-  :config
-  (define-derived-mode vue-web-mode web-mode "Vue Web" "Vue Mode"
-    (setq tab-width 2)))
-
-;;--[helm/projectile]----------------------------------------------------
-
-(when (fboundp 'helm-M-x)
-  (global-set-key (kbd "M-x") 'helm-M-x))
-
-(when (require 'helm nil 'noerror)
-  (global-set-key (kbd "C-x C-f") 'helm-find-files)
-  (global-set-key (kbd "C-x b") 'helm-buffers-list)
-  (global-set-key [(control o)] 'helm-projectile)
-  (global-set-key [(control f)] 'helm-imenu)
-  (global-set-key [f3] 'helm-projectile-grep)
-  (add-hook 'helm-minibuffer-set-up-hook #'helm-hide-minibuffer-maybe))
-
-
-;;--[haskell-mode configuration]------------------------------------------
-
-(use-package haskell-mode
-  :ensure t
-  :custom
-  (haskell-ask-also-kill-buffers nil)
-  (haskell-indentation-show-indentations nil)
-  (haskell-indentation-show-indentations-after-eol nil)
-  (haskell-stylish-on-save t)
-  (haskell-tags-on-save t)
-  :hook
-  (haskell-mode . interactive-haskell-mode)
-  (interactive-haskell-mode . (lambda ()
-                                (define-key interactive-haskell-mode-map (kbd "M-.") 'haskell-mode-goto-loc)
-                                (define-key interactive-haskell-mode-map (kbd "C-c C-t") 'haskell-mode-show-type-at))))
-
-(use-package hspec
-  :load-path "~/.emacs.d/lisp"
-  :bind (:map interactive-haskell-mode-map
-              ("<S-f9>" . hspec-run)
-              ("<f9>" . hspec-rerun)))
-
-(use-package multiple-cursors
-  :ensure t
-  :bind (("C-S-c C-S-c" . mc/edit-lines)
-         ("C-*" . mc/mark-next-like-this)
-         ("C-ù" . mc/mark-previous-like-this)
-         ("C-c *" . mc/mark-all-like-this)
-         :map mc/keymap
-         ("<return>" . nil)))
-
-(use-package helpful
-  :ensure t
-  :bind (("C-h f" . helpful-callable)
-         ("C-h v" . helpful-variable)
-         ("C-h k" . helpful-key))
-  :custom
-  (helm-describe-function-function #'helpful-callable)
-  (helm-describe-variable-function #'helpful-variable))
-
-(use-package rich-minority
-  :ensure t
-  :config
-  (rich-minority-mode 1)
-  :custom
-  (rm-blacklist (mapconcat 'identity
-                           '(" AC" " Ind" " MRev" " Interactive" " $"
-                             " ARev" " ElDoc" " Guide" " Projectile"
-                             " WK" " yas"
-                             " Projectile\\[[^]]*\\]" " Apheleia")
-                           "\\\\|"))
-  (rm-text-properties
-   '(("\\` Ovwrt\\'" 'face 'font-lock-warning-face)
-     ("\\` FlyC:" 'face 'font-lock-warning-face))))
-
+;;--[LSP]-------------------------------------------------------
 
 (use-package eglot
   :ensure nil
@@ -340,25 +256,101 @@
                           (when (member major-mode '(vue-web-mode js-ts-mode typescript-ts-mode tsx-ts-mode))
                             (flycheck-eglot-mode 1)))))
 
+;;--[languages]-------------------------------------------------
+
+(use-package python
+  :config
+  ;; prevent pdbpp from replacing the pdb module which breaks realgud
+  (let* ((python_path (getenv "PYTHONPATH"))
+         (python_path_suffix (if python_path (concat ":" python_path) "")))
+    (if (null (cl-search "_pdbpp_path_hack" python_path_suffix))
+        (setenv "PYTHONPATH" (concat "_pdbpp_path_hack" python_path_suffix)))))
+
+(use-package pytest
+  :load-path "~/.emacs.d/lisp"
+  :after python
+  :commands (pytest pytest-again)
+  :bind (:map python-ts-mode-map
+              ([shift f9] . pytest)
+              ([f9] . pytest-again)))
+
+(use-package python-venv
+  :load-path "~/.emacs.d/lisp"
+  :hook ((python-ts-mode . python-venv-setup)))
+
+(use-package realgud
+  :ensure t
+  :defer t
+  :bind (:map realgud-track-mode-map
+              ([M-right])
+              ([M-up])
+              ([M-down])
+              :map realgud:shortkey-mode-map
+              ([M-up])
+              ([M-down]))
+  :config
+  (defun realgud-fix-check-prompt (from to &optional cmd-mark opt-cmdbuf
+                                        shortkey-on-tracing? no-warn-if-no-match?)
+    (string-match (concat comint-prompt-regexp "$")
+                  (buffer-substring-no-properties from to)))
+
+  (advice-add #'realgud:track-from-region :before-while #'realgud-fix-check-prompt))
+
+(use-package typescript-ts-mode
+  :hook (typescript-ts-mode . (lambda () (setq-local tab-width 2))))
+
+(use-package js
+  :hook (js-ts-mode . (lambda () (setq-local tab-width 2))))
+
+(use-package web-mode
+  :ensure t
+  :mode (("\\.html?\\'" . web-mode)
+         ("\\.vue\\'" . vue-web-mode))
+  :custom
+  (web-mode-code-indent-offset 2)
+  (web-mode-css-indent-offset 2)
+  (web-mode-enable-auto-indentation nil)
+  (web-mode-enable-current-element-highlight t)
+  (web-mode-markup-indent-offset 2)
+  (web-mode-script-padding 0)
+  (web-mode-style-padding 0)
+  (web-mode-engines-alist '(("django" . "\\.html\\'")))
+  (web-mode-indentation-params
+   '(("lineup-args"       . ())
+     ("lineup-calls"      . ())
+     ("lineup-concats"    . t)
+     ("lineup-quotes"     . t)
+     ("lineup-ternary"    . t)
+     ("case-extra-offset" . t)))
+  :custom-face
+  (web-mode-function-call-face ((t nil)))
+  :config
+  (define-derived-mode vue-web-mode web-mode "Vue Web" "Vue Mode"
+    (setq tab-width 2)))
+
 (use-package rust-mode
   :ensure t
   :bind (:map rust-ts-mode-map ([f9] . rust-test)))
 
-(use-package terraform-mode
+(use-package haskell-mode
   :ensure t
-  :hook (terraform-mode . terraform-format-on-save-mode))
-
-(use-package eldoc
-  :bind ("M-h" . eldoc)
   :custom
-  (eldoc-display-functions '(eldoc-display-in-buffer))
-  (eldoc-idle-delay 0.4)
-  :config
-  (global-eldoc-mode 1))
+  (haskell-ask-also-kill-buffers nil)
+  (haskell-indentation-show-indentations nil)
+  (haskell-indentation-show-indentations-after-eol nil)
+  (haskell-stylish-on-save t)
+  (haskell-tags-on-save t)
+  :hook
+  (haskell-mode . interactive-haskell-mode)
+  (interactive-haskell-mode . (lambda ()
+                                (define-key interactive-haskell-mode-map (kbd "M-.") 'haskell-mode-goto-loc)
+                                (define-key interactive-haskell-mode-map (kbd "C-c C-t") 'haskell-mode-show-type-at))))
 
-(use-package acp
-  :load-path "~/.emacs.d/acp"
-  :bind (("C-c t" . #'acp)))
+(use-package hspec
+  :load-path "~/.emacs.d/lisp"
+  :bind (:map interactive-haskell-mode-map
+              ("<S-f9>" . hspec-run)
+              ("<f9>" . hspec-rerun)))
 
 (use-package yaml-mode
   :ensure t
@@ -377,8 +369,25 @@
                           (python-venv-activate)
                           (flycheck-select-checker 'flycheck-ansible-lint))))
 
+(use-package terraform-mode
+  :ensure t
+  :hook (terraform-mode . terraform-format-on-save-mode))
 
-;;--{utils]-----------------------------------------------------
+(use-package fish-mode
+  :ensure t
+  :hook (fish-mode . (lambda () (setq tab-width 4))))
+
+;;--[tools]-----------------------------------------------------
+
+(use-package magit
+  :ensure t
+  :bind (([f12] . #'magit-status)))
+
+(use-package acp
+  :load-path "~/.emacs.d/acp"
+  :bind (("C-c t" . #'acp)))
+
+;;--[utils]-----------------------------------------------------
 
 (defun toggle-camelcase-underscores ()
   "Toggle between camelcase and underscore notation for the symbol at point."
@@ -397,7 +406,7 @@
         (replace-regexp "\\([A-Z]\\)" "_\\1" nil (1+ start) end)
         (downcase-region start (cdr (bounds-of-thing-at-point 'symbol)))))))
 
-;;--[environment]--------------------------------------------
+;;--[environment]-----------------------------------------------
 
 (setenv "LANG" "fr_FR.UTF-8")
 
