@@ -21,7 +21,7 @@
 (put 'dired-find-alternate-file 'disabled nil)
 
 (global-set-key [f9] #'compile)
-(global-set-key [f1] #'helm-apropos)
+(global-set-key [f1] #'apropos)
 
 (use-package treesit
   :init
@@ -72,9 +72,8 @@
   :custom
   (rm-blacklist (mapconcat 'identity
                            '(" AC" " Ind" " MRev" " Interactive" " $"
-                             " ARev" " ElDoc" " Guide" " Projectile"
-                             " WK" " yas"
-                             " Projectile\\[[^]]*\\]" " Apheleia")
+                             " ARev" " ElDoc" " Guide"
+                             " WK" " yas" " Apheleia")
                            "\\\\|"))
   (rm-text-properties
    '(("\\` Ovwrt\\'" 'face 'font-lock-warning-face)
@@ -104,10 +103,7 @@
   :ensure t
   :bind (("C-h f" . helpful-callable)
          ("C-h v" . helpful-variable)
-         ("C-h k" . helpful-key))
-  :custom
-  (helm-describe-function-function #'helpful-callable)
-  (helm-describe-variable-function #'helpful-variable))
+         ("C-h k" . helpful-key)))
 
 ;;--[completion]------------------------------------------------
 
@@ -128,16 +124,32 @@
         completion-category-overrides '((file (styles basic partial-completion)))
         orderless-component-separator " +\\|[-/]"))
 
-(when (fboundp 'helm-M-x)
-  (global-set-key (kbd "M-x") 'helm-M-x))
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode)
+  :bind ("C-x c b" . vertico-repeat)
+  :hook (minibuffer-setup . vertico-repeat-save))
 
-(when (require 'helm nil 'noerror)
-  (global-set-key (kbd "C-x C-f") 'helm-find-files)
-  (global-set-key (kbd "C-x b") 'helm-buffers-list)
-  (global-set-key [(control o)] 'helm-projectile)
-  (global-set-key [(control f)] 'helm-imenu)
-  (global-set-key [f3] 'helm-projectile-grep)
-  (add-hook 'helm-minibuffer-set-up-hook #'helm-hide-minibuffer-maybe))
+(use-package marginalia
+  :ensure t
+  :init
+  (marginalia-mode))
+
+(use-package project
+  :bind (([(control o)] . project-find-file)
+         ([(control shift o)] . project-switch-project))
+  :custom
+  (project-switch-commands 'project-find-file))
+
+(use-package consult
+  :ensure t
+  :bind (([(control f)] . consult-imenu)
+         ([f3] . consult-ripgrep)
+         ("C-x b" . consult-buffer)
+         ("M-y" . consult-yank-pop))
+  :custom
+  (xref-show-xrefs-function #'consult-xref))
 
 ;;--[editing]---------------------------------------------------
 
@@ -156,9 +168,12 @@
 
 ;;--[code quality]----------------------------------------------
 
+(use-package consult-flycheck
+  :ensure t)
+
 (use-package flycheck
   :ensure t
-  :bind (:map flycheck-mode-map ("C-c ! l" . helm-flycheck))
+  :bind (:map flycheck-mode-map ("C-c ! l" . consult-flycheck))
   :hook ((web-mode . flycheck-mode)
          (vue-web-mode . flycheck-mode)
          (python-ts-mode . flycheck-mode)
@@ -167,6 +182,7 @@
          (ansible-mode . flycheck-mode))
   :custom
   (flycheck-javascript-eslint-executable "eslint_d")
+  (flycheck-display-errors-delay 0.1)
   :config
   (flycheck-add-mode 'javascript-eslint 'web-mode)
   (flycheck-add-mode 'javascript-eslint 'vue-web-mode)

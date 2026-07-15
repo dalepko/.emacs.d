@@ -4,7 +4,7 @@
 (require 'python)
 (require 'which-func)
 (require 'cl-lib)
-(require 'projectile)
+(require 'project)
 (require 'seq)
 
 (defvar pytest--last-file nil)
@@ -51,7 +51,7 @@
                         (buffer-list))))
 
 (defun pytest--run (verbose filename func)
-  (let* ((project-root (projectile-project-root))
+  (let* ((project-root (project-root (project-current t)))
          (pytest-path (or (executable-find "py.test") "py.test"))
          (command  (format "%s%s --tb=short -vvs"
                            pytest-path

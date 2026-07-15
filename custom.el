@@ -3,7 +3,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(agent-shell-session-strategy 'latest)
  '(ansi-color-names-vector
    ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
  '(auto-save-visited-mode t)
@@ -22,7 +21,6 @@
  '(ediff-split-window-function 'split-window-horizontally)
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
  '(eshell-cmpl-cycle-completions nil)
- '(eslint-fix-executable "~/.emacs.d/eslint/node_modules/.bin/eslint")
  '(ess-default-style 'DEFAULT)
  '(ess-own-style-list
    '((ess-indent-offset . 2) (ess-offset-arguments . open-delim)
@@ -33,70 +31,8 @@
      (ess-indent-from-chain-start . t) (ess-indent-with-fancy-comments . t)))
  '(fci-rule-color "#383838")
  '(fill-column 100)
- '(flycheck-checkers
-   '(ada-gnat asciidoctor asciidoc awk-gawk bazel-build-buildifier bazel-module-buildifier
-              bazel-starlark-buildifier bazel-workspace-buildifier c/c++-clang c/c++-gcc
-              c/c++-cppcheck cfengine coffee coffee-coffeelint css-csslint css-stylelint cuda-nvcc
-              cwl d-dmd dockerfile-hadolint elixir-credo emacs-lisp emacs-lisp-checkdoc
-              ember-template erlang-rebar3 erlang eruby-erubis eruby-ruumba fortran-gfortran
-              go-gofmt go-vet go-build go-test go-errcheck go-unconvert go-staticcheck groovy haml
-              haml-lint handlebars haskell-stack-ghc haskell-ghc haskell-hlint html-tidy
-              javascript-eslint javascript-jshint javascript-standard json-jsonlint json-python-json
-              json-jq jsonnet less less-stylelint llvm-llc lua-luacheck lua
-              markdown-markdownlint-cli markdown-mdl markdown-pymarkdown nix nix-linter opam perl
-              perl-perlcritic php php-phpmd php-phpcs php-phpcs-changed processing proselint
-              protobuf-protoc protobuf-prototool pug puppet-parser puppet-lint python-flake8
-              python-ruff python-pylint python-pycompile python-pyright python-mypy r-lintr r racket
-              rpm-rpmlint rst-sphinx rst ruby-rubocop ruby-chef-cookstyle ruby-standard ruby-reek
-              ruby ruby-jruby rust-cargo rust rust-clippy scala scala-scalastyle scheme-chicken
-              scss-lint sass-stylelint scss-stylelint sass/scss-sass-lint sass scss sh-bash
-              sh-posix-dash sh-posix-bash sh-zsh sh-shellcheck slim slim-lint sql-sqlint statix
-              systemd-analyze tcl-nagelfar terraform terraform-tflint tex-chktex tex-lacheck texinfo
-              textlint typescript-tslint verilog-verilator vhdl-ghdl xml-xmlstarlet xml-xmllint
-              yaml-actionlint yaml-jsyaml yaml-ruby yaml-yamllint eglot-check))
- '(flycheck-disabled-checkers '(python-pylint))
- '(flycheck-display-errors-delay 0.1)
- '(flycheck-eglot-exclusive nil)
- '(flycheck-flake8rc ".flake8")
- '(flycheck-javascript-eslint-executable "~/.emacs.d/eslint/node\12_modules/.bin/eslint")
- '(flycheck-posframe-prefix "\15 ➤ ")
- '(flycheck-python-pylint-executable "~/.emacs.d/epylint")
  '(foreground-color "#839496")
- '(format-all-default-formatters
-   '(("Assembly" asmfmt) ("ATS" atsfmt) ("Bazel" buildifier) ("BibTeX" emacs-bibtex) ("C" clang-format)
-     ("C#" csharpier) ("C++" clang-format) ("Cabal Config" cabal-fmt) ("Clojure" zprint)
-     ("CMake" cmake-format) ("Crystal" crystal) ("CSS" prettier) ("Cuda" clang-format) ("D" dfmt)
-     ("Dart" dart-format) ("Dhall" dhall) ("Dockerfile" dockfmt) ("Elixir" mix-format)
-     ("Elm" elm-format) ("Emacs Lisp" emacs-lisp) ("Erlang" efmt) ("F#" fantomas)
-     ("Fish" fish-indent) ("Fortran Free Form" fprettify) ("GLSL" clang-format) ("Go" gofmt)
-     ("GraphQL" prettier) ("Haskell" brittany) ("HCL" hclfmt) ("HTML" html-tidy)
-     ("HTML+EEX" mix-format) ("HTML+ERB" erb-format) ("Hy" emacs-hy) ("Java" clang-format)
-     ("JavaScript" prettier) ("JSON" prettier) ("JSON5" prettier) ("Jsonnet" jsonnetfmt)
-     ("JSX" prettier) ("Kotlin" ktlint) ("LaTeX" latexindent) ("Less" prettier)
-     ("Literate Haskell" brittany) ("Lua" lua-fmt) ("Markdown" prettier) ("Meson" muon-fmt)
-     ("Nix" nixpkgs-fmt) ("Objective-C" clang-format) ("OCaml" ocp-indent) ("Perl" perltidy)
-     ("PHP" prettier) ("Protocol Buffer" clang-format) ("PureScript" purty) ("Python" ruff)
-     ("R" styler) ("Reason" bsrefmt) ("ReScript" rescript) ("Ruby" rufo) ("Rust" rustfmt)
-     ("Scala" scalafmt) ("SCSS" prettier) ("Shell" shfmt) ("Solidity" prettier) ("SQL" sqlformat)
-     ("Svelte" prettier) ("Swift" swiftformat) ("Terraform" terraform-fmt) ("TOML" prettier)
-     ("TSX" prettier) ("TypeScript" prettier) ("V" v-fmt) ("Verilog" istyle-verilog)
-     ("Vue" prettier) ("XML" html-tidy) ("YAML" prettier) ("Zig" zig) ("_Angular" prettier)
-     ("_Beancount" bean-format) ("_Caddyfile" caddy-fmt) ("_Flow" prettier) ("_Gleam" gleam)
-     ("_Ledger" ledger-mode) ("_Nginx" nginxfmt) ("_Snakemake" snakefmt)))
- '(format-all-show-errors 'never)
  '(frame-resize-pixelwise t)
- '(groovy-indent-offset 2)
- '(helm-boring-buffer-regexp-list
-   '("\\` " "\\`\\*helm" "\\`\\*Echo Area" "\\`\\*Minibuf" "\\`\\*helpful" "\\`\\*Flycheck"
-     "\\`\\*EGLOT"))
- '(helm-buffer-details-flag nil)
- '(helm-display-buffer-default-height 15)
- '(helm-echo-input-in-header-line t)
- '(helm-grep-file-path-style 'relative)
- '(helm-ls-git-show-abs-or-relative 'relative)
- '(helm-mode-fuzzy-match t)
- '(helm-projectile-set-input-automatically nil)
- '(helm-split-window-inside-p t)
  '(help-at-pt-display-when-idle '(haskell-msg) nil (help-at-pt))
  '(help-at-pt-timer-delay 0.5)
  '(history-delete-duplicates t)
@@ -108,10 +44,6 @@
  '(importmagic-style-configuration-alist '((multiline . backslashes) (max_columns . 120)))
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
- '(jedi:environment-virtualenv '("pyvenv"))
- '(js-indent-level 2)
- '(js2-strict-missing-semi-warning nil)
- '(js2-strict-trailing-comma-warning nil)
  '(kept-new-versions 10)
  '(menu-bar-mode nil)
  '(midnight-mode t nil (midnight))
@@ -122,20 +54,11 @@
  '(package-archives
    '(("melpa" . "https://melpa.org/packages/") ("gnu" . "http://elpa.gnu.org/packages/")))
  '(package-selected-packages
-   '(ansible ansible-vault corfu dockerfile-mode fish-mode flycheck-eglot gruvbox-theme
-     haskell-mode helm-flycheck helm-projectile helm-xref helpful magit multiple-cursors
-     orderless orgtbl-join phi-search po-mode pyenv-mode realgud rust-mode shell-pop
-     smart-mode-line terraform-mode web-mode yaml-mode yasnippet))
- '(package-vc-selected-packages
-   '((claude-code-ide :url "https://github.com/manzaltu/claude-code-ide.el")))
- '(paradox-execute-asynchronously t)
- '(paradox-github-token t)
- '(projectile-enable-caching t)
- '(projectile-mode t nil (projectile))
- '(projectile-mode-line nil)
- '(projectile-use-git-grep t)
- '(pyenv-mode-mode-line-format
-   '(:eval (when (pyenv-mode-version) (concat "(" (pyenv-mode-version) ") "))))
+   '(ansible ansible-vault apheleia consult-flycheck corfu diff-hl dockerfile-mode fish-mode
+             flycheck-eglot git gruvbox-theme haskell-mode helpful kaolin-themes magit magit-popup
+             marginalia markdown-preview-mode multiple-cursors orderless orgtbl-join phi-search
+             po-mode pyenv-mode realgud rust-mode shell-pop smart-mode-line terraform-mode vertico
+             web-mode yaml-mode yasnippet))
  '(realgud-populate-common-fn-keys-function 'identity)
  '(ring-bell-function 'ignore)
  '(rust-format-on-save t)
