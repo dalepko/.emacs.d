@@ -128,6 +128,9 @@
   :ensure t
   :init
   (vertico-mode)
+  :custom
+  (vertico-repeat-transformers '(vertico-repeat--filter-commands
+                                 vertico-repeat--remove-long))
   :bind ("C-x c b" . vertico-repeat)
   :hook (minibuffer-setup . vertico-repeat-save))
 
