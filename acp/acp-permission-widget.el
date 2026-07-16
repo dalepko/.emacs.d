@@ -3,17 +3,16 @@
 (require 'cl-lib)
 (require 'acp-agent)
 (require 'acp-diff)
-(require 'acp-frame)
 
 ;; ── Faces ───────────────────────────────────────────────────────────────────
 
 (defface acp-permission-widget-border-face
-  '((t :inherit shadow))
+  '((t :inherit warning :inverse-video t))
   "Face for the border of the permission request panel."
   :group 'acp)
 
 (defface acp-permission-widget-description-face
-  '((t :weight bold :inherit font-lock-keyword-face))
+  '((t :inherit bold-italic))
   "Face for the description text in the permission panel."
   :group 'acp)
 
@@ -81,6 +80,7 @@ The widget's `:on-response' property is a function called with
 
 (defun acp-permission-widget--value-create (widget)
   "Insert the permission request alert panel."
+  (insert "\n\n")
   (let* ((pr (widget-get widget :value))
          (tool-call (acp-permission-request-tool-call pr))
          (options (acp-permission-request-options pr))
@@ -95,7 +95,7 @@ The widget's `:on-response' property is a function called with
          (on-response (widget-get widget :on-response))
          (start (point)))
 
-    (insert "\n")
+    (insert (propertize label 'face 'warning) "\n\n")
 
     (pcase (acp-tool-call-kind tool-call)
       ("edit"    (acp-permission-widget--body-edit tool-call))
@@ -104,9 +104,9 @@ The widget's `:on-response' property is a function called with
 
     (widget-put widget :buttons (acp-permission-widget--buttons widget options on-response))
 
-    (insert "\n\n")
+    (insert "\n")
 
-    (widget-put widget :frame-overlays (acp-frame-create label start (point)))
+    (put-text-property start (point) 'line-prefix (concat (propertize " " 'face 'acp-permission-widget-border-face) " "))
 
     (let ((ov (make-overlay start (point) nil nil nil)))
       (overlay-put ov 'keymap acp-permission-widget-keymap)
@@ -181,7 +181,6 @@ The widget's `:on-response' property is a function called with
 
 (defun acp-permission-widget--value-delete (widget)
   (widget-children-value-delete widget)
-  (acp-frame-delete (widget-get widget :frame-overlays))
   (when-let ((ov (widget-get widget :keymap-overlay)))
     (delete-overlay ov)))
 

@@ -13,17 +13,6 @@
   "Directory containing this test file.")
 
 
-;; ── Utilities ──────────────────────────────────────────────────────────────
-
-(defun acp-frame-test--extract-title (overlays)
-  "Extract the frame title from the start overlay in OVERLAYS."
-  (seq-some (lambda (ov)
-              (when-let* ((s (overlay-get ov 'before-string))
-                          (plain (substring-no-properties s))
-                          (_ (string-match "╔══ \\(.*?\\) +══╗" plain)))
-                (match-string 1 plain)))
-            overlays))
-
 ;; ── Tests ───────────────────────────────────────────────────────────────────
 
 (defvar sample-kind-other-with-command
@@ -53,17 +42,16 @@
   "When rawInput has :filepath instead of :description, show filepath."
   (with-temp-buffer
     (let ((w (widget-create 'acp-permission-widget :value sample-kind-other-with-command)))
-      (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
-                     "Permission request: external_directory"))
       (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                     "\
+                     "
+
+Permission request: external_directory
 
 Write temp elisp file
 
 Set-Content -Path \"$env:TEMP\\check-magit.el\" -Value ...
 
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
-
 "
                      )))))
 
@@ -91,15 +79,14 @@ Set-Content -Path \"$env:TEMP\\check-magit.el\" -Value ...
   "When rawInput has :filepath instead of :description, show filepath."
   (with-temp-buffer
     (let ((w (widget-create 'acp-permission-widget :value sample-kind-other-with-filepath)))
-      (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
-                     "Permission request: external_directory"))
       (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                     "\
+                     "
+
+Permission request: external_directory
 
 Write file: C:\\Windows\\acp-test-file.txt
 
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
-
 ")))))
 
 ;; ── Edit-kind permission ─────────────────────────────────────────────────────
@@ -125,9 +112,9 @@ Write file: C:\\Windows\\acp-test-file.txt
               (:optionId "reject" :kind "reject_once" :name "Reject")))))
       (with-temp-buffer
         (let ((w (widget-create 'acp-permission-widget :value edit-request)))
-          (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
-                         "Permission request: edit_file"))
-          (should (equal (buffer-substring-no-properties (point-min) (point-max)) (format "\
+          (should (equal (buffer-substring-no-properties (point-min) (point-max)) (format "
+
+Permission request: edit_file
 
 Edit file: %s
 
@@ -136,7 +123,6 @@ Edit file: %s
 +modified content
 
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
-
 " tmp-file))))))))
 
 ;; ── Edit-kind with raw-input diff ────────────────────────────────────────────
@@ -168,9 +154,9 @@ Index: test-file.el
              (:optionId "reject" :kind "reject_once" :name "Reject")))))
     (with-temp-buffer
       (let ((w (widget-create 'acp-permission-widget :value edit-request)))
-        (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
-                       "Permission request: edit_file"))
-        (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
+        (should (equal (buffer-substring-no-properties (point-min) (point-max)) "
+
+Permission request: edit_file
 
 Edit file: test-file.el
 
@@ -179,7 +165,6 @@ Edit file: test-file.el
 +new content
 
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
-
 "))))))
 
 ;; ── Execute-kind permission ──────────────────────────────────────────────────
@@ -205,16 +190,15 @@ Edit file: test-file.el
   "When kind is execute, show command with Execute command: label."
   (with-temp-buffer
     (let ((w (widget-create 'acp-permission-widget :value sample-kind-execute)))
-      (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
-                     "Permission request: execute"))
-      (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
+      (should (equal (buffer-substring-no-properties (point-min) (point-max)) "
+
+Permission request: execute
 
 Execute command:
 
 emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
 
 [ Allow (y) ]  [ Always Allow (!) ]  [ Reject (n) ]
-
 ")))))
 
 ;; claude-code format: title is full command, content has description
@@ -238,19 +222,18 @@ emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
      (:optionId "reject" :kind "reject_once" :name "Reject"))))
 
 (ert-deftest acp-permission-widget-kind-execute-claude-code ()
-  "Claude-code format: frame title uses content description, not the full command."
+  "Claude-code format: title uses content description, not the full command."
   (with-temp-buffer
     (let ((w (widget-create 'acp-permission-widget :value sample-kind-execute-claude-code)))
-      (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
-                     "Permission request: Run permission widget tests"))
-      (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
+      (should (equal (buffer-substring-no-properties (point-min) (point-max)) "
+
+Permission request: Run permission widget tests
 
 Execute command:
 
 emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
 
 [ Always Allow (!) ]  [ Allow (y) ]  [ Reject (n) ]
-
 ")))))
 
 ;; ── Edit-kind with nil oldText (new file creation) ──────────────────────────
@@ -275,9 +258,9 @@ emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
             (:optionId "reject" :kind "reject_once" :name "Reject")))))
     (with-temp-buffer
       (let ((w (widget-create 'acp-permission-widget :value edit-request)))
-        (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
-                       "Permission request: create_file"))
-        (should (equal (buffer-substring-no-properties (point-min) (point-max)) "\
+        (should (equal (buffer-substring-no-properties (point-min) (point-max)) "
+
+Permission request: create_file
 
 Edit file: /tmp/new-file.txt
 
@@ -285,7 +268,6 @@ Edit file: /tmp/new-file.txt
 +new file content
 
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
-
 "))))))
 
 ;; ── Interactive test utility ─────────────────────────────────────────────────
