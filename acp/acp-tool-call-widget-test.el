@@ -106,6 +106,29 @@
                   (create-tool-call "other" "pending"))
                  "Test other")))
 
+;; ── Label sanitization ─────────────────────────────────────────────────────
+
+(ert-deftest acp-tool-call-widget--label-strips-newlines ()
+  "Newlines in the title are collapsed to spaces."
+  (should (equal (acp-tool-call-widget--label
+                  (create-tool-call "think" "pending"
+                                    :title "Line one\nLine two\nLine three"))
+                 "Line one Line two Line three")))
+
+(ert-deftest acp-tool-call-widget--label-truncates-long-title ()
+  "Labels exceeding max length are truncated with ellipsis."
+  (let* ((long-title (make-string 80 ?x))
+         (label (acp-tool-call-widget--label
+                 (create-tool-call "think" "pending" :title long-title))))
+    (should (<= (length label) acp-tool-call-widget--max-label-len))
+    (should (string-suffix-p "…" label))))
+
+(ert-deftest acp-tool-call-widget--label-no-truncation-when-short ()
+  "Labels within max length are not truncated."
+  (should (equal (acp-tool-call-widget--label
+                  (create-tool-call "think" "pending" :title "Short title"))
+                 "Short title")))
+
 ;; ── Status-label tests (one per status) ─────────────────────────────────────
 
 (ert-deftest acp-tool-call-widget--status-label-pending ()

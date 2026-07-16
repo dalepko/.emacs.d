@@ -92,6 +92,8 @@ Each plist contains:
 
 Returns nil when PATCH is empty or nil."
   (when (and patch (not (string-empty-p patch)))
+    (unless (string-suffix-p "\n" patch)
+      (setq patch (concat patch "\n")))
     (let ((lines (string-lines patch nil t))
           (results nil)
           (current-diff nil)

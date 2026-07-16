@@ -78,8 +78,13 @@
     (_             (error "unknown status %s" (acp-tool-call-status tool-call)))))
 
 
+(defconst acp-tool-call-widget--max-label-len (- 80 4 1)
+  "Max label length.  4 = \" \" + icon + \"  \" prefix; 1 = padding before status.")
+
 (defun acp-tool-call-widget--label (tool-call)
-  "Return a display label for TOOL-CALL like \"Reading foo.el\"."
+  "Return a display label for TOOL-CALL like \"Reading foo.el\".
+Newlines are collapsed to spaces and the result is truncated to
+fit before the status column."
   (let* ((kind   (acp-tool-call-kind tool-call))
          (verb   (gethash kind acp-tool-call-widget--kind-verbs))
          (target (or (when-let* ((locs (acp-tool-call-locations tool-call))
@@ -93,13 +98,17 @@
                                  (desc (plist-get raw :description)))
                        (unless (string-empty-p desc) desc))
                      (let ((s (acp-tool-call-title tool-call)))
-                       (unless (string-empty-p s) s)))))
-    (cond
-     ((and verb target) (format "%s %s" verb target))
-     (title             title)
-     (verb              (format "%s..." verb))
-     (target            (format "Working on %s" target))
-     (t                 "unknown"))))
+                       (unless (string-empty-p s) s))))
+         (label (cond
+                 ((and verb target) (format "%s %s" verb target))
+                 (title             title)
+                 (verb              (format "%s..." verb))
+                 (target            (format "Working on %s" target))
+                 (t                 "unknown"))))
+    (setq label (replace-regexp-in-string "[\n\r]+" " " label))
+    (if (> (length label) acp-tool-call-widget--max-label-len)
+        (concat (substring label 0 (1- acp-tool-call-widget--max-label-len)) "…")
+      label)))
 
 (defun acp-tool-call-widget--status-label (status)
   (concat " "

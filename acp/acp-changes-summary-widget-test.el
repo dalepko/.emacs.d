@@ -155,8 +155,7 @@ diff --git a/bar.el b/bar.el
 @@ -5,3 +5,2 @@
   ctx
 -removed1
--removed2
-")))
+-removed2")))
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (erase-buffer)
