@@ -1,5 +1,4 @@
 ;;; acp-permission-widget.el --- Permission request widget for ACP REPL  -*- lexical-binding: t; -*-
-
 (require 'wid-edit)
 (require 'cl-lib)
 (require 'acp-agent)
@@ -136,7 +135,7 @@ The widget's `:on-response' property is a function called with
       (condition-case err
           (insert (acp-diff-format (acp-diff-cleanup-diff diff)) "\n")
         (error (insert (format "(diff unavailable: %s)\n" (error-message-string err)))))))
-)
+  )
 
 (defun acp-permission-widget--body-execute (tool-call)
   (let* ((raw-input (acp-tool-call-raw-input tool-call))

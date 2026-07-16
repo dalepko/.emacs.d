@@ -41,4 +41,3 @@ The icon color is dynamically extracted from the status face."
 
 (provide 'acp-icon)
 ;;; acp-icon.el ends here
-

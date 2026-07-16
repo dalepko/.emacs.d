@@ -1,5 +1,4 @@
 ;;; acp-frame-test.el --- Tests for acp-frame  -*- lexical-binding: t; -*-
-
 (require 'ert)
 (require 'acp-frame)
 

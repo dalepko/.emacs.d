@@ -1,5 +1,4 @@
 ;;; acp-plan-widget.el --- Plan widget for ACP REPL  -*- lexical-binding: t; -*-
-
 (require 'acp-agent)
 (require 'acp-icon)
 (require 'acp-frame)
@@ -49,7 +48,6 @@ The value is a list of `acp-plan-entry' structs."
 (defun acp-plan-widget--value-delete (widget)
   (widget-children-value-delete widget)
   (acp-frame-delete (widget-get widget :frame-overlays)))
-  
 
 (provide 'acp-plan-widget)
 ;;; acp-plan-widget.el ends here

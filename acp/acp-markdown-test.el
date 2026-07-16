@@ -1,5 +1,4 @@
 ;;; acp-markdown-test.el --- Tests for acp-markdown  -*- lexical-binding: t; -*-
-
 (require 'ert)
 
 (require 'acp-markdown)
@@ -14,7 +13,7 @@
        (with-current-buffer ,buf-var
          (insert ,initial-text)
          (treesit-update-ranges)
-         (unwind-protect 
+         (unwind-protect
              (progn ,@body)
            (kill-buffer ,buf-var))))))
 
@@ -50,7 +49,7 @@
 
 (defun inspect-string (string)
   (let ((rendered (with-test-buffer string
-                    (inspect-ts-node (treesit-parser-root-node (car (treesit-parser-list))))))
+                                    (inspect-ts-node (treesit-parser-root-node (car (treesit-parser-list))))))
         (output-buffer (get-buffer-create "tree")))
     (with-current-buffer output-buffer
       (delete-region (point-min) (point-max))
@@ -59,7 +58,7 @@
 
 (defun render (string &optional node-type)
   (let ((rendered (with-test-buffer string
-                    (acp-markdown--render-node (find-node (or node-type "document")))))
+                                    (acp-markdown--render-node (find-node (or node-type "document")))))
         (output-buffer (get-buffer-create "render")))
     (with-current-buffer output-buffer
       (delete-region (point-min) (point-max))
@@ -69,139 +68,139 @@
 
 (ert-deftest acp-markdown-emphasis ()
   (with-test-buffer "# this is *italic*"
-    (let* ((inline-element (find-node "inline"))
-           (rendered (acp-markdown--render-node inline-element)))
-      (should (equal (intervals rendered)
-                     '(("this is ")
-                       ("italic" face acp-markdown-emphasis-face)))))))
+                    (let* ((inline-element (find-node "inline"))
+                           (rendered (acp-markdown--render-node inline-element)))
+                      (should (equal (intervals rendered)
+                                     '(("this is ")
+                                       ("italic" face acp-markdown-emphasis-face)))))))
 
 (ert-deftest acp-markdown-emphasis-with-underscore ()
   (with-test-buffer "# this is _italic_"
-    (let* ((inline-element (find-node "inline"))
-           (rendered (acp-markdown--render-node inline-element)))
-      (should (equal (intervals rendered)
-                     '(("this is ")
-                       ("italic" face acp-markdown-emphasis-face)))))))
+                    (let* ((inline-element (find-node "inline"))
+                           (rendered (acp-markdown--render-node inline-element)))
+                      (should (equal (intervals rendered)
+                                     '(("this is ")
+                                       ("italic" face acp-markdown-emphasis-face)))))))
 
 (ert-deftest acp-markdown-bold ()
   (with-test-buffer "this is **bold**"
-    (let* ((inline-element (find-node "inline"))
-           (rendered (acp-markdown--render-node inline-element)))
-      (should (equal (intervals rendered)
-                     '(("this is ")
-                       ("bold" face acp-markdown-strong-face)))))))
+                    (let* ((inline-element (find-node "inline"))
+                           (rendered (acp-markdown--render-node inline-element)))
+                      (should (equal (intervals rendered)
+                                     '(("this is ")
+                                       ("bold" face acp-markdown-strong-face)))))))
 
 (ert-deftest acp-markdown-bold-with-underscore ()
   (with-test-buffer "this is __bold__"
-    (let* ((inline-element (find-node "inline"))
-           (rendered (acp-markdown--render-node inline-element)))
-      (should (equal (intervals rendered)
-                     '(("this is ")
-                       ("bold" face acp-markdown-strong-face)))))))
+                    (let* ((inline-element (find-node "inline"))
+                           (rendered (acp-markdown--render-node inline-element)))
+                      (should (equal (intervals rendered)
+                                     '(("this is ")
+                                       ("bold" face acp-markdown-strong-face)))))))
 
 
 (ert-deftest acp-markdown-bold-and-italic ()
   (with-test-buffer "this is ***italic and bold***"
-    (let* ((inline-element (find-node "inline"))
-           (rendered (acp-markdown--render-node inline-element)))
-      (should (equal (intervals rendered)
-                     '(("this is ")
-                       ("italic and bold" face (acp-markdown-strong-face
-                                                acp-markdown-emphasis-face))))))))
+                    (let* ((inline-element (find-node "inline"))
+                           (rendered (acp-markdown--render-node inline-element)))
+                      (should (equal (intervals rendered)
+                                     '(("this is ")
+                                       ("italic and bold" face (acp-markdown-strong-face
+                                                                acp-markdown-emphasis-face))))))))
 
 (ert-deftest acp-markdown-bold-and-italic-error ()
   (with-test-buffer "this is ***italic and bold**"
-    (let* ((inline-element (find-node "inline"))
-           (rendered (acp-markdown--render-node inline-element)))
-      (should (equal (intervals rendered)
-                     '(("this is *")
-                       ("italic and bold" face acp-markdown-strong-face)))))))
+                    (let* ((inline-element (find-node "inline"))
+                           (rendered (acp-markdown--render-node inline-element)))
+                      (should (equal (intervals rendered)
+                                     '(("this is *")
+                                       ("italic and bold" face acp-markdown-strong-face)))))))
 
 
 (ert-deftest acp-markdown-heading ()
   (with-test-buffer "# This a header"
-    (let* ((heading (find-node "atx_heading"))
-           (rendered (acp-markdown--render-node heading)))
-      (should (equal (intervals rendered)
-                     '(("This a header\n" face acp-markdown-heading-1-face)))))))
+                    (let* ((heading (find-node "atx_heading"))
+                           (rendered (acp-markdown--render-node heading)))
+                      (should (equal (intervals rendered)
+                                     '(("This a header\n" face acp-markdown-heading-1-face)))))))
 
 (ert-deftest acp-markdown-heading-level-2 ()
   (with-test-buffer "##  header"
-    (let* ((heading (find-node "atx_heading"))
-           (rendered (acp-markdown--render-node heading)))
-      (should (equal (intervals rendered)
-                     '(("header\n" face acp-markdown-heading-2-face)))))))
+                    (let* ((heading (find-node "atx_heading"))
+                           (rendered (acp-markdown--render-node heading)))
+                      (should (equal (intervals rendered)
+                                     '(("header\n" face acp-markdown-heading-2-face)))))))
 
 (ert-deftest acp-markdown-heading-with-formatting ()
   (with-test-buffer "# *italic* and **bold**"
-    (let* ((heading (find-node "atx_heading"))
-           (rendered (acp-markdown--render-node heading)))
-      (should (equal (intervals rendered)
-                     '(("italic" face (acp-markdown-emphasis-face
-                                       acp-markdown-heading-1-face))
-                       (" and " face acp-markdown-heading-1-face)
-                       ("bold" face (acp-markdown-strong-face
-                                     acp-markdown-heading-1-face))
-                       ("\n" face acp-markdown-heading-1-face)))))))
+                    (let* ((heading (find-node "atx_heading"))
+                           (rendered (acp-markdown--render-node heading)))
+                      (should (equal (intervals rendered)
+                                     '(("italic" face (acp-markdown-emphasis-face
+                                                       acp-markdown-heading-1-face))
+                                       (" and " face acp-markdown-heading-1-face)
+                                       ("bold" face (acp-markdown-strong-face
+                                                     acp-markdown-heading-1-face))
+                                       ("\n" face acp-markdown-heading-1-face)))))))
 
 
 (ert-deftest acp-markdown-code-span ()
   (with-test-buffer "this is `inline code` here"
-    (let* ((inline-element (find-node "inline"))
-           (rendered (acp-markdown--render-node inline-element)))
-      (should (equal (intervals rendered)
-                     '(("this is ")
-                       ("inline code" face acp-markdown-code-face)
-                       (" here")))))))
+                    (let* ((inline-element (find-node "inline"))
+                           (rendered (acp-markdown--render-node inline-element)))
+                      (should (equal (intervals rendered)
+                                     '(("this is ")
+                                       ("inline code" face acp-markdown-code-face)
+                                       (" here")))))))
 
 
 (ert-deftest acp-markdown-block-quote ()
   (with-test-buffer "> A simple quote"
-    (let* ((bq (find-node "block_quote"))
-           (rendered (acp-markdown--render-node bq)))
-      (should (equal (intervals rendered)
-                     '(("A simple quote" line-prefix "  ")))))))
+                    (let* ((bq (find-node "block_quote"))
+                           (rendered (acp-markdown--render-node bq)))
+                      (should (equal (intervals rendered)
+                                     '(("A simple quote" line-prefix "  ")))))))
 
 (ert-deftest acp-markdown-block-quote-multiline ()
   (with-test-buffer "> Line 1\nLine 2"
-    (let* ((bq (find-node "block_quote"))
-           (rendered (acp-markdown--render-node bq)))
-      (should (equal (intervals rendered)
-                     '(("Line 1\nLine 2" line-prefix "  ")))))))
+                    (let* ((bq (find-node "block_quote"))
+                           (rendered (acp-markdown--render-node bq)))
+                      (should (equal (intervals rendered)
+                                     '(("Line 1\nLine 2" line-prefix "  ")))))))
 
 (ert-deftest acp-markdown-block-quote-with-formatting ()
   (with-test-buffer "> *italic* and **bold**"
-    (let* ((bq (find-node "block_quote"))
-           (rendered (acp-markdown--render-node bq)))
-      (should (equal (intervals rendered)
-                     '(("italic" line-prefix "  " face acp-markdown-emphasis-face)
-                       (" and " line-prefix "  ")
-                       ("bold" line-prefix "  " face acp-markdown-strong-face)))))))
+                    (let* ((bq (find-node "block_quote"))
+                           (rendered (acp-markdown--render-node bq)))
+                      (should (equal (intervals rendered)
+                                     '(("italic" line-prefix "  " face acp-markdown-emphasis-face)
+                                       (" and " line-prefix "  ")
+                                       ("bold" line-prefix "  " face acp-markdown-strong-face)))))))
 
 (ert-deftest acp-markdown-hyphen-in-text ()
   (with-test-buffer "well-known"
-    (let* ((inline (find-node "inline"))
-           (rendered (acp-markdown--render-node inline)))
-      (should (equal rendered "well-known")))))
+                    (let* ((inline (find-node "inline"))
+                           (rendered (acp-markdown--render-node inline)))
+                      (should (equal rendered "well-known")))))
 
 (ert-deftest acp-markdown-thematic-break ()
   (with-test-buffer "***\n"
-    (let* ((bq (find-node "thematic_break"))
-           (rendered (acp-markdown--render-node bq)))
-      (should (equal (intervals rendered)
-                     '(("\n" face acp-markdown-thematic-break-face)))))))
+                    (let* ((bq (find-node "thematic_break"))
+                           (rendered (acp-markdown--render-node bq)))
+                      (should (equal (intervals rendered)
+                                     '(("\n" face acp-markdown-thematic-break-face)))))))
 
 (ert-deftest acp-markdown-backslash-escape-asterisk ()
   (with-test-buffer "\\*not italic\\*"
-    (let* ((inline (find-node "inline"))
-           (rendered (acp-markdown--render-node inline)))
-      (should (equal rendered "*not italic*")))))
+                    (let* ((inline (find-node "inline"))
+                           (rendered (acp-markdown--render-node inline)))
+                      (should (equal rendered "*not italic*")))))
 
 (ert-deftest acp-markdown-backslash-escape-backslash ()
   (with-test-buffer "a\\\\b"
-    (let* ((inline (find-node "inline"))
-           (rendered (acp-markdown--render-node inline)))
-      (should (equal rendered "a\\b")))))
+                    (let* ((inline (find-node "inline"))
+                           (rendered (acp-markdown--render-node inline)))
+                      (should (equal rendered "a\\b")))))
 
 (ert-deftest acp-markdown-indented-code-block ()
   (with-test-buffer "text
@@ -209,11 +208,11 @@
     code
 
 after"
-    (let* ((icb (find-node "indented_code_block"))
-           (rendered (acp-markdown--render-node icb)))
-      (should (equal (intervals rendered)
-                     '(("code\n" face acp-markdown-code-block-face)
-                       ("\n")))))))
+                    (let* ((icb (find-node "indented_code_block"))
+                           (rendered (acp-markdown--render-node icb)))
+                      (should (equal (intervals rendered)
+                                     '(("code\n" face acp-markdown-code-block-face)
+                                       ("\n")))))))
 
 (ert-deftest acp-markdown-indented-code-block-in-list ()
   (with-test-buffer "* text
@@ -222,13 +221,13 @@ after"
 
   after
 "
-    (let* ((icb (find-node "list_item"))
-           (rendered (acp-markdown--render-node icb)))
-      (should (equal (intervals rendered)
-                     '(("* " display "" line-prefix "• ")
-                       ("text\n\n" line-prefix "  ")
-                       ("code\n" face acp-markdown-code-block-face line-prefix "  ")
-                       ("\nafter\n" line-prefix "  ")))))))
+                    (let* ((icb (find-node "list_item"))
+                           (rendered (acp-markdown--render-node icb)))
+                      (should (equal (intervals rendered)
+                                     '(("* " display "" line-prefix "• ")
+                                       ("text\n\n" line-prefix "  ")
+                                       ("code\n" face acp-markdown-code-block-face line-prefix "  ")
+                                       ("\nafter\n" line-prefix "  ")))))))
 
 (ert-deftest acp-markdown-indented-code-block-multiline ()
   (with-test-buffer "text
@@ -237,23 +236,23 @@ after"
     line 2
 
 after"
-    (let* ((icb (find-node "indented_code_block"))
-           (rendered (acp-markdown--render-node icb)))
-      (should (equal (intervals rendered)
-                     '(("line 1\nline 2\n" face acp-markdown-code-block-face)
-                       ("\n")))))))
+                    (let* ((icb (find-node "indented_code_block"))
+                           (rendered (acp-markdown--render-node icb)))
+                      (should (equal (intervals rendered)
+                                     '(("line 1\nline 2\n" face acp-markdown-code-block-face)
+                                       ("\n")))))))
 
 (ert-deftest acp-markdown-fenced-code-block ()
   (with-test-buffer "```elisp
 (setq a 1)
 ```
 "
-    (let* ((fcb (find-node "fenced_code_block"))
-           (rendered (acp-markdown--render-node fcb)))
-      (should (equal (intervals rendered)
-                     '(("(" face acp-markdown-code-block-face)
-                       ("setq" face (font-lock-keyword-face acp-markdown-code-block-face))
-                       (" a 1)\n" face acp-markdown-code-block-face)))))))
+                    (let* ((fcb (find-node "fenced_code_block"))
+                           (rendered (acp-markdown--render-node fcb)))
+                      (should (equal (intervals rendered)
+                                     '(("(" face acp-markdown-code-block-face)
+                                       ("setq" face (font-lock-keyword-face acp-markdown-code-block-face))
+                                       (" a 1)\n" face acp-markdown-code-block-face)))))))
 
 (ert-deftest acp-markdown-fenced-code-block-in-list ()
   (with-test-buffer "* text\n
@@ -261,109 +260,109 @@ after"
   (setq a 1)
   ```
 "
-    (let* ((fcb (find-node "fenced_code_block"))
-           (rendered (acp-markdown--render-node fcb)))
-      (should (equal (intervals rendered)
-                     '(("(" face acp-markdown-code-block-face)
-                       ("setq" face (font-lock-keyword-face acp-markdown-code-block-face))
-                       (" a 1)\n" face acp-markdown-code-block-face)))))))
+                    (let* ((fcb (find-node "fenced_code_block"))
+                           (rendered (acp-markdown--render-node fcb)))
+                      (should (equal (intervals rendered)
+                                     '(("(" face acp-markdown-code-block-face)
+                                       ("setq" face (font-lock-keyword-face acp-markdown-code-block-face))
+                                       (" a 1)\n" face acp-markdown-code-block-face)))))))
 
 
 (ert-deftest acp-markdown-list-flat-minus ()
   (with-test-buffer "- Item 1\n- Item 2"
-    (let* ((list (find-node "list"))
-           (rendered (acp-markdown--render-node list)))
-      (should (equal (intervals rendered)
-                     '(("- " line-prefix "• " display "")
-                       ("Item 1\n" line-prefix "  ")
-                       ("- " line-prefix "• " display "")
-                       ("Item 2" line-prefix "  ")))))))
+                    (let* ((list (find-node "list"))
+                           (rendered (acp-markdown--render-node list)))
+                      (should (equal (intervals rendered)
+                                     '(("- " line-prefix "• " display "")
+                                       ("Item 1\n" line-prefix "  ")
+                                       ("- " line-prefix "• " display "")
+                                       ("Item 2" line-prefix "  ")))))))
 
 (ert-deftest acp-markdown-list-flat-star ()
   (with-test-buffer "* Item 1\n* Item 2"
-    (let* ((list (find-node "list"))
-           (rendered (acp-markdown--render-node list)))
-      (should (equal (intervals rendered)
-                     '(("* " line-prefix "• " display "")
-                       ("Item 1\n" line-prefix "  ")
-                       ("* " line-prefix "• " display "")
-                       ("Item 2" line-prefix "  ")))))))
+                    (let* ((list (find-node "list"))
+                           (rendered (acp-markdown--render-node list)))
+                      (should (equal (intervals rendered)
+                                     '(("* " line-prefix "• " display "")
+                                       ("Item 1\n" line-prefix "  ")
+                                       ("* " line-prefix "• " display "")
+                                       ("Item 2" line-prefix "  ")))))))
 
 (ert-deftest acp-markdown-list-flat-dot ()
   (with-test-buffer "1. Item 1\n2. Item 2"
-    (let* ((list (find-node "list"))
-           (rendered (acp-markdown--render-node list)))
-      (should (equal (intervals rendered)
-                     '(("1. " line-prefix "1. " display "")
-                       ("Item 1\n" line-prefix "   ")
-                       ("2. " line-prefix "2. " display "")
-                       ("Item 2" line-prefix "   ")))))))
+                    (let* ((list (find-node "list"))
+                           (rendered (acp-markdown--render-node list)))
+                      (should (equal (intervals rendered)
+                                     '(("1. " line-prefix "1. " display "")
+                                       ("Item 1\n" line-prefix "   ")
+                                       ("2. " line-prefix "2. " display "")
+                                       ("Item 2" line-prefix "   ")))))))
 
 (ert-deftest acp-markdown-list-flat-paren ()
   (with-test-buffer "1) Item 1\n2) Item 2"
-    (let* ((list (find-node "list"))
-           (rendered (acp-markdown--render-node list)))
-      (should (equal (intervals rendered)
-                     '(("1) " line-prefix "1) " display "")
-                       ("Item 1\n" line-prefix "   ")
-                       ("2) " line-prefix "2) " display "")
-                       ("Item 2" line-prefix "   ")))))))
+                    (let* ((list (find-node "list"))
+                           (rendered (acp-markdown--render-node list)))
+                      (should (equal (intervals rendered)
+                                     '(("1) " line-prefix "1) " display "")
+                                       ("Item 1\n" line-prefix "   ")
+                                       ("2) " line-prefix "2) " display "")
+                                       ("Item 2" line-prefix "   ")))))))
 
 (ert-deftest acp-markdown-list-ordered-multidigit ()
   (with-test-buffer "9. Item 9\n10. Item 10"
-    (let* ((list (find-node "list"))
-           (rendered (acp-markdown--render-node list)))
-      (should (equal (intervals rendered)
-                     '(("9. " line-prefix "9. " display "")
-                       ("Item 9\n" line-prefix "   ")
-                       ("10. " line-prefix "10. " display "")
-                       ("Item 10" line-prefix "    ")))))))
+                    (let* ((list (find-node "list"))
+                           (rendered (acp-markdown--render-node list)))
+                      (should (equal (intervals rendered)
+                                     '(("9. " line-prefix "9. " display "")
+                                       ("Item 9\n" line-prefix "   ")
+                                       ("10. " line-prefix "10. " display "")
+                                       ("Item 10" line-prefix "    ")))))))
 
 (ert-deftest acp-markdown-list-with-block-quote ()
   (with-test-buffer "- Item 1\n  > Nested quote"
-    (let* ((list (find-node "list"))
-           (rendered (acp-markdown--render-node list)))
-      (should (equal (intervals rendered)
-                     '(("- " line-prefix "• " display "")
-                       ("Item 1\n" line-prefix "  ")
-                       ("Nested quote"
-                        line-prefix
-                        #("    " 2 3 (face acp-markdown-block-quote-face)))))))))
+                    (let* ((list (find-node "list"))
+                           (rendered (acp-markdown--render-node list)))
+                      (should (equal (intervals rendered)
+                                     '(("- " line-prefix "• " display "")
+                                       ("Item 1\n" line-prefix "  ")
+                                       ("Nested quote"
+                                        line-prefix
+                                        #("    " 2 3 (face acp-markdown-block-quote-face)))))))))
 
 (ert-deftest acp-markdown-list-nested ()
   (with-test-buffer "- Item 1\n  - Sub-item"
-    (let* ((list (find-node "list"))
-           (rendered (acp-markdown--render-node list)))
-      (should (equal (intervals rendered)
-                     '(("- " line-prefix "• " display "")
-                       ("Item 1\n" line-prefix "  ")
-                       ("- " display "" line-prefix "  • ")
-                       ("Sub-item" line-prefix "    ")))))))
+                    (let* ((list (find-node "list"))
+                           (rendered (acp-markdown--render-node list)))
+                      (should (equal (intervals rendered)
+                                     '(("- " line-prefix "• " display "")
+                                       ("Item 1\n" line-prefix "  ")
+                                       ("- " display "" line-prefix "  • ")
+                                       ("Sub-item" line-prefix "    ")))))))
 
 
 (ert-deftest acp-markdown-shortcut-link ()
   (with-test-buffer "Link: [http://test.com]"
-    (let* ((link (find-node "inline"))
-           (rendered (acp-markdown--render-node link)))
-      (should (equal (intervals rendered)
-                     '(("Link: ")
-                       ("http://test.com" url "http://test.com" face acp-markdown-link-face)))))))
+                    (let* ((link (find-node "inline"))
+                           (rendered (acp-markdown--render-node link)))
+                      (should (equal (intervals rendered)
+                                     '(("Link: ")
+                                       ("http://test.com" url "http://test.com" face acp-markdown-link-face)))))))
 
 
 (ert-deftest acp-markdown-inline-link ()
   (with-test-buffer "This is a [link](http://test.com)"
-    (let* ((link (find-node "inline"))
-           (rendered (acp-markdown--render-node link)))
-      (should (equal (intervals rendered)
-                     '(("This is a ")
-                       ("link" url "http://test.com" face acp-markdown-link-face)))))))
+                    (let* ((link (find-node "inline"))
+                           (rendered (acp-markdown--render-node link)))
+                      (should (equal (intervals rendered)
+                                     '(("This is a ")
+                                       ("link" url "http://test.com" face acp-markdown-link-face)))))))
 
 (ert-deftest acp-markdown-error ()
   (with-test-buffer "xxx\n```"
-    (let* ((link (find-node "document"))
-           (rendered (acp-markdown--render-node link)))
-      (should (equal (intervals rendered)
-                     '(("xxx\n```")))))))
+                    (let* ((link (find-node "document"))
+                           (rendered (acp-markdown--render-node link)))
+                      (should (equal (intervals rendered)
+                                     '(("xxx\n```")))))))
 
 (ert-deftest acp-markdown-table-simple ()
   (with-test-buffer "\
@@ -371,10 +370,10 @@ after"
 | - | - |
 | 1 | 2 |
 "
-    (let* ((table (find-node "pipe_table"))
-           (rendered (acp-markdown--render-node table)))
-      (should (string= rendered
-                       "\
+                    (let* ((table (find-node "pipe_table"))
+                           (rendered (acp-markdown--render-node table)))
+                      (should (string= rendered
+                                       "\
 ┌───┬───┐
 │ A │ B │
 ├───┼───┤
@@ -387,10 +386,10 @@ after"
 | :--- | :----: | ----: |
 | a    | b      | c     |
 "
-    (let* ((table (find-node "pipe_table"))
-           (rendered (acp-markdown--render-node table)))
-      (should (string= rendered
-                       "\
+                    (let* ((table (find-node "pipe_table"))
+                           (rendered (acp-markdown--render-node table)))
+                      (should (string= rendered
+                                       "\
 ┌──────┬────────┬───────┐
 │ Left │ Center │ Right │
 ├──────┼────────┼───────┤
@@ -404,10 +403,10 @@ after"
 | x   | 42    |
 | y   | 7     |
 "
-    (let* ((table (find-node "pipe_table"))
-           (rendered (acp-markdown--render-node table)))
-      (should (string= rendered
-                       "\
+                    (let* ((table (find-node "pipe_table"))
+                           (rendered (acp-markdown--render-node table)))
+                      (should (string= rendered
+                                       "\
 ┌─────┬───────┐
 │ Col │ Value │
 ├─────┼───────┤
@@ -421,22 +420,22 @@ after"
 | - | - |
 | **bold** | *italic* |
 "
-    (let* ((table (find-node "pipe_table"))
-           (rendered (acp-markdown--render-node table)))
-      (should (string= rendered
-                       "\
+                    (let* ((table (find-node "pipe_table"))
+                           (rendered (acp-markdown--render-node table)))
+                      (should (string= rendered
+                                       "\
 ┌──────┬────────┐
 │ A    │ B      │
 ├──────┼────────┤
 │ bold │ italic │
 └──────┴────────┘
 "))
-      (let ((bold-start (string-match "bold" rendered))
-            (italic-start (string-match "italic" rendered)))
-        (should (equal (get-text-property bold-start 'face rendered)
-                       'acp-markdown-strong-face))
-        (should (equal (get-text-property italic-start 'face rendered)
-                       'acp-markdown-emphasis-face))))))
+                      (let ((bold-start (string-match "bold" rendered))
+                            (italic-start (string-match "italic" rendered)))
+                        (should (equal (get-text-property bold-start 'face rendered)
+                                       'acp-markdown-strong-face))
+                        (should (equal (get-text-property italic-start 'face rendered)
+                                       'acp-markdown-emphasis-face))))))
 
 (ert-deftest acp-markdown-table-ragged ()
   (with-test-buffer "| A | B |
@@ -444,10 +443,10 @@ after"
 | 1 |
 | 2 | 3 |
 "
-    (let* ((table (find-node "pipe_table"))
-           (rendered (acp-markdown--render-node table)))
-      (should (string= rendered
-                       "\
+                    (let* ((table (find-node "pipe_table"))
+                           (rendered (acp-markdown--render-node table)))
+                      (should (string= rendered
+                                       "\
 ┌───┬───┐
 │ A │ B │
 ├───┼───┤
@@ -462,10 +461,10 @@ after"
 | one  |
 | two  |
 "
-    (let* ((table (find-node "pipe_table"))
-           (rendered (acp-markdown--render-node table)))
-      (should (string= rendered
-                       "\
+                    (let* ((table (find-node "pipe_table"))
+                           (rendered (acp-markdown--render-node table)))
+                      (should (string= rendered
+                                       "\
 ┌──────┐
 │ Only │
 ├──────┤
@@ -478,10 +477,10 @@ after"
   (with-test-buffer "| A | B |
 | - | - |
 "
-    (let* ((table (find-node "pipe_table"))
-           (rendered (acp-markdown--render-node table)))
-      (should (string= rendered
-                       "\
+                    (let* ((table (find-node "pipe_table"))
+                           (rendered (acp-markdown--render-node table)))
+                      (should (string= rendered
+                                       "\
 ┌───┬───┐
 │ A │ B │
 ├───┼───┤

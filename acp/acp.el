@@ -202,7 +202,7 @@
     (when (not (bolp))
       (widget-insert "\n"))
     (setq acp--plan-widget
-        (widget-create 'acp-plan-widget :value entries))
+          (widget-create 'acp-plan-widget :value entries))
     (acp--reset-markdown-output)))
 
 (defun acp--on-error (_agent message)
@@ -263,8 +263,8 @@ and removes the associated widgets from the buffer."
   (interactive)
   (maphash
    (lambda (request-id pr-widget)
-       (acp-agent-respond-permission acp--agent request-id nil)
-       (widget-delete pr-widget))
+     (acp-agent-respond-permission acp--agent request-id nil)
+     (widget-delete pr-widget))
    acp--pending-permission-requests)
   (clrhash acp--pending-permission-requests)
   (message "[acp] Cancelled all pending permission requests"))
@@ -380,11 +380,11 @@ in dependency order, and starts a fresh session."
       (kill-buffer buf)))
   (let* ((dir (file-name-directory (locate-library "acp"))))
     (dolist (file '("acp-agent.el" "acp-diff.el" "acp-icon.el"
-                     "acp-frame.el"
-                     "acp-markdown.el" "acp-tool-call-widget.el"
-                     "acp-prompt-widget.el" "acp-permission-widget.el"
-                     "acp-plan-widget.el"
-                     "acp-git.el" "acp-changes-summary-widget.el" "acp.el"))
+                    "acp-frame.el"
+                    "acp-markdown.el" "acp-tool-call-widget.el"
+                    "acp-prompt-widget.el" "acp-permission-widget.el"
+                    "acp-plan-widget.el"
+                    "acp-git.el" "acp-changes-summary-widget.el" "acp.el"))
       (load-file (expand-file-name file dir))
       (message "[acp] Reloaded %s" file)))
   (message "[acp] All files reloaded – REPL ready"))

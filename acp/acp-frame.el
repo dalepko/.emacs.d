@@ -10,11 +10,11 @@ Returns a list of overlays for `acp-frame-delete'."
                  (propertize " " 'cursor t 'display '(space :align-to (- right 2)))
                  (propertize " ║" 'face 'default)))
         (first-suffix (concat
-                 (propertize " " 'display '(space :align-to (- right 3)))
-                 (propertize "══╗" 'face 'default)))
+                       (propertize " " 'display '(space :align-to (- right 3)))
+                       (propertize "══╗" 'face 'default)))
         (end-suffix (concat
-                 (propertize " " 'display '(space :align-to (- right 3)))
-                 (propertize "══╝" 'face 'default)))
+                     (propertize " " 'display '(space :align-to (- right 3)))
+                     (propertize "══╝" 'face 'default)))
         (overlays nil))
     (save-excursion
       (goto-char start)

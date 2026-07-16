@@ -77,7 +77,7 @@
       (should (string-match "a\\.el" content))
       (should-not (string-match "old\n" content))
       (should-not (string-match "new\n" content)))))
-  
+
 (ert-deftest acp-changes-summary--resolve-on-file-header ()
   (with-temp-buffer
     (widget-create 'acp-changes-summary-widget
@@ -135,7 +135,7 @@
     (should (equal (acp-changes-summary--resolve-diff-position)
                    '("a.el" 7)))))
 
-  
+
 (defun acp-changes-summary-test ()
   "Open temp buffer displaying changes summary widgets for visual inspection."
   (interactive)

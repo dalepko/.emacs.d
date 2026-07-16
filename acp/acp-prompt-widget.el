@@ -1,5 +1,4 @@
 ;;; acp-prompt-widget.el --- Custom prompt widget for ACP REPL  -*- lexical-binding: t; -*-
-
 (require 'widget)
 (require 'wid-edit)
 (require 'seq)
@@ -25,7 +24,7 @@
   (if (bound-and-true-p completion-in-region-mode)
       (if-let ((binding (seq-some (lambda (map)
                                     (when (not (eq map acp-prompt-widget-keymap))
-                                       (lookup-key map (kbd "RET"))))
+                                      (lookup-key map (kbd "RET"))))
                                   (current-active-maps))))
           (funcall binding)
         (widget-apply-action (widget-field-find (point))))
@@ -46,7 +45,7 @@ Uses `acp-prompt-widget-keymap' for keybindings and
   :value-delete #'widget-field-value-delete
   :value-get #'widget-field-value-get)
 
-  
+
 (defun acp-prompt-widget--create (widget)
   (widget-default-create widget)
   (set-marker-insertion-type (widget-get widget :to) t))

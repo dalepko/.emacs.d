@@ -32,17 +32,17 @@
    :request-id 0
    :tool-call
    (create-tool-call "other" "pending"
-    :title "external_directory"
-    :raw-input
-    (list :command
-          "Set-Content -Path \"$env:TEMP\\check-magit.el\" -Value ..."
-          :description
-          "Write temp elisp file"
-          :directories
-          '("C:\\Users\\david\\AppData\\Local\\Temp")
-          :patterns
-          '("C:\\Users\\david\\AppData\\Local\\Temp\\*"))
-    :locations '((:path "C:\\Users\\david\\AppData\\Local\\Temp")))
+                     :title "external_directory"
+                     :raw-input
+                     (list :command
+                           "Set-Content -Path \"$env:TEMP\\check-magit.el\" -Value ..."
+                           :description
+                           "Write temp elisp file"
+                           :directories
+                           '("C:\\Users\\david\\AppData\\Local\\Temp")
+                           :patterns
+                           '("C:\\Users\\david\\AppData\\Local\\Temp\\*"))
+                     :locations '((:path "C:\\Users\\david\\AppData\\Local\\Temp")))
    :options
    '((:optionId "once" :kind "allow_once" :name "Allow once")
      (:optionId "always" :kind "allow_always" :name "Always allow")
@@ -65,7 +65,7 @@ Set-Content -Path \"$env:TEMP\\check-magit.el\" -Value ...
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
 
 "
-)))))
+                     )))))
 
 ;; ── Filepath-style rawInput ────────────────────────────────────────────────
 
@@ -75,12 +75,12 @@ Set-Content -Path \"$env:TEMP\\check-magit.el\" -Value ...
    :request-id 0
    :tool-call
    (create-tool-call "other" "pending"
-    :title "external_directory"
-    :raw-input
-    (list :filepath "C:\\Windows\\acp-test-file.txt"
-          :parentDir "C:\\Windows")
-    :locations '((:path "C:\\Windows\\acp-test-file.txt")
-                 (:path "C:\\Windows")))
+                     :title "external_directory"
+                     :raw-input
+                     (list :filepath "C:\\Windows\\acp-test-file.txt"
+                           :parentDir "C:\\Windows")
+                     :locations '((:path "C:\\Windows\\acp-test-file.txt")
+                                  (:path "C:\\Windows")))
    :options
    '((:optionId "once" :kind "allow_once" :name "Allow once")
      (:optionId "always" :kind "allow_always" :name "Always allow")
@@ -113,12 +113,12 @@ Write file: C:\\Windows\\acp-test-file.txt
             :request-id 2
             :tool-call
             (create-tool-call "edit" "pending"
-             :title "edit_file"
-             :content
-             (list (acp-tool-call-diff--create
-                    :path tmp-file
-                    :oldText "some content"
-                    :newText "modified content")))
+                              :title "edit_file"
+                              :content
+                              (list (acp-tool-call-diff--create
+                                     :path tmp-file
+                                     :oldText "some content"
+                                     :newText "modified content")))
             :options
             '((:optionId "once" :kind "allow_once" :name "Allow once")
               (:optionId "always" :kind "allow_always" :name "Always allow")
@@ -138,7 +138,7 @@ Edit file: %s
 [ Allow once (y) ]  [ Always allow (!) ]  [ Reject (n) ]
 
 " tmp-file))))))))
-      
+
 ;; ── Edit-kind with raw-input diff ────────────────────────────────────────────
 
 (ert-deftest acp-permission-widget-kind-edit-with-raw-input ()
@@ -152,20 +152,20 @@ Index: test-file.el
 -old content
 +new content
 ")
-        (edit-request
-         (acp-permission-request--create
-          :session-id "ses_test_raw_edit"
-          :request-id 3
-          :tool-call
-         (create-tool-call "edit" "pending"
-          :title "edit_file"
-          :raw-input
-          (list :filepath "test-file.el"
-                :diff sample-diff))
-         :options
-         '((:optionId "once" :kind "allow_once" :name "Allow once")
-           (:optionId "always" :kind "allow_always" :name "Always allow")
-           (:optionId "reject" :kind "reject_once" :name "Reject")))))
+         (edit-request
+          (acp-permission-request--create
+           :session-id "ses_test_raw_edit"
+           :request-id 3
+           :tool-call
+           (create-tool-call "edit" "pending"
+                             :title "edit_file"
+                             :raw-input
+                             (list :filepath "test-file.el"
+                                   :diff sample-diff))
+           :options
+           '((:optionId "once" :kind "allow_once" :name "Allow once")
+             (:optionId "always" :kind "allow_always" :name "Always allow")
+             (:optionId "reject" :kind "reject_once" :name "Reject")))))
     (with-temp-buffer
       (let ((w (widget-create 'acp-permission-widget :value edit-request)))
         (should (equal (acp-frame-test--extract-title (widget-get w :frame-overlays))
@@ -191,11 +191,11 @@ Edit file: test-file.el
    :request-id 5
    :tool-call
    (create-tool-call "execute" "pending"
-    :title "execute"
-    :raw-input
-    (list :command "emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1"
-          :timeout 30000
-          :description "Run permission widget tests"))
+                     :title "execute"
+                     :raw-input
+                     (list :command "emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1"
+                           :timeout 30000
+                           :description "Run permission widget tests"))
    :options
    '((:optionId "allow" :kind "allow_once" :name "Allow")
      (:optionId "allow_always" :kind "allow_always" :name "Always Allow")
@@ -224,14 +224,14 @@ emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
    :request-id 8
    :tool-call
    (create-tool-call "execute" "pending"
-    :title "emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1"
-    :content
-    (list (acp-tool-call-content--create
-           :type "text"
-           :text "Run permission widget tests"))
-    :raw-input
-    (list :command "emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1"
-          :description "Run permission widget tests"))
+                     :title "emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1"
+                     :content
+                     (list (acp-tool-call-content--create
+                            :type "text"
+                            :text "Run permission widget tests"))
+                     :raw-input
+                     (list :command "emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1"
+                           :description "Run permission widget tests"))
    :options
    '((:optionId "allow_always" :kind "allow_always" :name "Always Allow")
      (:optionId "allow" :kind "allow_once" :name "Allow")
@@ -263,12 +263,12 @@ emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
           :request-id 4
           :tool-call
           (create-tool-call "edit" "pending"
-           :title "create_file"
-           :content
-           (list (acp-tool-call-diff--create
-                  :path "/tmp/new-file.txt"
-                  :oldText nil
-                  :newText "new file content\n")))
+                            :title "create_file"
+                            :content
+                            (list (acp-tool-call-diff--create
+                                   :path "/tmp/new-file.txt"
+                                   :oldText nil
+                                   :newText "new file content\n")))
           :options
           '((:optionId "once" :kind "allow_once" :name "Allow once")
             (:optionId "always" :kind "allow_always" :name "Always allow")
@@ -307,12 +307,12 @@ Edit file: /tmp/new-file.txt
                     :request-id 1
                     :tool-call
                     (create-tool-call "edit" "pending"
-                     :title "edit_file"
-                     :content
-                     (list (acp-tool-call-diff--create
-                            :path diff-file
-                            :oldText "acp-diff-create-and-format"
-                            :newText "acp-diff-create-and-format-xxx")))
+                                      :title "edit_file"
+                                      :content
+                                      (list (acp-tool-call-diff--create
+                                             :path diff-file
+                                             :oldText "acp-diff-create-and-format"
+                                             :newText "acp-diff-create-and-format-xxx")))
                     :options
                     '((:optionId "once" :kind "allow_once" :name "Allow once")
                       (:optionId "always" :kind "allow_always" :name "Always allow")

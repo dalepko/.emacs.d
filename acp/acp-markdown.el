@@ -1,5 +1,4 @@
 ;;; acp-markdown.el --- Render markdown inline nodes from tree-sitter  -*- lexical-binding: t; -*-
-
 (require 'treesit)
 (require 'seq)
 
@@ -96,7 +95,7 @@
       ("strong_emphasis"
        (acp-markdown--add-face (acp-markdown--render-inline node) 'acp-markdown-strong-face))
       ("strikethrough"
-        (acp-markdown--add-face (acp-markdown--render-inline node) 'acp-markdown-strikethrough-face))
+       (acp-markdown--add-face (acp-markdown--render-inline node) 'acp-markdown-strikethrough-face))
       ("backslash_escape"
        (substring (treesit-node-text node) 1))
       ((or "inline" "pipe_table_cell")
@@ -176,8 +175,8 @@
        (let* ((nodes (treesit-node-children node))
               (first (car nodes))
               (marker (if (and first
-                                 (string-prefix-p "list_marker_" (treesit-node-type first)))
-                           first))
+                               (string-prefix-p "list_marker_" (treesit-node-type first)))
+                          first))
               (children (if marker (cdr nodes) nodes))
               (content (acp-markdown--render-inline node (treesit-node-start (car children))))
               (marker-type (if marker (treesit-node-type marker)))
@@ -207,16 +206,16 @@
          (children (treesit-node-children node))
          (parts nil)
          (offset (or offset node-start)))
-  (dolist (child children)
-    (let ((child-start (treesit-node-start child))
-          (child-end (treesit-node-end child)))
-      (when (< offset child-start)
-        (push (buffer-substring-no-properties offset child-start) parts))
-      (push (acp-markdown--render-node child) parts)
-      (setq offset child-end)))
-  (when (< offset node-end)
-    (push (buffer-substring-no-properties offset node-end) parts))
-  (apply #'concat (nreverse parts))))
+    (dolist (child children)
+      (let ((child-start (treesit-node-start child))
+            (child-end (treesit-node-end child)))
+        (when (< offset child-start)
+          (push (buffer-substring-no-properties offset child-start) parts))
+        (push (acp-markdown--render-node child) parts)
+        (setq offset child-end)))
+    (when (< offset node-end)
+      (push (buffer-substring-no-properties offset node-end) parts))
+    (apply #'concat (nreverse parts))))
 
 
 (defun acp-markdown--add-face (text face)

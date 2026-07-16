@@ -104,12 +104,12 @@ Navigate to the line of the first hunk header in the diff."
                     (>= (point) diff-start))
           (when (memq (char-after) '(?+ ?\ ))
             (setq file-offset (1+ file-offset)))
-          
+
           (forward-line -1))
 
         (if (< (point) diff-start)
             (error "hunk header not found")))
-      
+
       (when (> file-offset 0)
         (setq file-offset (1- file-offset)))
 

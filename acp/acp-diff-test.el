@@ -6,7 +6,7 @@
 
 (ert-deftest acp-diff-create-existing-file-applies ()
   "Patch applies against an existing file — returns unified diff."
-  (with-tmp "line1\nline2\nline3\n" temp-file 
+  (with-tmp "line1\nline2\nline3\n" temp-file
     (let ((diff (acp-diff-create temp-file "line2" "LINE2")))
       (should (equal diff "\
 @@ -1,3 +1,3 @@
@@ -15,7 +15,7 @@
 +LINE2
  line3
 ")))))
-      
+
 
 (ert-deftest acp-diff-create-existing-file-patch-not-apply ()
   "old-text not found in existing file — signals error."
@@ -93,7 +93,7 @@ diff --git a/bar.el b/bar.el
 -removed
 +added
 "
-))))))
+                                       ))))))
 
 
 (ert-deftest acp-diff-parse-empty ()

@@ -9,11 +9,11 @@
 
 (defun tcw--render (tool-call)
   (let ((text (with-temp-buffer
-               (cl-letf (((symbol-function 'acp-icon-get)
-                          (lambda (_kind &rest _)
-                            (list 'image :type 'xbm :width 8 :height 8 :data [0]))))
-                 (widget-create 'acp-tool-call-widget :value tool-call)
-                 (buffer-substring (point-min) (point-max))))))
+                (cl-letf (((symbol-function 'acp-icon-get)
+                           (lambda (_kind &rest _)
+                             (list 'image :type 'xbm :width 8 :height 8 :data [0]))))
+                  (widget-create 'acp-tool-call-widget :value tool-call)
+                  (buffer-substring (point-min) (point-max))))))
     (remove-list-of-text-properties
      0 (length text)
      '(display keymap rear-nonsticky inhibit-isearch mouse-face context-menu-functions)
@@ -30,25 +30,25 @@
 (ert-deftest acp-tool-call-widget--label-read ()
   (should (equal (acp-tool-call-widget--label
                   (create-tool-call "read" "pending" :title "Read acp.el"
-                             :locations '((:path "acp.el"))))
+                                    :locations '((:path "acp.el"))))
                  "Reading acp.el")))
 
 (ert-deftest acp-tool-call-widget--label-edit ()
   (should (equal (acp-tool-call-widget--label
                   (create-tool-call "edit" "pending" :title "Refactor function"
-                             :locations '((:path "src/main.go"))))
+                                    :locations '((:path "src/main.go"))))
                  "Editing main.go")))
 
 (ert-deftest acp-tool-call-widget--label-delete ()
   (should (equal (acp-tool-call-widget--label
                   (create-tool-call "delete" "pending" :title "Delete temp file"
-                             :locations '((:path "tmp/old.txt"))))
+                                    :locations '((:path "tmp/old.txt"))))
                  "Deleting old.txt")))
 
 (ert-deftest acp-tool-call-widget--label-move ()
   (should (equal (acp-tool-call-widget--label
                   (create-tool-call "move" "pending" :title "Move file"
-                             :locations '((:path "src/a.go"))))
+                                    :locations '((:path "src/a.go"))))
                  "Moving a.go")))
 
 (ert-deftest acp-tool-call-widget--label-search ()
@@ -81,7 +81,7 @@
 (ert-deftest acp-tool-call-widget--label-empty-title ()
   (should (equal (acp-tool-call-widget--label
                   (create-tool-call "read" "pending" :title ""
-                             :locations '((:path "acp.el"))))
+                                    :locations '((:path "acp.el"))))
                  "Reading acp.el")))
 
 (ert-deftest acp-tool-call-widget--label-empty-title-no-locations ()
@@ -97,8 +97,8 @@
 (ert-deftest acp-tool-call-widget--label-locations-over-pattern ()
   (should (equal (acp-tool-call-widget--label
                   (create-tool-call "read" "pending" :title "Read acp.el"
-                             :locations '((:path "acp.el"))
-                             :raw-input '(:pattern "*.el")))
+                                    :locations '((:path "acp.el"))
+                                    :raw-input '(:pattern "*.el")))
                  "Reading acp.el")))
 
 (ert-deftest acp-tool-call-widget--label-other ()
@@ -124,28 +124,28 @@
 
 (ert-deftest acp-tool-call-widget-status-pending-face ()
   (let* ((tc (create-tool-call "read" "pending" :title "Read acp.el"
-                          :locations '((:path "acp.el"))))
+                               :locations '((:path "acp.el"))))
          (ivals (tcw--render tc)))
     (should (equal (nth (- (length ivals) 2) ivals)
                    '(" waiting " face acp-tool-call-widget-status-pending-face)))))
 
 (ert-deftest acp-tool-call-widget-status-in-progress-face ()
   (let* ((tc (create-tool-call "read" "in_progress" :title "Read acp.el"
-                          :locations '((:path "acp.el"))))
+                               :locations '((:path "acp.el"))))
          (ivals (tcw--render tc)))
     (should (equal (nth (- (length ivals) 2) ivals)
                    '(" running " face acp-tool-call-widget-status-in-progress-face)))))
 
 (ert-deftest acp-tool-call-widget-status-completed-face ()
   (let* ((tc (create-tool-call "read" "completed" :title "Read acp.el"
-                          :locations '((:path "acp.el"))))
+                               :locations '((:path "acp.el"))))
          (ivals (tcw--render tc)))
     (should (equal (nth (- (length ivals) 2) ivals)
                    '(" completed " face acp-tool-call-widget-status-completed-face)))))
 
 (ert-deftest acp-tool-call-widget-status-failed-face ()
   (let* ((tc (create-tool-call "read" "failed" :title "Read acp.el"
-                          :locations '((:path "acp.el"))))
+                               :locations '((:path "acp.el"))))
          (ivals (tcw--render tc)))
     (should (equal (nth (- (length ivals) 2) ivals)
                    '(" failed " face acp-tool-call-widget-status-failed-face)))))
@@ -207,8 +207,8 @@
                                (acp-tool-call-widget-update-state
                                 (gethash id acp--tool-widgets)
                                 (acp-tool-call--create
-                                  :id id :status "failed"
-                                  :title "Read acp.el" :kind "read")))
+                                 :id id :status "failed"
+                                 :title "Read acp.el" :kind "read")))
                      "error"))
     ;; ── Sample 3: edit with location ──
     (widget-insert "\n\nSample 3: edit (pending → running → completed)\n")
@@ -258,7 +258,7 @@
                                (acp-tool-call-widget-update-state
                                 (gethash id acp--tool-widgets)
                                 (acp-tool-call--create
-                                  :id id :status "failed" :kind "execute")))
+                                 :id id :status "failed" :kind "execute")))
                      "error"))
     ;; ── Sample 5: execute with content (has [view] button) ──
     (widget-insert "\n\nSample 5: execute with content (has [view] button)\n")

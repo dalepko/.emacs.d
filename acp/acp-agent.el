@@ -1,5 +1,4 @@
 ;;; acp-agent.el --- ACP protocol client -*- lexical-binding: t; -*-
-
 (require 'json)
 (require 'cl-lib)
 
@@ -48,7 +47,7 @@ user's original intent (:command, :description, etc.)."
   (raw-input nil :read-only t :type (or null list)))
 
 (cl-defstruct (acp-tool-call-content (:constructor acp-tool-call-content--create)
-				    (:copier nil))
+				     (:copier nil))
   "A content block (text, image, audio, or resource) in a tool call update.
 Corresponds to `type: \"content\"' items in a tool call's content list."
   (type nil :read-only t :type string)
@@ -59,7 +58,7 @@ Corresponds to `type: \"content\"' items in a tool call's content list."
   (resource nil :read-only t :type (or null list)))
 
 (cl-defstruct (acp-tool-call-diff (:constructor acp-tool-call-diff--create)
-				 (:copier nil))
+				  (:copier nil))
   "A file diff in a tool call update.
 Corresponds to `type: \"diff\"' items in a tool call's content list."
   (path nil :read-only t :type string)
@@ -67,7 +66,7 @@ Corresponds to `type: \"diff\"' items in a tool call's content list."
   (newText nil :read-only t :type string))
 
 (cl-defstruct (acp-tool-call-terminal (:constructor acp-tool-call-terminal--create)
-				     (:copier nil))
+				      (:copier nil))
   "A terminal reference in a tool call update.
 Corresponds to `type: \"terminal\"' items in a tool call's content list."
   (terminalId nil :read-only t :type string))
@@ -262,8 +261,8 @@ Returns non-nil if accepted.  Call only after :on-ready fires."
      ;; Request from agent
      ((and id method)
       (pcase method
-         ("session/request_permission"
-          (let* ((tool-call (acp-agent--parse-tool-call (plist-get params :toolCall)))
+        ("session/request_permission"
+         (let* ((tool-call (acp-agent--parse-tool-call (plist-get params :toolCall)))
                 (pr (acp-permission-request--create
                      :session-id (plist-get params :sessionId)
                      :request-id id
@@ -309,7 +308,7 @@ Returns non-nil if accepted.  Call only after :on-ready fires."
      (acp-agent--on-session-update agent (plist-get params :update)))
     (_
      (acp-agent--fire agent :on-error
-                       (format "Unhandled notification: %s" method)))))
+                      (format "Unhandled notification: %s" method)))))
 
 (defun acp-agent--on-session-update (agent update)
   "Handle a session/update notification."

@@ -1,5 +1,4 @@
 ;;; acp-tool-call-widget.el --- Tool call widget for ACP REPL  -*- lexical-binding: t; -*-
-
 (require 'acp-agent)
 (require 'acp-icon)
 (require 'wid-edit)
