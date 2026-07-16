@@ -71,10 +71,10 @@
   (rich-minority-mode 1)
   :custom
   (rm-blacklist (mapconcat 'identity
-                           '(" AC" " Ind" " MRev" " Interactive" " $"
+                           '(" AC" " Ind" " MRev" " Interactive" " \\$"
                              " ARev" " ElDoc" " Guide"
                              " WK" " yas" " Apheleia")
-                           "\\\\|"))
+                           "\\|"))
   (rm-text-properties
    '(("\\` Ovwrt\\'" 'face 'font-lock-warning-face)
      ("\\` FlyC:" 'face 'font-lock-warning-face))))
@@ -253,7 +253,7 @@
   (add-to-list 'eglot-server-programs
                '((rust-ts-mode rust-mode) .
                  ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
-  (add-to-list 'eglot-server-programs '(((python-ts-mode python-mode)) . ("ty" "server")))
+  (add-to-list 'eglot-server-programs '(((python-ts-mode python-mode)) . ("uvx" "ty" "server")))
 
   (advice-add 'eglot--connect :around #'overload-projet-root-for-node)
 
@@ -290,7 +290,7 @@
   :after python
   :commands (pytest pytest-again)
   :bind (:map python-ts-mode-map
-              ([shift f9] . pytest)
+              ([(shift f9)] . pytest)
               ([f9] . pytest-again)))
 
 (use-package python-venv

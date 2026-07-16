@@ -1,7 +1,7 @@
 ;;; python-venv.el --- Virtualenv management for Python -*- lexical-binding: t -*-
 (require 'python)
 
-(defconst python-venv--mode-line-indicator '(:exec venv-current-name))
+(defconst python-venv--mode-line-indicator '(:eval (python-venv--get-name)))
 
 (defun python-venv--scripts-dir (venv-root)
   "Return the scripts directory within VENV-ROOT."
@@ -34,13 +34,17 @@
       (setq exec-path (cons (python-venv--scripts-dir new-venv) exec-path))
       (setenv "PATH" (mapconcat 'identity exec-path ":")))))
 
+(defun python-venv--get-name ()
+  (when (eq major-mode #'python-ts-mode)
+    (when-let ((venv (getenv "VIRTUAL_ENV"))
+               (venv-name (file-name-nondirectory venv)))
+      (format "[%s]" venv-name))))
+
 ;;;###autoload
 (defun python-venv-setup ()
   "Set up virtualenv support for the current Python buffer."
   (unless (eq (car mode-line-format) python-venv--mode-line-indicator)
     (setq mode-line-format (cons python-venv--mode-line-indicator mode-line-format)))
-  (when (boundp 'project-venv-name)
-    (venv-workon project-venv-name))
   (python-venv-activate))
 
 (provide 'python-venv)
