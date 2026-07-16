@@ -62,13 +62,15 @@
                  "npm test")))
 
 (ert-deftest acp-tool-call-widget--label-execute-claude-code ()
-  "Claude-code format: label uses content text description, not the full command title."
+  "Claude-code format: label uses description from raw-input"
   (should (equal (acp-tool-call-widget--label
                   (create-tool-call "execute" "pending"
-                             :title "emacs --batch -L acp -l acp-test -f ert-run-tests-batch 2>&1"
-                             :content (list (acp-tool-call-content--create
-                                            :type "text"
-                                            :text "Run permission widget tests"))))
+                                    :title "emacs --batch -L acp -l acp-test -f ert-run-tests-batch 2>&1"
+                                    :raw-input '(:command "emacs --batch -L acp -l acp-test -f ert-run-tests-batch 2>&1"
+                                                          :description "Run permission widget tests")
+                                    :content (list (acp-tool-call-content--create
+                                                    :type "text"
+                                                    :text "LONG output"))))
                  "Run permission widget tests")))
 
 (ert-deftest acp-tool-call-widget--label-fetch ()
