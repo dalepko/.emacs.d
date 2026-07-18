@@ -25,7 +25,7 @@
 (if (eq system-type 'windows-nt)
     (set-face-attribute 'default nil :height 120)
   (set-face-attribute 'default nil :height 140)
-  (setq (shell-file-name "/bin/bash")))
+  (setq shell-file-name "/bin/bash"))
 
 (use-package savehist
   :init
@@ -436,6 +436,8 @@
   (dirvish-override-dired-mode)
   (when (eq system-type 'windows-nt)
     (setq insert-directory-program "C:/Program Files/Git/usr/bin/ls.exe"))
+  (when (eq system-type '"darwin")
+    (setq insert-directory-program "gls"))
   :bind (("C-x d" . #'dirvish)
          :map dired-mode-map
          (([(control o)] . #'project-find-file)))
