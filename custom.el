@@ -13,7 +13,7 @@
  '(before-save-hook '(delete-trailing-whitespace))
  '(clean-buffer-list-delay-general 1)
  '(css-indent-offset 2)
- '(custom-enabled-themes '(gruvbox-dark-medium))
+ '(custom-enabled-themes '(doom-oceanic-next))
  '(custom-safe-themes
    '("5a0ddbd75929d24f5ef34944d78789c6c3421aa943c15218bac791c199fc897d"
      "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default))
@@ -48,11 +48,13 @@
  '(package-archives
    '(("melpa" . "https://melpa.org/packages/") ("gnu" . "http://elpa.gnu.org/packages/")))
  '(package-selected-packages
-   '(ansible ansible-vault apheleia consult-flycheck corfu diff-hl dirvish dockerfile-mode fish-mode
-             flycheck-eglot git gruvbox-theme haskell-mode helpful kaolin-themes magit magit-popup
-             marginalia markdown-preview-mode multiple-cursors orderless orgtbl-join phi-search
-             po-mode pyenv-mode realgud rust-mode shell-pop smart-mode-line terraform-mode vertico
-             web-mode yaml-mode yasnippet))
+   '(ansible ansible-vault apheleia async consult-flycheck corfu diff-hl dirvish dockerfile-mode
+             doom-modeline doom-themes fish-mode flycheck-eglot fringe-helper git git-gutter
+             gruvbox-theme haskell-mode helpful inheritenv kaolin-themes language-id magit
+             magit-popup marginalia markdown-preview-mode mood-line moody multiple-cursors orderless
+             orgtbl-join phi-search po-mode projectile pyenv-mode realgud reformatter rust-mode
+             shell-maker shell-pop smart-mode-line terraform-mode vertico web-mode wfnames yaml-mode
+             yasnippet))
  '(realgud-populate-common-fn-keys-function 'identity)
  '(ring-bell-function 'ignore)
  '(safe-local-variable-values
