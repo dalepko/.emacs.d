@@ -430,6 +430,18 @@
   :load-path "~/.emacs.d/acp"
   :bind (("C-c t" . #'acp)))
 
+(use-package dirvish
+  :ensure t
+  :init
+  (dirvish-override-dired-mode)
+  (when (eq system-type 'windows-nt)
+    (setq insert-directory-program "C:/Program Files/Git/usr/bin/ls.exe"))
+  :bind (("C-x d" . #'dirvish)
+         :map dired-mode-map
+         (([(control o)] . #'project-find-file)))
+  :custom
+  (dirvish-attributes '(vc-state nerd-icon collapse file-time file-size)))
+
 ;;--[utils]-----------------------------------------------------
 
 (defun toggle-camelcase-underscores ()

@@ -48,7 +48,7 @@
  '(package-archives
    '(("melpa" . "https://melpa.org/packages/") ("gnu" . "http://elpa.gnu.org/packages/")))
  '(package-selected-packages
-   '(ansible ansible-vault apheleia consult-flycheck corfu diff-hl dockerfile-mode fish-mode
+   '(ansible ansible-vault apheleia consult-flycheck corfu diff-hl dirvish dockerfile-mode fish-mode
              flycheck-eglot git gruvbox-theme haskell-mode helpful kaolin-themes magit magit-popup
              marginalia markdown-preview-mode multiple-cursors orderless orgtbl-join phi-search
              po-mode pyenv-mode realgud rust-mode shell-pop smart-mode-line terraform-mode vertico
