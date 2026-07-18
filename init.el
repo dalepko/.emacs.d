@@ -1,7 +1,6 @@
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file)
 
-
 ;;--[defaults]--------------------------------------------------
 
 ;; Force UTF-8 as the default coding system
@@ -22,6 +21,24 @@
 
 (global-set-key [f9] #'compile)
 (global-set-key [f1] #'apropos)
+
+(if (eq system-type 'windows-nt)
+    (set-face-attribute 'default nil :height 120)
+  (set-face-attribute 'default nil :height 140)
+  (setq (shell-file-name "/bin/bash")))
+
+(use-package savehist
+  :init
+  (savehist-mode))
+
+(use-package emacs
+  :custom
+  (enable-recursive-minibuffers t)
+  (minibuffer-prompt-properties
+   '(read-only t cursor-intangible t face minibuffer-prompt))
+
+  :custom-face
+  (default ((t (:family "Menlo")))))
 
 (use-package treesit
   :init
@@ -60,24 +77,17 @@
 
 ;;--[UI]--------------------------------------------------------
 
-(use-package smart-mode-line
-  :ensure t
-  :config
-  (sml/setup))
+(use-package nerd-icons
+  :ensure t)
 
-(use-package rich-minority
+(use-package doom-modeline
   :ensure t
-  :config
-  (rich-minority-mode 1)
+  :after nerd-icons
+  :init
+  (doom-modeline-mode 1)
   :custom
-  (rm-blacklist (mapconcat 'identity
-                           '(" AC" " Ind" " MRev" " Interactive" " \\$"
-                             " ARev" " ElDoc" " Guide"
-                             " WK" " yas" " Apheleia")
-                           "\\|"))
-  (rm-text-properties
-   '(("\\` Ovwrt\\'" 'face 'font-lock-warning-face)
-     ("\\` FlyC:" 'face 'font-lock-warning-face))))
+  (doom-modeline-buffer-encoding nil)
+  (doom-modeline-highlight-modified-buffer-name nil))
 
 (use-package diff-hl
   :ensure t
@@ -105,6 +115,12 @@
          ("C-h v" . helpful-variable)
          ("C-h k" . helpful-key)))
 
+
+(use-package shell-pop
+  :ensure t
+  :custom
+  (shell-pop-universal-key "C-p"))
+
 ;;--[completion]------------------------------------------------
 
 (use-package corfu
@@ -128,9 +144,12 @@
   :ensure t
   :init
   (vertico-mode)
+  (vertico-multiform-mode)
   :custom
   (vertico-repeat-transformers '(vertico-repeat--filter-commands
                                  vertico-repeat--remove-long))
+  (vertico-multiform-commands '((consult-ripgrep buffer)
+                                (xref-find-definitions buffer)))
   :bind ("C-x c b" . vertico-repeat)
   :hook (minibuffer-setup . vertico-repeat-save))
 
@@ -349,6 +368,8 @@
 
 (use-package rust-mode
   :ensure t
+  :custom
+  (rust-format-on-save t)
   :bind (:map rust-ts-mode-map ([f9] . rust-test)))
 
 (use-package haskell-mode
@@ -390,7 +411,10 @@
 
 (use-package terraform-mode
   :ensure t
-  :hook (terraform-mode . terraform-format-on-save-mode))
+  :custom
+  (terraform-indent-level 2)
+  :hook
+  (terraform-mode . terraform-format-on-save-mode))
 
 (use-package fish-mode
   :ensure t
