@@ -2,6 +2,7 @@
 (require 'widget)
 (require 'project)
 (require 'compat)
+(require 'which-func)
 
 (require 'acp-agent)
 (require 'acp-markdown)
@@ -20,6 +21,10 @@
 (defvar acp--markdown-buffer)
 (defvar acp--response-begin)
 (defvar acp--snapshot-before)
+
+(defvar acp--captured-context nil
+  "Context string captured when `acp' was invoked.
+Consumed and cleared on the next prompt submission.")
 
 
 ;; ── Options ─────────────────────────────────────────────────────────────────
@@ -98,6 +103,24 @@
 
 
 ;; ── Helpers ─────────────────────────────────────────────────────────────────
+
+(defun acp--capture-context ()
+  "Capture context from the current buffer before invoking `acp'.
+Returns a formatted string describing the file and either the active
+region text or the current function name.  Returns nil if the buffer
+is not visiting a file."
+  (when-let ((fname (buffer-file-name)))
+    (let* ((file-relative-path (file-relative-name fname (acp--project-root)))
+           (context-parts (list (format "editing %s" file-relative-path))))
+      (if (use-region-p)
+          (let ((region-text (buffer-substring-no-properties
+                              (region-beginning) (region-end))))
+            (when (and region-text (not (string-empty-p (string-trim region-text))))
+              (push (format "selected text: %s" (json-encode region-text))
+                    context-parts)))
+        (when-let ((fn (which-function)))
+          (push (format "in function `%s'" fn) context-parts)))
+      (format "[Context: %s]\n\n" (mapconcat #'identity (nreverse context-parts) ", ")))))
 
 (defun acp--ensure-prompt ()
   "Create the prompt widget if it doesn't exist."
@@ -302,8 +325,10 @@ any pending permission requests, per the ACP specification."
     (acp--insert-output (concat "> " (propertize input 'face 'acp-prompt-widget-face) "\n"))
     (acp--reset-markdown-output)
     (when (and acp--agent (acp-agent-live-p acp--agent))
-      (acp-agent-send-prompt acp--agent input))))
-
+      (acp-agent-send-prompt
+       acp--agent
+       (concat acp--captured-context input)))
+    (setq acp--captured-context nil)))
 
 
 ;; ── Entry point ─────────────────────────────────────────────────────────────
@@ -324,7 +349,8 @@ any pending permission requests, per the ACP specification."
 One ACP buffer per project.  Pop to the existing buffer if one
 already exists for this project."
   (interactive)
-  (let* ((root (acp--project-root))
+  (let* ((context (acp--capture-context))
+         (root (acp--project-root))
          (buffer-name (acp--buffer-name))
          (buffer (get-buffer buffer-name)))
     (unless (buffer-live-p buffer)
@@ -332,7 +358,8 @@ already exists for this project."
         (setq default-directory root)
         (acp-mode)))
 
-    (pop-to-buffer buffer-name)))
+    (pop-to-buffer buffer-name)
+    (setq-local acp--captured-context context)))
 
 (defun acp--cleanup ()
   "Clean up the agent and hidden buffers when the REPL buffer is killed."
@@ -354,6 +381,7 @@ already exists for this project."
   (setq-local acp--markdown-buffer (acp-markdown-buffer-create))
   (setq-local acp--response-begin (copy-marker (point) t))
   (setq-local acp--snapshot-before nil)
+  (setq-local acp--captured-context nil)
   (add-hook 'completion-at-point-functions #'acp-prompt-completion-at-point nil t)
   (add-hook 'kill-buffer-hook #'acp--cleanup nil t)
   (acp--ensure-prompt)
