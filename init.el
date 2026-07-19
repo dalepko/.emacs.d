@@ -117,11 +117,32 @@
          ("C-h v" . helpful-variable)
          ("C-h k" . helpful-key)))
 
-
 (use-package shell-pop
   :ensure t
   :custom
   (shell-pop-universal-key "C-p"))
+
+(use-package embark
+  :ensure t
+
+  :bind
+  (("C-." . embark-act)
+   ("M-." . embark-dwim)
+   ("C-h B" . embark-bindings))
+
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command)
+  (setq embark-prompter #'embark-completing-read-prompter)
+  (setq embark-indicators
+        '(embark-minimal-indicator  ; default is embark-mixed-indicator
+          embark-highlight-indicator
+          embark-isearch-highlight-indicator))
+
+  :config
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
 
 ;;--[completion]------------------------------------------------
 
@@ -160,12 +181,6 @@
   :init
   (marginalia-mode))
 
-(use-package project
-  :bind (([(control o)] . project-find-file)
-         ([(control shift o)] . project-switch-project))
-  :custom
-  (project-switch-commands 'project-find-file))
-
 (use-package consult
   :ensure t
   :bind (([(control f)] . consult-imenu)
@@ -174,6 +189,14 @@
          ("M-y" . consult-yank-pop))
   :custom
   (xref-show-xrefs-function #'consult-xref))
+
+(use-package marginalia
+  :ensure t
+  :config
+  (marginalia-mode))
+
+(use-package embark-consult
+  :ensure t)
 
 ;;--[editing]---------------------------------------------------
 
@@ -297,6 +320,29 @@
                             (flycheck-eglot-mode 1)))))
 
 ;;--[languages]-------------------------------------------------
+
+(use-package project
+  :bind (([(control o)] . project-find-file)
+         ([(control shift o)] . project-switch-project))
+  :after embark
+  :init
+  (defun become-project-switch-project ()
+    (interactive)
+    (embark--become-command #'project-switch-project (minibuffer-contents)))
+
+  (defvar project-find-file-minibuffer-map
+    (let ((map (make-sparse-keymap)))
+      (keymap-set map "C-o" #'become-project-switch-project)
+      map))
+
+  (add-hook 'minibuffer-setup-hook
+            (lambda ()
+              (when (eq this-command #'project-find-file)
+                (set-keymap-parent project-find-file-minibuffer-map (current-local-map))
+                (use-local-map project-find-file-minibuffer-map))))
+
+  :custom
+  (project-switch-commands 'project-find-file))
 
 (use-package python
   :config

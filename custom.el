@@ -50,12 +50,12 @@
    '(("melpa" . "https://melpa.org/packages/") ("gnu" . "http://elpa.gnu.org/packages/")))
  '(package-selected-packages
    '(ansible ansible-vault apheleia async consult-flycheck corfu diff-hl dirvish dockerfile-mode
-             doom-modeline doom-themes fish-mode flycheck-eglot fringe-helper git git-gutter
-             gruvbox-theme haskell-mode helpful inheritenv kaolin-themes language-id magit
-             magit-popup marginalia markdown-preview-mode mood-line moody multiple-cursors orderless
-             orgtbl-join phi-search po-mode projectile pyenv-mode realgud reformatter rust-mode
-             shell-maker shell-pop smart-mode-line terraform-mode vertico web-mode wfnames yaml-mode
-             yasnippet))
+             doom-modeline doom-themes embark-consult fish-mode flycheck-eglot fringe-helper git
+             git-gutter gruvbox-theme haskell-mode helpful inheritenv kaolin-themes language-id
+             magit magit-popup marginalia markdown-preview-mode mood-line moody multiple-cursors
+             orderless orgtbl-join phi-search po-mode projectile pyenv-mode realgud reformatter
+             rust-mode shell-maker shell-pop smart-mode-line terraform-mode vertico web-mode wfnames
+             yaml-mode yasnippet))
  '(realgud-populate-common-fn-keys-function 'identity)
  '(ring-bell-function 'ignore)
  '(safe-local-variable-values
