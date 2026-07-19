@@ -384,6 +384,7 @@ already exists for this project."
   (setq-local acp--captured-context nil)
   (add-hook 'completion-at-point-functions #'acp-prompt-completion-at-point nil t)
   (add-hook 'kill-buffer-hook #'acp--cleanup nil t)
+  (acp--customize-buttons)
   (acp--ensure-prompt)
   (setq acp--agent
         (acp-agent-start
@@ -397,6 +398,13 @@ already exists for this project."
          :on-prompt-done #'acp--on-prompt-done
          :on-permission-request #'acp--on-permission-request
          :on-error #'acp--on-error)))
+
+(defun acp--customize-buttons()
+  (setq-local widget-button-face 'custom-button)
+  (setq-local widget-button-pressed-face 'custom-button-pressed)
+  (setq-local widget-mouse-face 'custom-button-mouse)
+  (setq-local widget-push-button-prefix "")
+  (setq-local widget-push-button-suffix ""))
 
 (defun acp-reload ()
   "Reload all ACP source files and restart the REPL.

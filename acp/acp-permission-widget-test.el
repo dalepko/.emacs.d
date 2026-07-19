@@ -275,9 +275,13 @@ Edit file: /tmp/new-file.txt
 (defun acp-permission-widget-test ()
   "Open a test buffer with sample permission request widgets."
   (interactive)
+
+  (require 'acp)
+
   (let* ((inhibit-read-only t)
          (diff-file (expand-file-name "acp-diff.el" acp-permission-widget-test-dir)))
     (switch-to-buffer (get-buffer-create "*acp-permission-widget-test*"))
+    (acp--customize-buttons)
     (erase-buffer)
     (widget-create 'acp-permission-widget :value sample-kind-other-with-command)
     (widget-insert "\n")

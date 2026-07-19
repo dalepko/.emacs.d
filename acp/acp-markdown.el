@@ -22,7 +22,7 @@
   :group 'acp)
 
 (defface acp-markdown-code-face
-  '((t :inherit font-lock-builtin-face))
+  '((t :inherit font-lock-keyword-face))
   "Face for markdown inline code (`code`)."
   :group 'acp)
 
