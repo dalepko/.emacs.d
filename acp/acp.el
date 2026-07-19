@@ -400,6 +400,7 @@ already exists for this project."
          :on-error #'acp--on-error)))
 
 (defun acp--customize-buttons()
+  (require 'cus-edit)
   (setq-local widget-button-face 'custom-button)
   (setq-local widget-button-pressed-face 'custom-button-pressed)
   (setq-local widget-mouse-face 'custom-button-mouse)

@@ -57,7 +57,7 @@ Returns the unified diff string produced by `diff-no-select'."
 (defun acp-diff-cleanup-diff (diff)
   "Remove all lines before the first hunk header in DIFF."
   (save-match-data
-    (if (string-match "\\`\\(?:.\\|\n\\)*\\(@@ \\)" diff)
+    (if (string-match "\\`\\(?:.*\n\\)*\\(@@ \\)" diff)
         (substring diff (match-beginning 1))
       (error "invalid diff content"))))
 
@@ -86,6 +86,7 @@ Calls `acp-diff-create' then `acp-diff-format' on the result."
 
 Each plist contains:
   :filename — the file path from the +++ line
+  :status   — one of \"added\", \"deleted\", or \"modified\"
   :added    — number of added lines (lines starting with +)
   :removed  — number of removed lines (lines starting with -)
   :diff     — the full diff text for that file (including hunk headers)
@@ -99,13 +100,15 @@ Returns nil when PATCH is empty or nil."
           (current-diff nil)
           (current-added 0)
           (current-removed 0)
-          (current-file nil))
+          (current-file nil)
+          (current-status "modified"))
       (dolist (line lines)
         (cond
          ;; Start of a new file section
          ((string-match "\\`diff --git" line)
           (when current-file
             (push (list :filename current-file
+                        :status current-status
                         :added current-added
                         :removed current-removed
                         :diff (string-join (nreverse current-diff) ""))
@@ -113,10 +116,22 @@ Returns nil when PATCH is empty or nil."
           (setq current-diff nil
                 current-added 0
                 current-removed 0
-                current-file nil))
-         ;; Extract filename from "+++ b/<path>"
+                current-file nil
+                current-status "modified"))
+
+         ;; Extract filename and status from "+++ b/<path>" and  "--- b/<path>"
          ((string-match "\\`\\+\\+\\+ \\(?:[ab]\\)?/?" line)
-          (setq current-file (string-trim (substring line (match-end 0)))))
+          (let ((filename (string-trim (substring line (match-end 0)))))
+            (if (string= filename "dev/null")
+                (setq current-status "deleted")
+              (setq current-file filename))))
+
+         ((string-match "\\`\\-\\-\\- \\(?:[ab]\\)?/?" line)
+          (let ((filename (string-trim (substring line (match-end 0)))))
+            (if (string= filename "dev/null")
+                (setq current-status "added")
+              (setq current-file filename))))
+
          ;; Accumulate diff lines after we've seen the file header
          (t
           (when current-file
@@ -125,6 +140,7 @@ Returns nil when PATCH is empty or nil."
                   ((string-prefix-p "-" line) (setq current-removed (1+ current-removed))))))))
       (when current-file
         (push (list :filename current-file
+                    :status current-status
                     :added current-added
                     :removed current-removed
                     :diff (string-join (nreverse current-diff) ""))

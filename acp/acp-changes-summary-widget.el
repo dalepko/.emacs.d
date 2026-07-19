@@ -39,7 +39,7 @@ and :diff keys.  TAB on a file row toggles the diff display."
       (let* ((added (plist-get entry :added))
              (removed (plist-get entry :removed))
              (row-start (point)))
-        (insert (propertize "modified  " 'face '(:weight bold)))
+        (insert (propertize (format "%-10s" (or (plist-get entry :status) "modified")) 'face '(:weight bold)))
         (insert (propertize (plist-get entry :filename) 'face '(:weight bold)))
         (insert (propertize " " 'display '(space :align-to (- right 11))))
         (when (> added 0)

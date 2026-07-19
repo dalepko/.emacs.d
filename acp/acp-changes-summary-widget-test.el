@@ -16,14 +16,14 @@
   "acp-changes-summary-widget displays filename and added/removed counts."
   (with-temp-buffer
     (widget-create 'acp-changes-summary-widget
-                   :value '((:filename "a.el" :added 3 :removed 0 :diff "")
-                            (:filename "b.el" :added 1 :removed 2 :diff "")))
+                   :value '((:filename "a.el" :status "added" :added 3 :removed 0 :diff "")
+                            (:filename "b.el" :status "modified" :added 1 :removed 2 :diff "")))
     (widget-setup)
     (let ((content (buffer-string)))
       (should (equal (acp-changes-summary--intervals-without
                       '(keymap acp-changes-summary-entry) content)
                      `(("\n" face (:underline t :extend t))
-                       ("modified  " face (:weight bold))
+                       ("added     " face (:weight bold))
                        ("a.el" face (:weight bold))
                        (" " display (space :align-to (- right 11)))
                        ("+3" face acp-changes-summary-added-face)
@@ -41,8 +41,8 @@
   "Each row has the keymap and entry text properties."
   (with-temp-buffer
     (widget-create 'acp-changes-summary-widget
-                   :value '((:filename "a.el" :added 3 :removed 0 :diff "")
-                            (:filename "b.el" :added 1 :removed 2 :diff "")))
+                   :value '((:filename "a.el" :status "added" :added 3 :removed 0 :diff "")
+                            (:filename "b.el" :status "modified" :added 1 :removed 2 :diff "")))
     (widget-setup)
     (should (eq (get-char-property 2 'keymap) acp-changes-summary-keymap))
     (let ((e (get-char-property 2 'acp-changes-summary-entry)))
@@ -52,7 +52,7 @@
   "TAB on a row expands the diff below it."
   (with-temp-buffer
     (widget-create 'acp-changes-summary-widget
-                   :value '((:filename "a.el" :added 1 :removed 0 :diff
+                   :value '((:filename "a.el" :status "modified" :added 1 :removed 0 :diff
                                        "@@ -1,1 +1,1 @@\n-old\n+new\n")))
     (widget-setup)
     (goto-char 2)
@@ -66,7 +66,7 @@
   "TAB on an expanded row collapses the diff."
   (with-temp-buffer
     (widget-create 'acp-changes-summary-widget
-                   :value '((:filename "a.el" :added 1 :removed 0 :diff
+                   :value '((:filename "a.el" :status "modified" :added 1 :removed 0 :diff
                                        "@@ -1,1 +1,1 @@\n-old\n+new\n")))
     (widget-setup)
     (goto-char 2)
@@ -81,7 +81,7 @@
 (ert-deftest acp-changes-summary--resolve-on-file-header ()
   (with-temp-buffer
     (widget-create 'acp-changes-summary-widget
-                   :value '((:filename "a.el" :added 1 :removed 0 :diff
+                   :value '((:filename "a.el" :status "modified" :added 1 :removed 0 :diff
                                        "@@ -1,1 +1,1 @@\n-old\n+new\n")))
     (goto-char 2)
     (should (equal (acp-changes-summary--resolve-diff-position)
@@ -91,7 +91,7 @@
 (ert-deftest acp-changes-summary--resolve-on-hunk-header ()
   (with-temp-buffer
     (widget-create 'acp-changes-summary-widget
-                   :value '((:filename "a.el" :added 1 :removed 0 :diff
+                   :value '((:filename "a.el" :status "modified" :added 1 :removed 0 :diff
                                        "@@ -1,1 +14,1 @@\n-old\n+new\n")))
     (goto-char 2)
     (call-interactively 'acp-changes-summary-toggle-diff)
@@ -102,7 +102,7 @@
 (ert-deftest acp-changes-summary--resolve-on-deleted-line ()
   (with-temp-buffer
     (widget-create 'acp-changes-summary-widget
-                   :value '((:filename "a.el" :added 1 :removed 0 :diff
+                   :value '((:filename "a.el" :status "modified" :added 1 :removed 0 :diff
                                        "@@ -1,5 +5,4 @@
  context1
  context2
@@ -120,7 +120,7 @@
 (ert-deftest acp-changes-summary--resolve-on-added-line ()
   (with-temp-buffer
     (widget-create 'acp-changes-summary-widget
-                   :value '((:filename "a.el" :added 1 :removed 0 :diff
+                   :value '((:filename "a.el" :status "modified" :added 1 :removed 0 :diff
                                        "@@ -1,5 +5,5 @@
  context1
  context2
