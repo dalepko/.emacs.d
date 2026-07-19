@@ -151,7 +151,7 @@
   (vertico-repeat-transformers '(vertico-repeat--filter-commands
                                  vertico-repeat--remove-long))
   (vertico-multiform-commands '((consult-ripgrep buffer)
-                                (xref-find-definitions buffer)))
+                                (xref-find-references buffer)))
   :bind ("C-x c b" . vertico-repeat)
   :hook (minibuffer-setup . vertico-repeat-save))
 
