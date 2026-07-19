@@ -57,12 +57,14 @@
           (python "https://github.com/tree-sitter/tree-sitter-python")
           (rust "https://github.com/tree-sitter/tree-sitter-rust")
           (toml "https://github.com/tree-sitter/tree-sitter-toml")
+          (css "https://github.com/tree-sitter/tree-sitter-css")
           (tsx "https://github.com/tree-sitter/tree-sitter-typescript"
                "master"
                "tsx/src")
           (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
                       "master"
                       "typescript/src")
+          (vue "https://github.com/tree-sitter-grammars/tree-sitter-vue")
           (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
   (setq major-mode-remap-alist
         '((bash-mode . bash-ts-mode)
@@ -197,7 +199,7 @@
   :ensure t
   :bind (:map flycheck-mode-map ("C-c ! l" . consult-flycheck))
   :hook ((web-mode . flycheck-mode)
-         (vue-web-mode . flycheck-mode)
+         (vue-ts-mode . flycheck-mode)
          (python-ts-mode . flycheck-mode)
          (js-ts-mode . flycheck-mode)
          (typescript-ts-mode . flycheck-mode)
@@ -207,7 +209,7 @@
   (flycheck-display-errors-delay 0.1)
   :config
   (flycheck-add-mode 'javascript-eslint 'web-mode)
-  (flycheck-add-mode 'javascript-eslint 'vue-web-mode)
+  (flycheck-add-mode 'javascript-eslint 'vue-ts-mode)
   (flycheck-define-checker flycheck-ansible-lint
     "An Ansible playbook syntax checker using ansible-lint."
     :command ("ansible-lint" "--profile=production" "--strict" "--nocolor" "--parseable" source-inplace)
@@ -223,7 +225,7 @@
         '(ruff-isort ruff))
   (setf (alist-get 'eslint_d apheleia-formatters)
         '("eslint_d" "--fix-to-stdout" "--stdin" "--stdin-filename" filepath))
-  (setf (alist-get 'vue-web-mode apheleia-mode-alist)
+  (setf (alist-get 'vue-ts-mode apheleia-mode-alist)
         '(eslint_d))
   (setf (alist-get 'typescript-ts-mode apheleia-mode-alist)
         '(eslint_d))
@@ -244,7 +246,7 @@
     (locate-dominating-file default-directory "package.json"))
 
   (defun overload-projet-root-for-node (orig-fun modes &rest args)
-    (if (not (cl-some (lambda (x) (member x '(vue-web-mode typescript-ts-mode js-ts-mode))) modes))
+    (if (not (cl-some (lambda (x) (member x '(vue-ts-mode typescript-ts-mode js-ts-mode))) modes))
         (apply orig-fun modes args)
       (advice-add 'project-root :around #'projet-root-for-node)
       (apply orig-fun modes args)
@@ -264,7 +266,7 @@
                                            &allow-other-keys))
 
   (add-to-list 'eglot-server-programs
-               `((vue-web-mode :language-id "vue") . ("typescript-language-server" "--stdio" :initializationOptions ,#'typescript-eglot-init-options)))
+               `((vue-ts-mode :language-id "vue") . ("typescript-language-server" "--stdio" :initializationOptions ,#'typescript-eglot-init-options)))
   (add-to-list 'eglot-server-programs
                `(((js-ts-mode js-mode) :language-id "javascript") . ("typescript-language-server" "--stdio" :initializationOptions ,#'typescript-eglot-init-options)))
   (add-to-list 'eglot-server-programs
@@ -279,7 +281,7 @@
   :hook
   ((js-ts-mode . eglot-ensure)
    (tsx-ts-mode . eglot-ensure)
-   (vue-web-mode . eglot-ensure)
+   (vue-ts-mode . eglot-ensure)
    (rust-ts-mode . eglot-ensure)
    (python-ts-mode . eglot-ensure)
    (typescript-ts-mode . eglot-ensure)))
@@ -291,7 +293,7 @@
   (flycheck-eglot-exclusive nil)
   :hook
   (eglot-managed-mode . (lambda ()
-                          (when (member major-mode '(vue-web-mode js-ts-mode typescript-ts-mode tsx-ts-mode))
+                          (when (member major-mode '(vue-ts-mode js-ts-mode typescript-ts-mode tsx-ts-mode))
                             (flycheck-eglot-mode 1)))))
 
 ;;--[languages]-------------------------------------------------
@@ -342,8 +344,7 @@
 
 (use-package web-mode
   :ensure t
-  :mode (("\\.html?\\'" . web-mode)
-         ("\\.vue\\'" . vue-web-mode))
+  :mode (("\\.html?\\'" . web-mode))
   :custom
   (web-mode-code-indent-offset 2)
   (web-mode-css-indent-offset 2)
@@ -362,9 +363,11 @@
      ("case-extra-offset" . t)))
   :custom-face
   (web-mode-function-call-face ((t nil)))
-  :config
-  (define-derived-mode vue-web-mode web-mode "Vue Web" "Vue Mode"
-    (setq tab-width 2)))
+  )
+
+(use-package vue-ts-mode
+  :load-path "~/.emacs.d/lisp"
+  :hook (vue-ts-mode . (lambda () (setq-local tab-width 2))))
 
 (use-package rust-mode
   :ensure t
