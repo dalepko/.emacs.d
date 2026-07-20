@@ -1,10 +1,17 @@
 ;;; acp-git.el --- Git worktree snapshot helper -*- lexical-binding: t; -*-
 
-(defun acp-git--run (&rest args)
-  "Run git with ARGS and return trimmed stdout."
-  (string-trim (with-output-to-string
-                 (with-current-buffer standard-output
-                   (apply #'call-process "git" nil t nil args)))))
+(defmacro acp-git--with-tmp-index (&rest body)
+  (declare (indent 0))
+  `(let* ((git-dir (expand-file-name (string-trim (acp-git--run "rev-parse" "--git-dir"))))
+          (index-file (expand-file-name "index" git-dir))
+          (temp-index (make-temp-file "acp-git-index-"))
+          (process-environment
+           (cons (format "GIT_INDEX_FILE=%s" temp-index)
+                 process-environment)))
+     (copy-file index-file temp-index t)
+     (unwind-protect
+         (progn ,@body)
+       (delete-file temp-index))))
 
 (defun acp-git-snapshot-create ()
   "Create a git snapshot of the current working directory state.
@@ -15,32 +22,45 @@ produce a commit object representing the current worktree state.
 
 Returns a commit hash string for the snapshot.  If there are no
 changes in the worktree, returns the hash of HEAD instead."
-  (let ((git-dir (locate-dominating-file default-directory ".git")))
-    (unless git-dir
-      (error "acp-git-snapshot: not inside a Git repository"))
-    (let* ((default-directory git-dir)
-           (index-file (expand-file-name "index" (acp-git--run "rev-parse" "--git-dir")))
-           (temp-index (make-temp-file "acp-git-index-"))
-           (process-environment
-            (cons (format "GIT_INDEX_FILE=%s" temp-index)
-                  process-environment))
-           commit-hash)
-      (copy-file index-file temp-index t)
-      (unwind-protect
-          (progn
-            (acp-git--run "add" "--all")
-            (setq commit-hash (acp-git--run "stash" "create"))
-            (if (string-empty-p commit-hash)
-                (acp-git--run "rev-parse" "HEAD")
-              commit-hash))
-        (delete-file temp-index)))))
+  (acp-git--with-tmp-index
+    (acp-git--run "add" "--all")
+    (let ((commit-hash (string-trim (acp-git--run "stash" "create"))))
+      (if (string-empty-p commit-hash)
+          (string-trim (acp-git--run "rev-parse" "HEAD"))
+        commit-hash))))
 
 (defun acp-git-diff (from-commit to-commit)
   "Return the unified diff between FROM-COMMIT and TO-COMMIT."
-  (let* ((git-dir (or (locate-dominating-file default-directory ".git")
-                      default-directory))
-         (default-directory git-dir))
-    (acp-git--run "diff" "--unified" from-commit to-commit)))
+  (acp-git--run "diff" "--unified" from-commit to-commit))
+
+(defun acp-git-apply-changes (from-commit to-commit message)
+  "Commit the changes between two snapshots on top of current branch."
+  (unless (string-empty-p (acp-git--run "diff" "--cached" "--name-only"))
+    (error "Cannot apply: you have staged changes"))
+  (let* ((patch (acp-git-diff from-commit to-commit))
+         (tree (string-trim (acp-git--with-tmp-index
+                              (acp-git--run-with-input patch "apply" "--cached")
+                              (acp-git--run "write-tree"))))
+         (commit (string-trim (acp-git--run "commit-tree" tree "-p" "HEAD" "-m" message))))
+    (acp-git--run "update-ref" "HEAD" commit)
+    (acp-git--run "reset")))
+
+(defun acp-git--run (&rest args)
+  "Run git with ARGS and return trimmed stdout."
+  (with-output-to-string
+    (with-current-buffer standard-output
+      (let ((status (apply #'call-process "git" nil t nil args)))
+        (when (not (= status 0))
+          (error "git command failed: %s" (buffer-substring-no-properties (point-min) (point-max))))))))
+
+(defun acp-git--run-with-input (input &rest args)
+  "Run git with ARGS using `input` as starndard input and return trimmed stdout."
+  (with-output-to-string
+    (with-current-buffer standard-output
+      (insert input)
+      (let ((status (apply #'call-process-region nil nil "git" t t nil args)))
+        (when (not (= status 0))
+          (error "git command failed: %s" (buffer-substring-no-properties (point-min) (point-max))))))))
 
 (provide 'acp-git)
 ;;; acp-git.el ends here

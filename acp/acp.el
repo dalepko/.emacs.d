@@ -243,10 +243,27 @@ is not visiting a file."
                 (diff (acp-git-diff acp--snapshot-before snapshot-after)))
       (unless (string-empty-p diff)
         (widget-insert "\n")
-        (widget-create 'acp-changes-summary-widget :value (acp-diff-parse diff))))
+        (widget-create 'acp-changes-summary-widget :value (acp-diff-parse diff))
+        (acp--insert-commit-form acp--snapshot-before snapshot-after)))
     (setq acp--snapshot-before nil))
 
   (acp--ensure-prompt))
+
+(defun acp--insert-commit-form (snapshot-before snapshot-after)
+  "Insert a commit message field and button for applying snapshot changes."
+  (widget-insert (propertize " " 'display '(space :align-to (- right 41))))
+  (let* ((field (widget-create 'editable-field :size 30)))
+    (widget-insert " ")
+    (widget-create 'push-button
+                   :tag " Commit  "
+                   :action (lambda (button _event)
+                             (let ((msg (widget-value field)))
+                               (unless (string-empty-p msg)
+                                 (acp-git-apply-changes snapshot-before snapshot-after msg)
+                                 (widget-value-set field "")
+                                 (widget-put button :tag " Applied ")
+                                 (widget-apply button :deactivate))))))
+  (widget-insert "\n"))
 
 (defun acp--on-permission-request (agent permission-request)
   "Display a permission request panel from the agent."
