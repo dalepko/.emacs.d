@@ -33,18 +33,6 @@ changes in the worktree, returns the hash of HEAD instead."
   "Return the unified diff between FROM-COMMIT and TO-COMMIT."
   (acp-git--run "diff" "--unified" from-commit to-commit))
 
-(defun acp-git-apply-changes (from-commit to-commit message)
-  "Commit the changes between two snapshots on top of current branch."
-  (unless (string-empty-p (acp-git--run "diff" "--cached" "--name-only"))
-    (error "Cannot apply: you have staged changes"))
-  (let* ((patch (acp-git-diff from-commit to-commit))
-         (tree (string-trim (acp-git--with-tmp-index
-                              (acp-git--run-with-input patch "apply" "--cached")
-                              (acp-git--run "write-tree"))))
-         (commit (string-trim (acp-git--run "commit-tree" tree "-p" "HEAD" "-m" message))))
-    (acp-git--run "update-ref" "HEAD" commit)
-    (acp-git--run "reset")))
-
 (defun acp-git--run (&rest args)
   "Run git with ARGS and return trimmed stdout."
   (with-output-to-string
