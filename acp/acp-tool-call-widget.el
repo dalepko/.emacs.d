@@ -6,27 +6,27 @@
 ;; ── Faces ───────────────────────────────────────────────────────────────────
 
 (defface acp-tool-call-widget-icon-face
-  `((t :foreground "gold"))
+  '((t :foreground "gold"))
   "Face for tool icon."
   :group 'acp)
 
 (defface acp-tool-call-widget-status-pending-face
-  '((t :background "grey30" :weight bold))
+  `((t :inherit shadow :inverse-video t :bold t))
   "Face for pending tasks."
   :group 'acp)
 
 (defface acp-tool-call-widget-status-in-progress-face
-  '((t :background "#00415e" :weight bold))
+  `((t :inherit warning :inverse-video t :bold t))
   "Face for running tasks."
   :group 'acp)
 
 (defface acp-tool-call-widget-status-completed-face
-  '((t :background "green4" :weight bold))
+  `((t :inherit success :inverse-video t :bold t))
   "Face for successful tasks."
   :group 'acp)
 
 (defface acp-tool-call-widget-status-failed-face
-  `((t :background ,(face-foreground 'warning) :weight bold))
+  `((t :inherit error :inverse-video t :bold t))
   "Face for failed tasks."
   :group 'acp)
 

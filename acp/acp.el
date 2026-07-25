@@ -154,10 +154,11 @@ is not visiting a file."
     (setq mode-name
           (concat "ACP"
                   (when model
-                    (format " [%s %s/%s]"
+                    (concat " ["
                             model
-                            (or effort "?")
-                            (or mode "?")))))
+                            (when effort (concat " " effort))
+                            (when mode (concat " " mode))
+                            "]"))))
     (force-mode-line-update)))
 
 (defun acp--on-stop (_agent)

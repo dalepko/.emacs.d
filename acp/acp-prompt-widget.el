@@ -4,7 +4,7 @@
 (require 'seq)
 
 (defface acp-prompt-widget-face
-  '((t :foreground "green"))
+  '((t :inherit success))
   "Face for the ACP prompt indicator."
   :group 'acp)
 
