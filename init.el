@@ -150,10 +150,12 @@
   :ensure t
   :init
   (global-corfu-mode)
+  (corfu-popupinfo-mode)
   :custom
   (corfu-auto t)           ; Enable auto-completion
   (corfu-auto-delay 0.1)   ; Super fast popup delay
-  (corfu-auto-prefix 2))   ; Start completing after 2 characters
+  (corfu-auto-prefix 2)    ; Start completing after 2 characters
+  (corfu-popupinfo-delay '(0.5 . 0.01)))
 
 (use-package orderless
   :ensure t
@@ -297,7 +299,8 @@
   (add-to-list 'eglot-server-programs
                '((rust-ts-mode rust-mode) .
                  ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
-  (add-to-list 'eglot-server-programs '(((python-ts-mode python-mode)) . ("uvx" "ty" "server")))
+  ;;(add-to-list 'eglot-server-programs '(((python-ts-mode python-mode)) . ("uvx" "ty" "server")))
+  (add-to-list 'eglot-server-programs '(((python-ts-mode python-mode)) . ("pyright-langserver" "--stdio")))
 
   (advice-add 'eglot--connect :around #'overload-projet-root-for-node)
 
@@ -581,5 +584,6 @@
 ;; ├── corepack@0.34.5
 ;; ├── eslint_d@15.0.2
 ;; ├── npm@10.9.2
+;; ├── pyright@1.1.411
 ;; ├── typescript-language-server@4.3.4
 ;; └── typescript@5.8.3
