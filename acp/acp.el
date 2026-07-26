@@ -1,5 +1,16 @@
 ;;; acp.el --- ACP REPL mode  -*- lexical-binding: t; -*-
+
+;; Package-Requires: ((compat "31.0"))
+
+;;; Commentary:
+
+;; Major mode providing a REPL buffer to interact wih coding assistants
+;; using the the Agent Client protocol
+
+;;; Code:
+
 (require 'compat)
+(require 'compat-31)
 (require 'cus-edit)
 (require 'project)
 (require 'which-func)

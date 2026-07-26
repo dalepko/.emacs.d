@@ -1,5 +1,7 @@
 ;;; acp-test-utils.el --- Shared test helpers for ACP.el  -*- lexical-binding: t; -*-
 
+(require 'acp-tool-call-widget)
+
 (defmacro with-tmp (content var &rest body)
   "Create a temporary file, bind its path to VAR, and evaluate BODY.
 The temporary file is guaranteed to be deleted when BODY finishes."

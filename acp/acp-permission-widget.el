@@ -27,8 +27,8 @@
   '((?y . ("allow" "once"))
     (?! . ("allow_always" "always"))
     (?n . ("reject")))
-  "Alist mapping shortcut keys to candidate option-ids for permission request widgets.
-Each key maps to a list of ids; the first one present in the server options is used.")
+  "Alist mapping shortcut keys to option-ids for permission widgets.
+Each key maps to a list of ids; the first present in the server options is used.")
 
 (defun acp-permission-widget--respond (candidates)
   "Respond to the permission widget at point.

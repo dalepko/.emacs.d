@@ -1,24 +1,23 @@
 ;;; acp-diff.el --- Unified diff generation for file edits  -*- lexical-binding: t; -*-
 (require 'diff)
-(require 'magit-diff)
 
 (defface acp-diff-hunk-heading-face
-  '((t :inherit magit-diff-hunk-heading-highlight :extend t))
+  '((t :inherit diff-hunk-header :extend t))
   "Face for diff hunk headings"
   :group 'acp)
 
 (defface acp-diff-context-face
-  '((t :inherit magit-diff-context-highlight :extend t))
+  '((t :inherit diff-context :background "#335533" :extend t))
   "Face for diff context lines"
   :group 'acp)
 
 (defface acp-diff-added-face
-  '((t :inherit magit-diff-added-highlight :extend t))
+  '((t :inherit diff-added :background "#335533" :extend t))
   "Face for diff added lines"
   :group 'acp)
 
 (defface acp-diff-removed-face
-  '((t :inherit magit-diff-removed-highlight :extend t))
+  '((t :inherit diff-removed :background "#335533" :extend t))
   "Face for diff removed lines"
   :group 'acp)
 

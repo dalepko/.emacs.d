@@ -1,6 +1,5 @@
 ;;; acp-modeline.el --- ACP mode-line display  -*- lexical-binding: t; -*-
 (require 'seq)
-(require 'subr)
 
 (require 'acp-agent)
 

@@ -5,6 +5,7 @@
 (require 'acp-permission-widget)
 (require 'acp-diff)
 (require 'acp-test-utils)
+(require 'acp)
 
 (defvar acp-permission-widget-test-dir
   (file-name-directory (or load-file-name
@@ -41,7 +42,7 @@
 (ert-deftest acp-permission-widget-kind-other-with-command ()
   "When rawInput has :filepath instead of :description, show filepath."
   (with-temp-buffer
-    (let ((w (widget-create 'acp-permission-widget :value sample-kind-other-with-command)))
+    (progn (widget-create 'acp-permission-widget :value sample-kind-other-with-command)
       (should (equal (buffer-substring-no-properties (point-min) (point-max))
                      "
 
@@ -78,7 +79,7 @@ Set-Content -Path \"$env:TEMP\\check-magit.el\" -Value ...
 (ert-deftest acp-permission-widget-kind-other-with-filepath ()
   "When rawInput has :filepath instead of :description, show filepath."
   (with-temp-buffer
-    (let ((w (widget-create 'acp-permission-widget :value sample-kind-other-with-filepath)))
+    (progn (widget-create 'acp-permission-widget :value sample-kind-other-with-filepath)
       (should (equal (buffer-substring-no-properties (point-min) (point-max))
                      "
 
@@ -111,7 +112,7 @@ Write file: C:\\Windows\\acp-test-file.txt
               (:optionId "always" :kind "allow_always" :name "Always allow")
               (:optionId "reject" :kind "reject_once" :name "Reject")))))
       (with-temp-buffer
-        (let ((w (widget-create 'acp-permission-widget :value edit-request)))
+        (progn (widget-create 'acp-permission-widget :value edit-request)
           (should (equal (buffer-substring-no-properties (point-min) (point-max)) (format "
 
 Permission request: edit_file
@@ -153,7 +154,7 @@ Index: test-file.el
              (:optionId "always" :kind "allow_always" :name "Always allow")
              (:optionId "reject" :kind "reject_once" :name "Reject")))))
     (with-temp-buffer
-      (let ((w (widget-create 'acp-permission-widget :value edit-request)))
+      (progn (widget-create 'acp-permission-widget :value edit-request)
         (should (equal (buffer-substring-no-properties (point-min) (point-max)) "
 
 Permission request: edit_file
@@ -189,7 +190,7 @@ Edit file: test-file.el
 (ert-deftest acp-permission-widget-kind-execute ()
   "When kind is execute, show command with Execute command: label."
   (with-temp-buffer
-    (let ((w (widget-create 'acp-permission-widget :value sample-kind-execute)))
+    (progn (widget-create 'acp-permission-widget :value sample-kind-execute)
       (should (equal (buffer-substring-no-properties (point-min) (point-max)) "
 
 Permission request: execute
@@ -224,7 +225,7 @@ emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
 (ert-deftest acp-permission-widget-kind-execute-claude-code ()
   "Claude-code format: title uses content description, not the full command."
   (with-temp-buffer
-    (let ((w (widget-create 'acp-permission-widget :value sample-kind-execute-claude-code)))
+    (progn (widget-create 'acp-permission-widget :value sample-kind-execute-claude-code)
       (should (equal (buffer-substring-no-properties (point-min) (point-max)) "
 
 Permission request: Run permission widget tests
@@ -257,7 +258,7 @@ emacs --batch -L acp -l acp-permission-widget-test -f ert-run-tests-batch 2>&1
             (:optionId "always" :kind "allow_always" :name "Always allow")
             (:optionId "reject" :kind "reject_once" :name "Reject")))))
     (with-temp-buffer
-      (let ((w (widget-create 'acp-permission-widget :value edit-request)))
+      (progn (widget-create 'acp-permission-widget :value edit-request)
         (should (equal (buffer-substring-no-properties (point-min) (point-max)) "
 
 Permission request: create_file
