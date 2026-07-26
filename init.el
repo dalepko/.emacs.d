@@ -93,15 +93,10 @@
 
 (use-package diff-hl
   :ensure t
-  :after magit
   :config
   (global-diff-hl-mode 1)
   :custom
-  (diff-hl-draw-borders nil)
-  :custom-face
-  (diff-hl-change ((t (:background "steel blue" :foreground "blue3"))))
-  (diff-hl-delete ((t (:inherit magit-diff-removed-highlight))))
-  (diff-hl-insert ((t (:inherit magit-diff-added-highlight)))))
+  (diff-hl-draw-borders nil))
 
 (use-package eldoc
   :bind ("M-h" . eldoc)
@@ -416,6 +411,7 @@
 
 (use-package vue-ts-mode
   :load-path "~/.emacs.d/lisp"
+  :mode "\\.vue\\'"
   :hook (vue-ts-mode . (lambda () (setq-local tab-width 2))))
 
 (use-package rust-mode
@@ -476,10 +472,12 @@
 
 (use-package magit
   :ensure t
+  :commands magit-status
   :bind (([f12] . #'magit-status)))
 
 (use-package acp
   :load-path "~/.emacs.d/acp"
+  :commands acp
   :bind (("C-c t" . #'acp)))
 
 (use-package dirvish
@@ -528,6 +526,7 @@
   (global-set-key (kbd "s-c") #'kill-ring-save))
 
 (when (eq system-type 'windows-nt)
+  (add-to-list 'exec-path "C:/Users/david/AppData/Roaming/npm")
   (add-to-list 'exec-path "C:/Program Files/zig/")
   (add-to-list 'exec-path "C:/Program Files/Git/usr/bin")
   (add-to-list 'exec-path "C:/Program Files/GnuPG/bin/"))

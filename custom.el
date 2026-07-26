@@ -15,7 +15,8 @@
  '(css-indent-offset 2)
  '(custom-enabled-themes '(kaolin-shiva))
  '(custom-safe-themes
-   '("e4a441d3cea911e8ef36de2eaed043cbe2079484c44c3f2bbab67a46f863a9f6"
+   '("ba7682deadc8cefeeb07a1198ba4b777c9fd1cdab7c7798892a5aab598336baa"
+     "e4a441d3cea911e8ef36de2eaed043cbe2079484c44c3f2bbab67a46f863a9f6"
      "a6920ee8b55c441ada9a19a44e9048be3bfb1338d06fc41bce3819ac22e4b5a1"
      "5a0ddbd75929d24f5ef34944d78789c6c3421aa943c15218bac791c199fc897d"
      "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default))
