@@ -36,6 +36,7 @@
  '(fill-column 100)
  '(foreground-color "#839496")
  '(frame-resize-pixelwise t)
+ '(global-auto-revert-mode t)
  '(help-at-pt-display-when-idle '(haskell-msg) nil (help-at-pt))
  '(help-at-pt-timer-delay 0.5)
  '(history-delete-duplicates t)
