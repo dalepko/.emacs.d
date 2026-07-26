@@ -1,6 +1,6 @@
 ;;; acp.el --- ACP REPL mode  -*- lexical-binding: t; -*-
 
-;; Package-Requires: ((compat "31.0"))
+;; Package-Requires: ((emacs "30.1") (compat "31.0") (magit "1.0"))
 
 ;;; Commentary:
 

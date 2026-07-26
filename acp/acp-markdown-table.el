@@ -24,7 +24,7 @@
                        natural-sizes (- max-width (+ (* 3 (length natural-sizes)) 1)))
                     natural-sizes))
            (wrapped-rows (mapcar (lambda (row)
-                                   (acp-markdown-table-wrap-row row sizes alignments))
+                                   (acp-markdown-table--wrap-row row sizes alignments))
                                  all-rows-filled)))
       (acp-markdown-table--build-box wrapped-rows sizes))))
 
@@ -131,30 +131,30 @@ Each cell is a list of lines; returns a list of row strings."
             rows))
     (nreverse rows)))
 
-(defun acp-markdown-table-wrap-cell (text width alignment)
+(defun acp-markdown-table--wrap-cell (text width alignment)
   "Wrap TEXT to fit WIDTH chars, returning list of padded lines."
   (if (<= (string-width text) width)
-      (list (acp-markdown-table-pad-cell text width alignment))
+      (list (acp-markdown-table--pad-cell text width alignment))
     (let ((lines nil)
           (rem text))
       (while (>= (string-width rem) width)
         (let ((candidate (substring rem 0 (min (length rem) (1+ width)))))
           (if-let ((space (cl-position ?\s candidate :from-end t :test #'eq)))
               (progn
-                (push (acp-markdown-table-pad-cell (substring rem 0 space) width alignment) lines)
+                (push (acp-markdown-table--pad-cell (substring rem 0 space) width alignment) lines)
                 (setq rem (substring rem (1+ space))))
-            (push (acp-markdown-table-pad-cell (substring rem 0 (min (length rem) width)) width alignment) lines)
+            (push (acp-markdown-table--pad-cell (substring rem 0 (min (length rem) width)) width alignment) lines)
             (setq rem (substring rem (min (length rem) width))))))
       (unless (string-empty-p rem)
-        (push (acp-markdown-table-pad-cell (string-trim-left rem) width alignment) lines))
+        (push (acp-markdown-table--pad-cell (string-trim-left rem) width alignment) lines))
       (nreverse lines))))
 
-(defun acp-markdown-table-wrap-row (row sizes alignments)
+(defun acp-markdown-table--wrap-row (row sizes alignments)
   "Wrap each cell in ROW to its allocated SIZES with ALIGNMENTS.
 Returns a list of cells, each cell being a list of lines."
-  (cl-mapcar #'acp-markdown-table-wrap-cell row sizes alignments))
+  (cl-mapcar #'acp-markdown-table--wrap-cell row sizes alignments))
 
-(defun acp-markdown-table-pad-cell (cell width alignment)
+(defun acp-markdown-table--pad-cell (cell width alignment)
   "Pad CELL to WIDTH chars according to ALIGNMENT (:left :center :right)."
   (let* ((w (string-width cell))
          (pad (- width w)))
