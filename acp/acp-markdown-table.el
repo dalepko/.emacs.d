@@ -12,7 +12,7 @@
     (let* ((headers (acp-markdown-table--extract-and-render-cells header-node))
            (rows (mapcar #'acp-markdown-table--extract-and-render-cells content-row-nodes))
            (all-rows (cons headers rows))
-           (all-rows-filled (acp-markdown-table--pad-rows all-rows))
+           (all-rows-filled (acp-markdown-table--pad-lists all-rows ""))
            (columns (apply #'seq-mapn #'list all-rows-filled))
            (natural-sizes (mapcar (lambda (col)
                                     (apply #'max (mapcar #'string-width col)))
@@ -24,27 +24,10 @@
                        natural-sizes (- max-width (+ (* 3 (length natural-sizes)) 1)))
                     natural-sizes))
            (wrapped-rows (mapcar (lambda (row)
-                                   (acp-markdown-table--wrap-row row sizes alignments))
+                                   (acp-markdown-table--wrap-row row sizes))
                                  all-rows-filled)))
-      (acp-markdown-table--build-box wrapped-rows sizes))))
+      (acp-markdown-table--build-box wrapped-rows sizes alignments))))
 
-
-(defun acp-markdown-table--distribute-column-widths (natural-sizes available)
-  "Distribute AVAILABLE-WIDTH across NCOLS proportionally to NATURAL-SIZES."
-  (let* ((total (apply #'+ natural-sizes)))
-    (if (<= total available)
-        natural-sizes
-      (let ((previous-boundary 0)
-            (accumulated-size 0)
-            (computed-sizes ()))
-        (dolist (size natural-sizes)
-          (cl-incf accumulated-size size)
-          (let ((boundary (/ (+ (* accumulated-size available) (1- total)) total)))
-            (when (< boundary (+ previous-boundary 1))
-              (setq boundary (1+ previous-boundary)))
-            (push (- boundary previous-boundary) computed-sizes)
-            (setq previous-boundary boundary)))
-        (nreverse computed-sizes)))))
 
 ;; --- parsing ----------------------------------------------------------
 
@@ -88,21 +71,17 @@
                   lst)))
             lists)))
 
-(defun acp-markdown-table--pad-rows (rows)
-  "Pad each list in ROWS to the same length with empty strings."
-  (acp-markdown-table--pad-lists rows ""))
-
 ;; --- formatting ----------------------------------------------------------
 
-(defun acp-markdown-table--build-box (wrapped-rows sizes)
+(defun acp-markdown-table--build-box (wrapped-rows sizes alignments)
   "Build a box-drawing table from WRAPPED-ROWS with column SIZES.
 Each element of wrapped-rows is a list of cells (each cell a list of lines)."
   (let* ((border-dash (lambda (s) (make-string (+ s 2) ?─)))
          (top (concat "┌" (mapconcat border-dash sizes "┬") "┐\n"))
          (sep (concat "├" (mapconcat border-dash sizes "┼") "┤\n"))
          (bot (concat "└" (mapconcat border-dash sizes "┴") "┘\n"))
-         (header (acp-markdown-table--build-rows (car wrapped-rows) sizes))
-         (body (mapcan (lambda (row) (acp-markdown-table--build-rows row sizes))
+         (header (acp-markdown-table--build-rows (car wrapped-rows) sizes alignments))
+         (body (mapcan (lambda (row) (acp-markdown-table--build-rows row sizes alignments))
                        (cdr wrapped-rows))))
     (concat top
             (mapconcat #'identity header "")
@@ -110,49 +89,20 @@ Each element of wrapped-rows is a list of cells (each cell a list of lines)."
             (mapconcat #'identity body "")
             bot)))
 
-(defun acp-markdown-table--build-rows (cells sizes)
-  "Build potentially multi-line rows from CELLS with column SIZES.
-Each cell is a list of lines; returns a list of row strings."
-  (let* ((max-lines (apply #'max 0 (mapcar #'length cells)))
-         (padded-cells
-          (cl-mapcar (lambda (cell width)
-                       (let* ((blanks (make-string width ?\s))
-                              (pad-len (- max-lines (length cell))))
-                         (if (> pad-len 0)
-                             (append cell (make-list pad-len blanks))
-                           cell)))
-                     cells sizes))
-         (rows nil))
-    (dotimes (lineno max-lines)
-      (push (concat "│ "
-                    (mapconcat (lambda (cell) (nth lineno cell))
-                               padded-cells " │ ")
-                    " │\n")
-            rows))
-    (nreverse rows)))
-
-(defun acp-markdown-table--wrap-cell (text width alignment)
-  "Wrap TEXT to fit WIDTH chars, returning list of padded lines."
-  (if (<= (string-width text) width)
-      (list (acp-markdown-table--pad-cell text width alignment))
-    (let ((lines nil)
-          (rem text))
-      (while (>= (string-width rem) width)
-        (let ((candidate (substring rem 0 (min (length rem) (1+ width)))))
-          (if-let ((space (cl-position ?\s candidate :from-end t :test #'eq)))
-              (progn
-                (push (acp-markdown-table--pad-cell (substring rem 0 space) width alignment) lines)
-                (setq rem (substring rem (1+ space))))
-            (push (acp-markdown-table--pad-cell (substring rem 0 (min (length rem) width)) width alignment) lines)
-            (setq rem (substring rem (min (length rem) width))))))
-      (unless (string-empty-p rem)
-        (push (acp-markdown-table--pad-cell (string-trim-left rem) width alignment) lines))
-      (nreverse lines))))
-
-(defun acp-markdown-table--wrap-row (row sizes alignments)
-  "Wrap each cell in ROW to its allocated SIZES with ALIGNMENTS.
-Returns a list of cells, each cell being a list of lines."
-  (cl-mapcar #'acp-markdown-table--wrap-cell row sizes alignments))
+(defun acp-markdown-table--build-rows (cells sizes alignments)
+  (let* ((padded-cells (acp-markdown-table--pad-lists cells ""))
+         (padded-cells (seq-mapn
+                        (lambda (cells size alignment)
+                          (seq-map (lambda (cell)
+                                     (acp-markdown-table--pad-cell cell size alignment))
+                                   cells))
+                        padded-cells sizes alignments))
+         (rows (apply #'seq-mapn #'list padded-cells)))
+    (seq-map (lambda (row)
+               (concat "│ "
+                       (mapconcat #'identity row " │ ")
+                       " │\n"))
+             rows)))
 
 (defun acp-markdown-table--pad-cell (cell width alignment)
   "Pad CELL to WIDTH chars according to ALIGNMENT (:left :center :right)."
@@ -167,6 +117,49 @@ Returns a list of cells, each cell being a list of lines."
                    (concat (make-string left ?\s) cell (make-string right ?\s))))
         (_       (concat cell (make-string pad ?\s)))))))
 
+
+;; --- cell wrapping -------------------------------------------------------
+
+(defun acp-markdown-table--distribute-column-widths (natural-sizes available)
+  "Distribute AVAILABLE-WIDTH across NCOLS proportionally to NATURAL-SIZES."
+  (let* ((total (apply #'+ natural-sizes)))
+    (if (<= total available)
+        natural-sizes
+      (let ((previous-boundary 0)
+            (accumulated-size 0)
+            (computed-sizes ()))
+        (dolist (size natural-sizes)
+          (cl-incf accumulated-size size)
+          (let ((boundary (/ (+ (* accumulated-size available) (1- total)) total)))
+            (when (< boundary (+ previous-boundary 1))
+              (setq boundary (1+ previous-boundary)))
+            (push (- boundary previous-boundary) computed-sizes)
+            (setq previous-boundary boundary)))
+        (nreverse computed-sizes)))))
+
+(defun acp-markdown-table--wrap-row (row sizes)
+  "Wrap each cell in ROW to its allocated SIZES.
+Returns a list of cells, each cell being a list of lines."
+  (seq-mapn #'acp-markdown-table--wrap-cell row sizes))
+
+
+(defun acp-markdown-table--wrap-cell (text width)
+  "Wrap TEXT to fit WIDTH chars, returning list of lines."
+  (if (<= (string-width text) width)
+      (list text)
+    (let ((lines nil)
+          (rem text))
+      (while (>= (string-width rem) width)
+        (let ((candidate (substring rem 0 (min (length rem) (1+ width)))))
+          (if-let ((space (cl-position ?\s candidate :from-end t :test #'eq)))
+              (progn
+                (push (substring rem 0 space) lines)
+                (setq rem (substring rem (1+ space))))
+            (push (substring rem 0 (min (length rem) width)) lines)
+            (setq rem (substring rem (min (length rem) width))))))
+      (unless (string-empty-p rem)
+        (push (string-trim-left rem) lines))
+      (nreverse lines))))
 
 (provide 'acp-markdown-table)
 ;;; acp-markdown-table.el ends here
