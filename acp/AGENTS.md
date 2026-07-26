@@ -37,9 +37,8 @@ There is an ERT testsuite, launch it with
 
 ## Quirks
 
-- Load via `acp-reload` (`C-c r`) to pick up changes across all files. Alternatively, `eval-buffer` individual files.
 - Requires Emacs with tree-sitter support and a `markdown` tree-sitter grammar installed (`treesit-install-language-grammar markdown`).
-- Agent protocol is JSON-RPC over stdin/stdout (no HTTP). See the [ACP spec](https://agentclientprotocol.com/). 
+- Agent protocol is JSON-RPC over stdin/stdout (no HTTP). See the [ACP spec](https://agentclientprotocol.com/).
 - Default agent command: `("opencode" "acp")`. Override via `acp-agent-command` custom variable.
 - No package.el headers. No Makefile. No CI.
 - `.gitignore` covers Emacs backup (`*~`, `#*#`, `.#*`) and bytecode (`*.elc`).

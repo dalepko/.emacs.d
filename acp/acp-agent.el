@@ -26,7 +26,7 @@
   (request-id 0)
   (pending nil)
   (line-buf nil)
-  (callbacks nil)
+  (hooks nil)
   (buffer nil)
   (available-commands nil)
   (log-buffer-name nil :read-only t))
@@ -90,51 +90,20 @@ Used by `acp-permission-widget' to display the alert panel."
 
 ;; ── Public API ──────────────────────────────────────────────────────────────
 
-(cl-defun acp-agent-start (command &key on-ready on-stop
-                                   on-message-chunk on-tool-call
-                                   on-tool-call-update on-plan on-usage
-                                   on-prompt-done on-permission-request
-                                   on-error)
+(defun acp-agent-start (command)
   "Start an ACP agent subprocess and initialize the protocol.
 
 COMMAND is a list (BINARY &rest ARGS) for the agent subprocess.
-BUFFER is the buffer to associate with this agent (defaults to current buffer).
+The current buffer is associated with the agent.
 
-Keyword callbacks:
-  :on-ready (agent session-id config-options)
-                                  Called when init+session/new complete.
-  :on-stop (agent)                Called when the agent process exits.
-  :on-message-chunk (agent text message-id)
-                                  Streaming text from the agent.
-  :on-tool-call (agent tool-call) Tool call started (acp-tool-call struct).
-  :on-tool-call-update (agent tool-call)
-                                  Tool call delta update (acp-tool-call struct).
-  :on-plan (agent entries)        Plan update (list of acp-plan-entry structs).
-  :on-usage (agent used size cost-plist)
-                                  Token usage update. COST-PLIST is nil or
-                                  (:amount NUMBER :currency STRING).
-  :on-prompt-done (agent stop-reason)
-                                  Called when session/prompt completes.
-  :on-permission-request (agent pr)
-                                  Called with an `acp-permission-request' struct
-                                  when the agent requests a permission decision.
-  :on-error (agent message)       Protocol or transport error.
+Use `acp-agent-add-hook' to register event hooks on the returned
+agent struct before the first async response fires.
 
 Returns the acp-agent struct."
   (let* ((buffer (current-buffer))
          (log-buffer (generate-new-buffer (format " acp session log (%s)"
                                                   (abbreviate-file-name default-directory))))
          (agent (acp-agent--create
-                 :callbacks `(:on-ready ,on-ready
-                                        :on-stop ,on-stop
-                                        :on-message-chunk ,on-message-chunk
-                                        :on-tool-call ,on-tool-call
-                                        :on-tool-call-update ,on-tool-call-update
-                                        :on-plan ,on-plan
-                                        :on-usage ,on-usage
-                                        :on-prompt-done ,on-prompt-done
-                                        :on-permission-request ,on-permission-request
-                                        :on-error ,on-error)
                  :buffer buffer
                  :log-buffer-name (buffer-name log-buffer))))
     (condition-case err
@@ -183,16 +152,33 @@ Returns non-nil if accepted.  Call only after :on-ready fires."
   (and (acp-agent-process agent)
        (process-live-p (acp-agent-process agent))))
 
-;; ── Internal: fire callbacks ────────────────────────────────────────────────
+;; ── Internal: fire hooks ────────────────────────────────────────────────────
 
 (defun acp-agent--fire (agent event &rest args)
-  "Fire the EVENT callback on AGENT with ARGS, in the agent's buffer."
-  (when-let ((fn (plist-get (acp-agent-callbacks agent) event)))
+  "Fire EVENT hooks on AGENT with ARGS, in the agent's buffer."
+  (when-let ((fns (plist-get (acp-agent-hooks agent) event)))
     (let ((buf (acp-agent-buffer agent)))
       (if (buffer-live-p buf)
           (with-current-buffer buf
-            (apply fn agent args))
-        (apply fn agent args)))))
+            (dolist (fn fns)
+              (apply fn agent args)))
+        (dolist (fn fns)
+          (apply fn agent args))))))
+
+(defun acp-agent-add-hook (agent event fn)
+  "Add FN to AGENT's hook list for EVENT.
+EVENT is a keyword like :on-ready, :on-stop, etc.
+FN receives AGENT as its first argument, followed by any
+event-specific arguments."
+  (let ((old (plist-get (acp-agent-hooks agent) event)))
+    (setf (acp-agent-hooks agent)
+          (plist-put (acp-agent-hooks agent) event (append old (list fn))))))
+
+(defun acp-agent-remove-hook (agent event fn)
+  "Remove FN from AGENT's hook list for EVENT."
+  (let ((old (plist-get (acp-agent-hooks agent) event)))
+    (setf (acp-agent-hooks agent)
+          (plist-put (acp-agent-hooks agent) event (delete fn old)))))
 
 ;; ── Internal: JSON-RPC I/O ──────────────────────────────────────────────────
 
@@ -292,6 +278,15 @@ Returns non-nil if accepted.  Call only after :on-ready fires."
        (acp-agent--fire agent :on-ready
                         (acp-agent-session-id agent)
                         (acp-agent-config-options agent))))
+    ("session/set_config_option"
+     (if error
+         (acp-agent--fire agent :on-error
+                          (format "set_config_option: %s"
+                                  (or (plist-get error :message) "failed")))
+       (let ((opts (plist-get result :configOptions)))
+         (when opts
+           (setf (acp-agent-config-options agent) opts)
+           (acp-agent--fire agent :on-config-update opts)))))
     ("session/prompt"
      (if error
          (acp-agent--fire agent :on-error
@@ -346,6 +341,11 @@ Returns non-nil if accepted.  Call only after :on-ready fires."
                           (when cost
                             `(:amount ,(plist-get cost :amount)
                                       :currency ,(plist-get cost :currency))))))
+      ("config_option_update"
+       (let ((opts (plist-get update :configOptions)))
+         (when opts
+           (setf (acp-agent-config-options agent) opts)
+           (acp-agent--fire agent :on-config-update opts))))
       ("available_commands_update"
        (setf (acp-agent-available-commands agent)
              (plist-get update :availableCommands))))))
@@ -416,6 +416,21 @@ Sends a session/cancel notification (no response expected)."
       (acp-agent--write-msg
        agent
        `((jsonrpc . "2.0") (method . "session/cancel") (params . ((sessionId . ,session-id))))))))
+
+;; ── Config options ────────────────────────────────────────────────────────────
+
+(defun acp-agent-set-config-option (agent config-id value)
+  "Set AGENT config option CONFIG-ID to VALUE.
+Sends a session/set_config_option request."
+  (let ((session-id (acp-agent-session-id agent)))
+    (unless session-id
+      (error "No active session"))
+    (acp-agent--send-request
+     agent
+     "session/set_config_option"
+     `((sessionId . ,session-id)
+       (configId . ,config-id)
+       (value . ,value)))))
 
 ;; ── Permission response ──────────────────────────────────────────────────────
 
