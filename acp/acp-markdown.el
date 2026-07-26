@@ -2,6 +2,8 @@
 (require 'treesit)
 (require 'seq)
 
+(require 'acp-markdown-table)
+
 (defgroup acp-markdown nil
   "Render markdown inline nodes from tree-sitter."
   :group 'text)
@@ -79,10 +81,14 @@
                ((pipe_table_cell) @capture)))))
     buf))
 
-(defun acp-markdown-render (buffer)
+(defvar acp-markdown--render-width nil
+  "Maximum width for rendering the current markdown document.")
+
+(defun acp-markdown-render (buffer &optional max-width)
   (with-current-buffer buffer
     (treesit-update-ranges)
-    (let ((root (treesit-parser-root-node (car (treesit-parser-list nil 'markdown)))))
+    (let* ((root (treesit-parser-root-node (car (treesit-parser-list nil 'markdown))))
+           (acp-markdown--render-width max-width))
       (acp-markdown--render-node root))))
 
 (defun acp-markdown--render-node (node)
@@ -192,7 +198,7 @@
          (concat prefix (acp-markdown--indent content (make-string (length bullet) ?\s)))))
       ((pred (string-prefix-p "list_marker_")) "")
       ("pipe_table"
-       (acp-markdown--format-table node))
+       (acp-markdown-table-format node acp-markdown--render-width))
       ("hard_line_break" "\n")
       ((or "document" "paragraph" "section" "list" "html_tag")
        (acp-markdown--render-inline node))
@@ -253,84 +259,6 @@
       (push (substring content offset) parts))
     (apply #'concat (nreverse parts))))
 
-(defun acp-markdown--format-table (table-node)
-  (pcase-let ((`(,header-node ,delim-node ,content-row-nodes)
-               (acp-markdown--extract-header-delim-and-rows table-node)))
-    (let* ((headers (acp-markdown--extract-and-render-cells header-node))
-           (rows (mapcar #'acp-markdown--extract-and-render-cells content-row-nodes))
-           (all-rows (cons headers rows))
-           (all-rows-filled (acp-markdown--pad-rows all-rows))
-           (columns (apply #'seq-mapn #'list all-rows-filled))
-           (columns-size (mapcar (lambda (column)
-                                   (apply #'max (mapcar #'string-width column))) columns))
-           (alignments (acp-markdown--extract-alignments delim-node (length columns)))
-           (padded-columns (seq-mapn #'acp-markdown--pad-column columns columns-size alignments))
-           (padded-rows (apply #'seq-mapn #'list padded-columns)))
-      (concat "┌" (mapconcat (lambda (size) (make-string (+ size 2) ?─)) columns-size "┬") "┐\n"
-              (acp-markdown--build-table-row (car padded-rows))
-              "├" (mapconcat (lambda (size) (make-string (+ size 2) ?─)) columns-size "┼") "┤\n"
-              (mapconcat #'acp-markdown--build-table-row (cdr padded-rows) "")
-              "└" (mapconcat (lambda (size) (make-string (+ size 2) ?─)) columns-size "┴") "┘\n"))))
-
-(defun acp-markdown--extract-header-delim-and-rows (table-node)
-  (let ((header-row nil)
-        (delim-row nil)
-        (content-rows nil))
-    (dolist (child (treesit-node-children table-node t))
-      (pcase (treesit-node-type child)
-        ("pipe_table_header" (setq header-row child))
-        ("pipe_table_delimiter_row" (setq delim-row child))
-        ("pipe_table_row" (push child content-rows))))
-    (list header-row delim-row (nreverse content-rows))))
-
-(defun acp-markdown--extract-alignments (delim-row-node ncols)
-  (let ((result nil))
-    (dolist (delim (treesit-node-children delim-row-node t))
-      (let ((alignment nil))
-        (dolist (align-marker (treesit-node-children delim t))
-          (pcase (treesit-node-type align-marker)
-            ("pipe_table_align_left" (setq alignment :left))
-            ((and "pipe_table_align_right" (guard (eq alignment :left))) (setq alignment :center))
-            ("pipe_table_align_right" (setq alignment :right))))
-        (push (or alignment :left) result)))
-    (setq result (nreverse result))
-    (if (< (length result) ncols)
-        (append result (make-list (- ncols (length result)) :left))
-      result)))
-
-(defun acp-markdown--extract-and-render-cells (row-node)
-  (mapcar (lambda (cell) (string-trim-right (acp-markdown--render-node cell)))
-          (treesit-node-children row-node t)))
-
-(defun acp-markdown--build-table-row (cells)
-  (concat "│ " (mapconcat #'identity cells " │ ") " │\n"))
-
-(defun acp-markdown--pad-column (column width alignment)
-  (mapcar (lambda (cell) (acp-markdown--pad-cell cell width alignment)) column))
-
-(defun acp-markdown--pad-cell (cell width alignment)
-  "Pad CELL to WIDTH chars according to ALIGNMENT (:left :center :right)."
-  (let* ((w (string-width cell))
-         (pad (- width w)))
-    (if (<= pad 0)
-        cell
-      (pcase alignment
-        (:right  (concat (make-string pad ?\s) cell))
-        (:center (let ((left  (/ pad 2))
-                       (right (- pad (/ pad 2))))
-                   (concat (make-string left ?\s) cell (make-string right ?\s))))
-        (_       (concat cell (make-string pad ?\s)))))))
-
-(defun acp-markdown--pad-rows (rows)
-  "Pad each list in ROWS to the same length with empty strings."
-  (let ((max-cols (apply #'max (mapcar #'length rows))))
-    (mapcar (lambda (row)
-              (let ((pad-len (- max-cols (length row))))
-                (if (> pad-len 0)
-                    (append row (make-list pad-len ""))
-                  row)))
-            rows)))
-
 (defvar acp-markdown--language-modes
   '(("elisp" . emacs-lisp-mode)
     ("emacs-lisp" . emacs-lisp-mode)
@@ -376,7 +304,6 @@
             (font-lock-default-fontify-region (point-min) (point-max) nil))
           (buffer-string))
       code)))
-
 
 (provide 'acp-markdown)
 ;;; acp-markdown.el ends here

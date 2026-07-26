@@ -172,7 +172,7 @@ any pending permission requests, per the ACP specification."
   (with-current-buffer acp--markdown-buffer
     (goto-char (point-max))
     (insert text))
-  (let ((rendered-response (acp-markdown-render acp--markdown-buffer))
+  (let ((rendered-response (acp-markdown-render acp--markdown-buffer (window-width)))
         (inhibit-read-only t)
         (begin (marker-position acp--response-begin)))
     (delete-region begin (point-max))
